@@ -1,0 +1,15 @@
+Package: convertxlsform
+Title: Convert ODK XLSForms to Word Documents
+Version: 0.1.0
+Authors@R: person("Masud", "Rahman", email = "rahmmoha@unhcr.org", role = c("aut", "cre"))
+Description: Converts XLSForm questionnaires from ODK into formatted Microsoft Word documents for data collection.
+Depends: R (>= 3.5.0)
+Imports:
+    readxl,
+    dplyr,
+    officer,
+    tools
+License: MIT + file LICENSE.md
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2

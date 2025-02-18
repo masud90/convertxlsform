@@ -1,6 +1,6 @@
 # convertxlsform
 
-**convertxlsform** is an R package that converts XLSForm questionnaires—commonly used in ODK (Open Data Kit) surveys—into neatly formatted Microsoft Word documents. The package supports multiple languages (if language-specific columns are present) and applies several formatting options, such as:
+**convertxlsform** is an R package that converts [XLSForm questionnaires](https://xlsform.org/en/)—commonly used in [Open Data Kit (ODK)](https://opendatakit.org/software/) surveys—into neatly formatted Microsoft Word documents. This package was tested using [KoboToolbox](https://www.kobotoolbox.org/), but should ideally work for most XLSForm based survey platforms. The package supports multiple languages (if language-specific columns are present) and applies several formatting options, such as:
 
 - Prefixing required questions with an asterisk (*)
 - Formatting group/repeat sections with clear headers
@@ -58,9 +58,9 @@ library(convertxlsform)
 convertxlsform("path/to/your/form.xlsx", selected_language = "English (en)")
 ```
 ### Function Arguments
-- xlsform_path: A character string specifying the path to the XLSForm (.xlsx file).
-- selected_language: A character string indicating the language to use for label and hint columns (default is "en"). If the XLSForm does not have language-specific columns, the package will default to using the base columns (e.g.: label, hint, constraint etc.).
-- output_docx: (Optional) A character string specifying the output DOCX filename. If NULL (the default), the function uses the XLSForm’s base name appended with "_PAPER.docx".
+- `xlsform_path`: A character string specifying the path to the XLSForm (.xlsx file).
+- `selected_language`: A character string indicating the language to use for label and hint columns (default is "en"). If the XLSForm does not have language-specific columns, the package will default to using the base columns (e.g.: label, hint, constraint etc.).
+- `output_docx`: (Optional) A character string specifying the output DOCX filename. If NULL (the default), the function uses the XLSForm’s base name appended with "_PAPER.docx".
 
 ## Examples
 Below is an example workflow:
@@ -77,11 +77,10 @@ The generated Word document will include:
 
 - A title (from the XLSForm settings)
 - A "Selected language:" header (if language-specific columns exist)
-- A blank line before the first question
 - Each question formatted with its type, relevance (if provided), and other details
 - Required questions marked with an asterisk (*)
 - Constraint messages (if any) in italics and enclosed in parentheses
-- Answer area placeholders for questions (text, integer, geopoint, etc.)
+- Answer area placeholders for questions without specified answer choices (text, integer, geopoint, etc.)
 
 ## Contributing
 Contributions are welcome! If you find issues, have feature requests, or wish to improve the code, please:
@@ -92,5 +91,5 @@ Contributions are welcome! If you find issues, have feature requests, or wish to
 - Please ensure that your code adheres to our coding style and passes devtools::check() before submitting your pull request.
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [license](LICENSE) file for details.
 

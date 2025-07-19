@@ -1,13 +1,14 @@
 Package: convertxlsform
-Title: This package generates a paper version (PAPI) questionnaire in MS Word from a XLSFORM based CAPI questionnaire
-Version: 0.2.0
+type: Package
+Title: Convert an XLSForm to a Word Document
+Version: 0.2.1
 Authors@R: 
     person("Masud", "Rahman", email = "write2masud+convertxlsform@gmail.com", role = c("aut", "cre"))
 Description: convertxlsform is an R package that converts XLSForm questionnaires—commonly used in Open Data Kit (ODK) surveys—into neatly formatted Microsoft Word documents. This package was tested using KoboToolbox, but should ideally work for most XLSForm based survey platforms. The package supports multiple languages (if language-specific columns are present) and applies several formatting options.
 License: MIT + file LICENSE
 Encoding: UTF-8
-lazyData: true
-depends: R (>= 3.6)
+LazyData: true
+Depends: R (>= 3.6)
 Imports:
     readxl,
     officer,

@@ -2,33 +2,27 @@
 % Please edit documentation in R/convertxlsform.R
 \name{convertxlsform}
 \alias{convertxlsform}
-\title{Convert ODK XLSForms to Word Documents}
+\title{Convert an XLSForm to a Word document}
 \usage{
-convertxlsform(xlsform_path, selected_language = "en", output_docx = NULL)
+convertxlsform(
+  xlsform_path,
+  selected_language = "en",
+  output_docx = NULL,
+  number_questions = TRUE
+)
 }
 \arguments{
-\item{xlsform_path}{Character. Path to the XLSForm file (in `.xlsx` format).}
+\item{xlsform_path}{Path to the .xlsx XLSForm}
 
-\item{selected_language}{Character. The language to use for label and hint columns. Default is `"en"`.}
+\item{selected_language}{Language code (defaults to "en")}
 
-\item{output_docx}{Character. The output Word document filename. If `NULL`, the function uses the XLSForm’s base name appended with `"_PAPER.docx"`.}
+\item{output_docx}{Destination .docx file (defaults to basename(xlsx))}
+
+\item{number_questions}{Logical: number questions? (defaults to TRUE)}
 }
 \value{
-Invisibly returns the modified Word document object. The DOCX file is written to disk.
+Invisibly returns the path to the generated .docx
 }
 \description{
-The `convertxlsform` function takes an XLSForm questionnaire from ODK (Open Data Kit)
-and converts it into a neatly formatted Microsoft Word document.
-It supports multiple languages (if language-specific columns exist) and applies various formatting
-options such as bolding required questions, italicizing hints and constraint messages, and more.
-}
-\details{
-If the XLSForm does not have language-specific columns (i.e. columns named like `label::<lang>`),
-the function will use the default columns and will not print the "Selected language" line.
-}
-\examples{
-\dontrun{
-  convertxlsform("path/to/your/form.xlsx", selected_language = "English (en)")
-}
-
+Convert an XLSForm to a Word document
 }

@@ -1,235 +1,384 @@
-#' Convert ODK XLSForms to Word Documents
+#' Convert an XLSForm to a Word document
 #'
-#' @description
-#' The `convertxlsform` function takes an XLSForm questionnaire from ODK (Open Data Kit)
-#' and converts it into a neatly formatted Microsoft Word document.
-#' It supports multiple languages (if language-specific columns exist) and applies various formatting
-#' options such as bolding required questions, italicizing hints and constraint messages, and more.
-#'
-#' @param xlsform_path Character. Path to the XLSForm file (in `.xlsx` format).
-#' @param selected_language Character. The language to use for label and hint columns. Default is `"en"`.
-#' @param output_docx Character. The output Word document filename. If `NULL`, the function uses the XLSForm’s base name appended with `"_PAPER.docx"`.
-#'
-#' @return Invisibly returns the modified Word document object. The DOCX file is written to disk.
-#'
-#' @details
-#' If the XLSForm does not have language-specific columns (i.e. columns named like `label::<lang>`),
-#' the function will use the default columns and will not print the "Selected language" line.
-#'
-#' @examples
-#' \dontrun{
-#'   convertxlsform("path/to/your/form.xlsx", selected_language = "English (en)")
-#' }
-#'
+#' @importFrom readxl    excel_sheets read_excel
+#' @importFrom officer   read_docx body_add_par body_add_fpar body_add_img
+#' @importFrom officer   fpar ftext fp_text fp_par fp_border
+#' @importFrom commonmark markdown_html
+#' @importFrom flextable regulartable border_outer delete_part width body_add_flextable
+#' @importFrom magick    image_read image_info
+#' @importFrom stats setNames
+#' @param xlsform_path Path to the .xlsx XLSForm
+#' @param selected_language Language code (defaults to "en")
+#' @param output_docx Destination .docx file (defaults to basename(xlsx))
+#' @param number_questions Logical: number questions? (defaults to TRUE)
+#' @return Invisibly returns the path to the generated .docx
 #' @export
-convertxlsform <- function(xlsform_path, selected_language = "en", output_docx = NULL) {
+convertxlsform <- function(xlsform_path,
+                           selected_language = "en",
+                           output_docx = NULL,
+                           number_questions = TRUE) {
+  start_time <- Sys.time()
 
-  # 1. Set output file name: use the XLSForm base name and append "_PAPER"
+  # Read sheets and media
+  sheets       <- excel_sheets(xlsform_path)
+  survey_tbl   <- read_survey(xlsform_path, sheets)
+  choices_tbl  <- read_choices(xlsform_path, sheets)
+  settings_tbl <- read_settings(xlsform_path, sheets)
+  q_images      <- read_images(xlsform_path, sheets)
+
+  # Validate inputs
+  validate_xlsform(survey_tbl, choices_tbl, settings_tbl, selected_language)
+
+  # Parse survey and build choices map
+  questions    <- parse_survey_rows(survey_tbl, selected_language)
+  choices_map  <- build_choices_map(choices_tbl, selected_language, dirname(xlsform_path))
+
+  # Generate Word document
+  doc <- generate_docx(
+    questions, choices_map, settings_tbl,
+    selected_language, q_images, number_questions
+  )
+
+  # Determine output path
   if (is.null(output_docx)) {
-    base_name <- tools::file_path_sans_ext(basename(xlsform_path))
-    output_docx <- paste0(base_name, "_PAPER.docx")
+    base <- tools::file_path_sans_ext(basename(xlsform_path))
+    output_docx <- file.path(getwd(), paste0(base, ".docx"))
   }
 
-  # 2. Read the necessary sheets.
-  settings <- readxl::read_excel(xlsform_path, sheet = "settings")
-  survey   <- readxl::read_excel(xlsform_path, sheet = "survey")
-  choices  <- readxl::read_excel(xlsform_path, sheet = "choices")
+  # Save document
+  save_docx(doc, output_docx)
 
-  # 3. Get the form title.
-  form_title <- if ("form_title" %in% names(settings)) {
-    settings$form_title[1]
-  } else if ("title" %in% names(settings)) {
-    settings$title[1]
+  # Completion message
+  duration <- difftime(Sys.time(), start_time, units = "secs")
+  message(sprintf("Document generated in %.2f secs: %s", duration, normalizePath(output_docx)))
+
+  invisible(output_docx)
+}
+
+# Read sheets
+default_sheet_error <- function() {
+  stop("Incomplete xlsform. A required worksheet (survey, choices, settings) is not present")
+}
+read_survey <- function(path, sheets) {
+  if (!"survey" %in% sheets) default_sheet_error()
+  read_excel(path, sheet = "survey")
+}
+read_choices <- function(path, sheets) {
+  if (!"choices" %in% sheets) default_sheet_error()
+  read_excel(path, sheet = "choices")
+}
+read_settings <- function(path, sheets) {
+  if (!"settings" %in% sheets) default_sheet_error()
+  read_excel(path, sheet = "settings")
+}
+read_images <- function(path, sheets) {
+  # Reads 'image' sheet for question images
+  if (!"image" %in% sheets) return(character(0))
+  img_tbl <- read_excel(path, sheet = "image")
+  base_dir <- dirname(path)
+  files <- file.path(base_dir, img_tbl$media_filename)
+  valid <- file.exists(files)
+  setNames(files[valid], img_tbl$name[valid])
+}
+
+# Validate xlsform structure
+validate_xlsform <- function(survey, choices, settings, selected_language) {
+  # Required columns and sheets
+  req_cols <- c("type", "name", "label")
+  if (!all(req_cols %in% names(survey))) {
+    stop("Incomplete xlsform. A required column is not present in the 'survey' worksheet.")
+  }
+  title_col <- paste0("form_title")
+  if (!(title_col %in% names(settings)) || is.na(settings[[title_col]][1])) {
+    stop("Incomplete xlsform. The form_title is missing in the settings worksheet.")
+  }
+  # Validate choice lists
+  sel_idx <- grep("^(select_one|select_multiple|rank)", survey$type)
+  if (length(sel_idx)) {
+    lists <- unique(sapply(strsplit(survey$type[sel_idx], "\\s+"), `[`, 2))
+    if (!all(lists %in% choices$list_name)) {
+      stop("A named answer choice is not available in the choices worksheet.")
+    }
+  }
+}
+
+#helper: add an Arial‐11 paragraph
+add_par_arial <- function(doc, text) {
+  body_add_fpar(
+    doc,
+    fpar(ftext(text, fp_text(font.family = "Arial", font.size = 11))),
+    style = "Normal"
+  )
+}
+
+# Parse survey rows into question objects
+parse_survey_rows <- function(survey, selected_language) {
+  questions <- list()
+  for (i in seq_len(nrow(survey))) {
+    row   <- survey[i, ]
+    parts <- strsplit(row$type, "\\s+")[[1]]
+    base  <- parts[1]
+    if (base == "calculate") next
+    attachment <- if (base == "select_one_from_file") parts[2] else NA_character_
+    list_name  <- if (length(parts) >= 2 && base %in% c("select_one", "select_multiple", "rank", "select_one_from_file")) parts[2] else NA_character_
+    get_lang <- function(col) {
+      col_lang <- paste0(col, "::", selected_language)
+      if (col_lang %in% names(row)) row[[col_lang]] else row[[col]]
+    }
+    instr <- if ("instructions" %in% names(row)) get_lang("instructions") else NA_character_
+    q <- list(
+      type               = base,
+      attachment         = attachment,
+      list_name          = list_name,
+      name               = row$name,
+      label              = get_lang("label"),
+      hint               = get_lang("hint"),
+      instruction        = instr,
+      required           = tolower(as.character(row$required)) %in% c("true", "yes"),
+      relevant           = row$relevant,
+      constraint_message = get_lang("constraint_message"),
+      parameters         = row$parameters,
+      repeat_count       = if (!is.null(row$repeat_count)) row$repeat_count else NA
+    )
+    questions[[length(questions) + 1]] <- q
+  }
+  questions
+}
+
+# Build lookup for choices including images
+build_choices_map <- function(choices, selected_language, base_dir) {
+  out <- list()
+  img_col <- if ("image" %in% names(choices)) "image" else NULL
+  for (ln in unique(choices$list_name)) {
+    df <- choices[choices$list_name == ln, ]
+    lbl_col <- if (paste0("label::", selected_language) %in% names(df)) paste0("label::", selected_language) else "label"
+    items <- lapply(seq_len(nrow(df)), function(i) {
+      row <- df[i, ]
+      img_file <- if (!is.null(img_col) && !is.na(row[[img_col]])) row[[img_col]] else NA_character_
+      img_path <- if (!is.na(img_file)) file.path(base_dir, img_file) else NA_character_
+      if (!is.na(img_file) && !file.exists(img_path)) {
+        warning(sprintf("Choice image '%s' for list '%s' item '%s' not found in project root", img_file, ln, row$name))
+        img_path <- NA_character_
+      }
+      list(
+        name  = row$name,
+        label = row[[lbl_col]],
+        image = if (!is.na(img_path)) img_path else img_file
+      )
+    })
+    out[[ln]] <- items
+  }
+  out
+}
+
+# Helpers for docx formatting
+add_text_box <- function(doc, lines) {
+  df <- data.frame(text = rep("", lines), stringsAsFactors = FALSE)
+  ft <- regulartable(df)
+  # delete header
+  ft <- delete_part(ft, part = "header")
+  # stretch table to full page width (6.5 inches for 1" margins)
+  ft <- width(ft, j = 1, width = 6.5, unit = "in")
+  ft <- border_outer(ft, part = "all", border = fp_border(color = "black", width = 1))
+  doc <- body_add_flextable(doc, ft)
+  doc <- add_par_arial(doc, "")
+  doc
+}
+add_choice_item <- function(doc, item, symbol) {
+  # symbol, [name] label, optional image
+  txt <- paste0(symbol, " [", item$name, "] ", item$label)
+  if (!is.na(item$image) && file.exists(item$image)) {
+    doc <- add_par_arial(doc, txt)
+    doc <- body_add_img(doc, src = item$image, height = 1, style = "Normal")
+  } else if (!is.na(item$image)) {
+    # image mentioned but missing, append filename
+    txt2 <- paste0(txt, " (image: ", item$image, ")")
+    doc <- add_par_arial(doc, txt2)
   } else {
-    "Untitled Form"
+    doc <- add_par_arial(doc, txt)
   }
+  doc
+}
+add_bulleted_list <- function(doc, items, symbol) {
+  for (itm in items) {
+    doc <- add_choice_item(doc, itm, symbol)
+  }
+  doc
+}
 
-  # 4. Determine whether language-specific columns exist.
-  lang_specified <- any(grepl("^label::", names(survey))) ||
-    any(grepl("^hint::", names(survey))) ||
-    any(grepl("^constraint::", names(survey)))
+# Format line 3 logic
+format_line3 <- function(doc, q, choices_map) {
+  switch(q$type,
+         select_one = {
+           doc <- add_par_arial(doc, "(Select only one answer)")
+           if (!is.na(q$instruction)) doc <- add_par_arial(doc, q$instruction)
+           add_bulleted_list(doc, choices_map[[q$list_name]], "\u25EF")
+         },
+         select_one_from_file = {
+           add_par_arial(doc, paste0("Answer choices are to be populated from this attachment : ", q$attachment))
+         },
+         select_multiple = {
+           doc <- add_par_arial(doc, "(Select all that apply)")
+           if (!is.na(q$instruction)) doc <- add_par_arial(doc, q$instruction)
+           add_bulleted_list(doc, choices_map[[q$list_name]], "\u25A2")
+         },
+         rank = {
+           doc <- add_par_arial(doc, "(Select only one answer)")
+           if (!is.na(q$instruction)) doc <- add_par_arial(doc, q$instruction)
+           add_bulleted_list(doc, choices_map[[q$list_name]], "\u25EF")
+         },
+         range = {
+           doc <- add_par_arial(doc, "(Select only one answer)")
+           if (!is.na(q$instruction)) doc <- add_par_arial(doc, q$instruction)
+           params <- strsplit(q$parameters, ";")[[1]]
+           p_list <- setNames(sapply(strsplit(params, "="), `[`, 2), sapply(strsplit(params, "="), `[`, 1))
+           start <- as.numeric(p_list["start"][1] %||% 1)
+           end   <- as.numeric(p_list["end"][1])
+           step  <- as.numeric(p_list["step"][1] %||% 1)
+           vals  <- seq(start, end, by = step)
+           df    <- lapply(vals, function(v) list(name=v,label=v,image=NA_character_))
+           add_bulleted_list(doc, df, "\u25EF")
+         },
+         text = {
+           if (!is.na(q$instruction)) doc <- add_par_arial(doc, q$instruction)
+           add_text_box(doc, 4)
+         },
+         integer = {
+           doc <- add_par_arial(doc, "(Only answer in whole numbers/ integers using numeric characters)")
+           if (!is.na(q$instruction)) doc <- add_par_arial(doc, q$instruction)
+           add_text_box(doc, 2)
+         },
+         decimal = {
+           doc <- add_par_arial(doc, "(Only use numeric characters. You may include decimal points)")
+           if (!is.na(q$instruction)) doc <- add_par_arial(doc, q$instruction)
+           add_text_box(doc, 2)
+         },
+         date = add_text_box(doc, 2),
+         time = add_text_box(doc, 2),
+         dateTime = add_text_box(doc, 2),
+         image    = add_par_arial(doc, "(Either take a new image with the device camera, or draw/ annotate on the device screen)"),
+         barcode  = add_par_arial(doc, "(Scan the barcode using the device camera or connected barcode scanner)"),
+         audio    = add_par_arial(doc, "(Capture audio with the device)"),
+         video    = add_par_arial(doc, "(Capture video with the device)"),
+         geopoint = add_par_arial(doc, "(Collect one set of coordinates using device GPS)"),
+         geotrace = add_par_arial(doc, "(Record a line of two or more sets of coordinates using device GPS)"),
+         geoshape = add_par_arial(doc, "(Record a polygon of multiple GPS coordinates using device GPS)"),
+         file     = doc,
+         note     = doc,
+         doc
+  )
+}
 
-  if (!lang_specified) {
-    selected_language <- "language not specified"
-    label_col_global <- "label"
-    hint_col_global <- "hint"
+# Generate Word document with all questions
+generate_docx <- function(questions, choices_map, settings,
+                          selected_language, q_images, number_questions) {
+  doc <- read_docx()
+  # Title
+  title_col <- paste0("form_title::", selected_language)
+  title_val <- if (title_col %in% names(settings)) {
+    settings[[title_col]][1]
   } else {
-    label_col_global <- paste0("label::", selected_language)
-    hint_col_global <- paste0("hint::", selected_language)
+    settings[["form_title"]][1]
+  }
+  doc <- body_add_fpar(
+    doc,
+    fpar(
+      ftext(title_val,
+            fp_text(font.family = "Arial", font.size = 16, bold = TRUE)),
+      fp_p = fp_par(text.align = "center")
+    )
+  )
+  doc <- add_par_arial(doc, "")
+  # Language line
+  if (selected_language != "en") {
+    doc <- add_par_arial(doc, paste0("Language: ", selected_language))
+    doc <- add_par_arial(doc, "")
   }
 
-  # 5. Create a new Word document.
-  doc <- officer::read_docx()
+  # note on mandatory questions
+  doc <- add_par_arial(
+    doc,
+    "Mandatory questions are marked with an asterisk (*) symbol."
+  )
+  doc <- add_par_arial(doc, "")
 
-  # 6. Define an internal helper function to add formatted paragraphs.
-  add_fpar <- function(doc, text, style = "Normal", bold = FALSE, font_size = 11,
-                       align = "left", italic = FALSE) {
-    fp <- officer::fp_text(font.family = "Arial", bold = bold, font.size = font_size, italic = italic)
-    ppr <- officer::fp_par(text.align = align)
-    ft <- officer::ftext(text, fp)
-    par <- officer::fpar(ft, fp_p = ppr)
-    doc <- officer::body_add_fpar(doc, value = par, style = style)
-    return(doc)
+  # Initialize numbering stack
+  if (number_questions) {
+    number_stack <- c(0)
+  } else {
+    number_stack <- NULL
   }
 
-  # 7. Add the survey title.
-  doc <- add_fpar(doc, form_title, style = "graphic title", bold = TRUE, font_size = 16)
-
-  # 8. Add the language line only if language-specific columns exist.
-  if (lang_specified) {
-    doc <- add_fpar(doc, paste0("Selected language: ", selected_language),
-                    style = "graphic title", bold = FALSE, font_size = 10)
-    doc <- add_fpar(doc, "", style = "Normal")
-  }
-
-  # 8a. Add an extra blank line before the first question.
-  doc <- add_fpar(doc, "", style = "Normal", bold = FALSE)
-
-  # 9. Loop over each question.
-  for (i in 1:nrow(survey)) {
-    q <- survey[i, ]
-
-    # Extract key fields.
-    qname      <- if ("name" %in% names(q)) q$name else ""
-    full_qtype <- if ("type" %in% names(q)) q$type else ""
-    qtype <- if (nchar(full_qtype) > 0) strsplit(full_qtype, " ")[[1]][1] else ""
-
-    # Skip system-generated questions.
-    if (tolower(qtype) %in% c("start", "end", "audit", "today", "username", "deviceid")) next
-
-    # For select questions, extract the list name.
-    list_name <- if (grepl(" ", full_qtype)) trimws(sub("^[^ ]+\\s+", "", full_qtype)) else ""
-
-    qrelevant    <- if ("relevant" %in% names(q)) q$relevant else ""
-    qcalculation <- if ("calculation" %in% names(q)) q$calculation else ""
-
-    # Get language-specific label and hint.
-    label_col <- if (lang_specified) label_col_global else "label"
-    hint_col  <- if (lang_specified) hint_col_global else "hint"
-
-    qlabel <- if (label_col %in% names(q)) q[[label_col]] else if ("label" %in% names(q)) q$label else ""
-    qhint  <- if (hint_col  %in% names(q)) q[[hint_col]]  else if ("hint"  %in% names(q)) q$hint  else ""
-    qconstraint_message <- if ("constraint_message" %in% names(q)) q$constraint_message else ""
-
-    lower_full_qtype <- tolower(full_qtype)
-
-    # Prefix required questions with an asterisk.
-    required_val <- if ("required" %in% names(q)) q$required else NA
-    if (!is.na(required_val) && tolower(as.character(required_val)) == "true") {
-      qname <- paste0("*", qname)
+  # Loop through questions
+  for (q in questions) {
+    # Structural group handling
+    if (q$type == "begin_group") {
+      if (number_questions) number_stack <- c(number_stack, 0)
+      label <- q$label %||% q$name
+      doc <- add_par_arial(doc, paste0("Group name \"", label, "\" begins here."))
+      if (!is.na(q$relevant)) doc <- add_par_arial(doc, paste0("Relevant clause: ", q$relevant))
+      next
     }
-
-    # Handle group/repeat rows.
-    if (grepl("^begin_group", lower_full_qtype)) {
-      line1 <- paste0("---- Begin group: ", qname, " ----")
-      rel_text  <- if (!is.na(qrelevant) && trimws(qrelevant) != "") paste0("Relevance: ", qrelevant) else ""
-      calc_text <- if (!is.na(qcalculation) && trimws(qcalculation) != "") paste0("calculation: ", qcalculation) else ""
-      line2 <- if (rel_text != "" & calc_text != "") {
-        paste0(rel_text, ", ", calc_text)
-      } else if (rel_text != "") {
-        rel_text
-      } else if (calc_text != "") {
-        calc_text
-      } else {
-        ""
-      }
-      doc <- add_fpar(doc, line1, style = "Normal", bold = TRUE)
-      if (line2 != "") doc <- add_fpar(doc, line2, style = "Normal", bold = FALSE)
-      doc <- add_fpar(doc, "", style = "Normal")
+    if (q$type == "end_group") {
+      label <- q$label %||% q$name
+      doc <- add_par_arial(doc, paste0("Group name \"", label, "\" ends here."))
+      if (number_questions) number_stack <- number_stack[-length(number_stack)]
       next
-    } else if (grepl("^end_group", lower_full_qtype)) {
-      line <- paste0("---- End group: ", qname, " ----")
-      doc <- add_fpar(doc, line, style = "Normal", bold = TRUE)
-      doc <- add_fpar(doc, "", style = "Normal")
+    }
+    if (q$type == "begin_repeat") {
+      if (number_questions) number_stack <- c(number_stack, 0)
+      label <- q$label %||% q$name
+      doc <- add_par_arial(doc, paste0("Repeat group name \"", label, "\" begins here."))
+      if (!is.na(q$relevant)) doc <- add_par_arial(doc, paste0("Relevant clause: ", q$relevant))
+      cnt <- if (!is.na(q$repeat_count)) q$repeat_count else "repeat these questions as many times as required"
+      doc <- add_par_arial(doc, paste0("Repeat count: ", cnt))
       next
-    } else if (grepl("^begin_repeat", lower_full_qtype)) {
-      line1 <- paste0("---- Begin_repeat : ", qname, " ----")
-      rel_text  <- if (!is.na(qrelevant) && trimws(qrelevant) != "") paste0("Relevance: ", qrelevant) else ""
-      calc_text <- if (!is.na(qcalculation) && trimws(qcalculation) != "") paste0("calculation: ", qcalculation) else ""
-      line2 <- if (rel_text != "" & calc_text != "") {
-        paste0(rel_text, ", ", calc_text)
-      } else if (rel_text != "") {
-        rel_text
-      } else if (calc_text != "") {
-        calc_text
-      } else {
-        ""
-      }
-      doc <- add_fpar(doc, line1, style = "Normal", bold = TRUE)
-      if (line2 != "") doc <- add_fpar(doc, line2, style = "Normal", bold = FALSE)
-      doc <- add_fpar(doc, "", style = "Normal")
-      next
-    } else if (grepl("^end_repeat", lower_full_qtype)) {
-      line <- paste0("---- End repeat: ", qname, " ----")
-      doc <- add_fpar(doc, line, style = "Normal", bold = TRUE)
-      doc <- add_fpar(doc, "", style = "Normal")
+    }
+    if (q$type == "end_repeat") {
+      label <- q$label %||% q$name
+      doc <- add_par_arial(doc, paste0("Repeat group name \"", label, "\" ends here."))
+      if (number_questions) number_stack <- number_stack[-length(number_stack)]
       next
     }
 
-    # Handle note questions.
-    if (tolower(qtype) == "note") {
-      note_line <- "Note"
-      if (!is.na(qrelevant) && trimws(qrelevant) != "") {
-        note_line <- paste(note_line, qrelevant)
-      }
-      doc <- add_fpar(doc, note_line, style = "Normal", bold = TRUE)
-      if (!is.na(qlabel) && trimws(qlabel) != "") {
-        doc <- add_fpar(doc, qlabel, style = "Normal", bold = FALSE)
-      }
-      doc <- add_fpar(doc, "", style = "Normal")
-      next
-    }
-
-    # For regular questions, build the first line.
-    line1 <- if (!is.na(qrelevant) && trimws(qrelevant) != "") {
-      paste(qname, paste0("(", qtype, ")"), qrelevant, sep = " | ")
+    # Regular question numbering and label
+    if (q$type == "note") {
+      lbl_text <- paste0("Note: ", q$label)
+    } else if (number_questions) {
+      # increment and render nested number + asterisk if required
+      number_stack[length(number_stack)] <- number_stack[length(number_stack)] + 1
+      num <- paste(number_stack, collapse = ".")
+      lbl_text <- paste0(num, ". ", if (q$required) "* " else "", q$label)
     } else {
-      paste(qname, paste0("(", qtype, ")"))
+      lbl_text <- paste0(if (q$required) "* " else "", q$label)
     }
-    doc <- add_fpar(doc, line1, style = "Normal", bold = TRUE)
+    doc <- add_par_arial(doc, lbl_text)
 
-    if (!is.na(qlabel) && trimws(qlabel) != "") {
-      doc <- add_fpar(doc, qlabel, style = "Normal", bold = FALSE)
-    }
+    # Hint
+    if (!is.na(q$hint)) doc <- add_par_arial(doc, q$hint)
 
-    if (!is.na(qhint) && trimws(qhint) != "") {
-      doc <- add_fpar(doc, qhint, style = "Normal", bold = FALSE, italic = TRUE)
-    }
-
-    # Output the answer area.
-    if (tolower(qtype) %in% c("text", "integer", "geopoint")) {
-      doc <- add_fpar(doc, "[___ ___ ___ ___ ___]", style = "Normal", bold = FALSE)
-    } else if (tolower(qtype) == "calculate") {
-      doc <- add_fpar(doc, qcalculation, style = "Normal", bold = FALSE)
-    } else if (grepl("^select_one", tolower(full_qtype)) ||
-               grepl("^select_multiple", tolower(full_qtype))) {
-      current_choices <- dplyr::filter(choices, list_name == !!list_name)
-      if (nrow(current_choices) > 0) {
-        for (j in 1:nrow(current_choices)) {
-          choice <- current_choices[j, ]
-          if (lang_specified && paste0("label::", selected_language) %in% names(choice)) {
-            choice_label <- choice[[paste0("label::", selected_language)]]
-          } else {
-            choice_label <- choice$label
-          }
-          choice_line <- paste(choice$name, choice_label, sep = " - ")
-          doc <- add_fpar(doc, choice_line, style = "Normal", bold = FALSE)
-        }
-      }
-    } else {
-      doc <- add_fpar(doc, "", style = "Normal", bold = FALSE)
+    # Question image
+    if (q$name %in% names(q_images)) {
+      doc <- body_add_img(doc, src = q_images[[q$name]], height = 2, style = "Normal")
     }
 
-    # Add the constraint message after the answer area.
-    if (!is.na(qconstraint_message) && trimws(qconstraint_message) != "") {
-      doc <- add_fpar(doc, paste0("(", qconstraint_message, ")"), style = "Normal", bold = FALSE, italic = TRUE)
-    }
+    # Line 3 content
+    doc <- format_line3(doc, q, choices_map)
 
-    # Blank line for spacing between questions.
-    doc <- add_fpar(doc, "", style = "Normal", bold = FALSE)
+    # Constraint message
+    if (!is.na(q$constraint_message)) doc <- add_par_arial(doc, paste0("(", q$constraint_message, ")"))
+
+    # Relevant clause
+    if (!is.na(q$relevant)) doc <- add_par_arial(doc, paste0("Relevant clause: ", q$relevant))
+
+    # Blank line
+    doc <- add_par_arial(doc, "")
   }
 
-  # Save the Word document.
-  print(doc, target = output_docx)
-  message("Word document created: ", output_docx)
+  doc
+}
+
+# Save document to file
+save_docx <- function(doc, path) {
+  print(doc, target = path)
 }

@@ -26,3 +26,12 @@ Invisibly returns the path to the generated .docx
 \description{
 Convert an XLSForm to a Word document
 }
+\examples{
+\dontrun{
+# Basic usage, writes survey.docx next to survey.xlsx
+convertxlsform("survey.xlsx")
+
+# Turn off numbering
+convertxlsform("survey.xlsx", number_questions = FALSE)
+}
+}

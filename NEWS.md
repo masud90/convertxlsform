@@ -1,5 +1,11 @@
 # convertxlsform News
 
+## 0.2.1 (2025-07-XX)
+
+- Title field capitalization corrected in DESCRIPTION.
+- Added runnable examples in documentation.
+- Version bump for CRAN resubmission.
+
 ## 0.2.0 (2025-07-19)
 
 **First CRAN release.**

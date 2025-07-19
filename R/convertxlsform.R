@@ -12,6 +12,14 @@
 #' @param output_docx Destination .docx file (defaults to basename(xlsx))
 #' @param number_questions Logical: number questions? (defaults to TRUE)
 #' @return Invisibly returns the path to the generated .docx
+#' @examples
+#' \dontrun{
+#' # Basic usage, writes survey.docx next to survey.xlsx
+#' convertxlsform("survey.xlsx")
+#'
+#' # Turn off numbering
+#' convertxlsform("survey.xlsx", number_questions = FALSE)
+#' }
 #' @export
 convertxlsform <- function(xlsform_path,
                            selected_language = "en",

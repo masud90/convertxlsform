@@ -17,7 +17,8 @@ Or the latest development version on GitHub:
 
 ```r
 # install.packages("devtools")
-devtools::install_github("masud90/convertxlsform")
+# (explicitly specify the 'main' branch)
+devtools::install_github("masud90/convertxlsform@main")
 ```
 ## Usage
 

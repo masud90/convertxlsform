@@ -424,8 +424,15 @@ format_line3_blocks <- function(q, choices_map, fp_normal, choice_code, ext_choi
   blks
 }
 
+# Wrap flextables as officer blocks; pass through others
 as_block <- function(x) {
   if (inherits(x, "flextable")) officer::block_table(x) else x
+}
+
+# Turn a plain list of blocks into a proper officer block_list
+to_block_list <- function(blks) {
+  if (!length(blks)) return(officer::block_list())
+  do.call(officer::block_list, blks)
 }
 
 
@@ -471,22 +478,22 @@ generate_docx <- function(questions, choices_map, settings,
 
   # Main loop — build blocks per question and add once
   for (q in questions) {
-    blocks <- officer::block_list()
+    blks <- list()
 
     # Structural groups
     if (q$type %in% c("begin_group", "begin_repeat")) {
       if (number_questions) number_stack <- c(number_stack, 0L)
       label <- q$label %||% q$name
-      blocks <- append(blocks, list(fpar(ftext(sprintf('%s name "%s" begins here.',
+      blks[[length(blks)+1]] <- fpar(ftext(sprintf('%s name "%s" begins here.',
                                                        ifelse(q$type == "begin_group","Group","Repeat group"),
-                                                       label), fp_normal))))
+                                                       label), fp_normal)))
       if (!is.na(q$relevant)) blocks <- append(blocks, list(fpar(ftext(paste0("Relevant clause: ", q$relevant), fp_normal))))
       if (q$type == "begin_repeat") {
         cnt <- if (!is.na(q$repeat_count)) q$repeat_count else "repeat these questions as many times as required"
         blocks <- append(blocks, list(fpar(ftext(paste0("Repeat count: ", cnt), fp_normal))))
       }
       blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
-      doc <- officer::body_add_blocks(doc, blocks)
+      doc <- officer::body_add_blocks(doc, to_block_list(blks))
       next
     }
 
@@ -497,7 +504,7 @@ generate_docx <- function(questions, choices_map, settings,
                                                        label), fp_normal))))
       if (number_questions && length(number_stack)) number_stack <- number_stack[-length(number_stack)]
       blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
-      doc <- officer::body_add_blocks(doc, blocks)
+      doc <- officer::body_add_blocks(doc, to_block_list(blks))
       next
     }
 
@@ -541,7 +548,7 @@ generate_docx <- function(questions, choices_map, settings,
     blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
 
     # Add blocks
-    doc <- officer::body_add_blocks(doc, blocks)
+    doc <- officer::body_add_blocks(doc, to_block_list(blks))
   }
 
   doc

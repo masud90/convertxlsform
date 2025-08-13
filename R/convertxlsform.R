@@ -425,9 +425,7 @@ format_line3_blocks <- function(q, choices_map, fp_normal, choice_code, ext_choi
 }
 
 # Wrap flextables as officer blocks; pass through others
-as_block <- function(x) {
-  if (inherits(x, "flextable")) officer::block_table(x) else x
-}
+as_block <- function(x) x
 
 # Turn a plain list of blocks into a proper officer block_list
 to_block_list <- function(blks) {
@@ -536,7 +534,20 @@ generate_docx <- function(questions, choices_map, settings,
 
     # Line 3 content
     l3 <- format_line3_blocks(q, choices_map, fp_normal, choice_code, ext_choices)
-    for (blk in l3) blks[[length(blks) + 1]] <- as_block(as_block(blk))
+    for (blk in l3) {
+      if (inherits(blk, "flextable")) {
+        # flush any accumulated paragraphs/images first
+        if (length(blks)) {
+          doc <- officer::body_add_blocks(doc, to_block_list(blks))
+          blks <- list()
+        }
+        # now add the table on its own
+        doc <- officer::body_add_flextable(doc, blk)
+      } else {
+        # paragraphs/images can stay in the block buffer
+        blks[[length(blks) + 1]] <- blk
+      }
+    }
 
     # Constraint message
     if (!is.na(q$constraint_message)) blks[[length(blks) + 1]] <- as_block(fpar(ftext(paste0("(", q$constraint_message, ")"), fp_normal)))

@@ -2,6 +2,7 @@
 
 export(convertxlsform)
 importFrom(commonmark,markdown_html)
+importFrom(flextable, autofit)
 importFrom(flextable,body_add_flextable)
 importFrom(flextable,border_outer)
 importFrom(flextable,delete_part)

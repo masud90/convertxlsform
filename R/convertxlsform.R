@@ -466,7 +466,7 @@ generate_docx <- function(questions, choices_map, settings,
 
   # Main loop — build blocks per question and add once
   for (q in questions) {
-    blocks <- block_list()
+    blocks <- officer::block_list()
 
     # Structural groups
     if (q$type %in% c("begin_group", "begin_repeat")) {
@@ -481,7 +481,7 @@ generate_docx <- function(questions, choices_map, settings,
         blocks <- append(blocks, list(fpar(ftext(paste0("Repeat count: ", cnt), fp_normal))))
       }
       blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
-      doc <- body_add_blocks(doc, blocks, style = "Normal")
+      doc <- officer::body_add_blocks(doc, blocks, style = "Normal")
       next
     }
 
@@ -492,7 +492,7 @@ generate_docx <- function(questions, choices_map, settings,
                                                        label), fp_normal))))
       if (number_questions && length(number_stack)) number_stack <- number_stack[-length(number_stack)]
       blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
-      doc <- body_add_blocks(doc, blocks, style = "Normal")
+      doc <- officer::body_add_blocks(doc, blocks, style = "Normal")
       next
     }
 
@@ -536,7 +536,7 @@ generate_docx <- function(questions, choices_map, settings,
     blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
 
     # Add blocks
-    doc <- body_add_blocks(doc, blocks, style = "Normal")
+    doc <- officer::body_add_blocks(doc, blocks, style = "Normal")
   }
 
   doc

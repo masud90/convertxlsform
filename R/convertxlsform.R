@@ -171,21 +171,20 @@ validate_xlsform <- function(survey, choices, settings, selected_language, ext_c
 
   # Choice list validation (include external selects as informational only)
   sel_idx <- grep("^(select_one|select_multiple|rank|select_one_external|select_multiple_external)", survey$type)
-  if (length(sel_idx)) {
-    lists <- unique(vapply(strsplit(survey$type[sel_idx], "\\s+"), `[`, character(1), 2))
-    lists <- lists[!is.na(lists)]
-    if (length(lists)) {
-      present <- unique(choices$list_name)
-      missing <- setdiff(lists, present)
-      # If external selects are used, allow them to be in external_choices
-      if (!is.null(ext_choices) && "list_name" %in% names(ext_choices)) {
-        present_ext <- unique(ext_choices$list_name)
-        missing <- setdiff(missing, present_ext)
-      }
-      if (length(missing)) {
-        errf("Named answer choices not found for lists: %s (check 'choices' or 'external_choices').",
-             paste(missing, collapse = ", "))
-      }
+if (length(sel_idx)) {
+  lists <- unique(vapply(strsplit(survey$type[sel_idx], "\\s+"), `[`, character(1), 2))
+  lists <- lists[!is.na(lists)]
+  if (length(lists)) {
+    present <- unique(choices$list_name)
+    missing <- setdiff(lists, present)
+    # If external selects are used, allow them to be in external_choices
+    if (!is.null(ext_choices) && "list_name" %in% names(ext_choices)) {
+      present_ext <- unique(ext_choices$list_name)
+      missing <- setdiff(missing, present_ext)
+    }
+    if (length(missing)) {
+      errf("Named answer choices not found for lists: %s (check 'choices' or 'external_choices').",
+           paste(missing, collapse = ", "))
     }
   }
 }

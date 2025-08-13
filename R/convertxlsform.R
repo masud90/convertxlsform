@@ -529,7 +529,7 @@ generate_docx <- function(questions, choices_map, settings,
 
     # Line 3 content
     l3 <- format_line3_blocks(q, choices_map, fp_normal, choice_code, ext_choices)
-    for (blk in l3) blocks <- append(blocks, list(blk))
+    for (blk in l3) blocks <- append(blocks, list(as_block(blk)))
 
     # Constraint message
     if (!is.na(q$constraint_message)) blocks <- append(blocks, list(fpar(ftext(paste0("(", q$constraint_message, ")"), fp_normal))))

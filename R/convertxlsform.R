@@ -313,7 +313,7 @@ add_text_box <- function(lines) {
 
 # ---------------- Image sizing ----------------
 scaled_external_img <- function(path, max_width_in = 6.5, max_height_in = 3.5, dpi = 96) {
-  if (!file.exists(path)) return(external_img(src = path, width = 2))
+  if (!file.exists(path)) return(officer::external_img(src = path, width = 2))
   info <- tryCatch(magick::image_info(magick::image_read(path)), error = function(e) NULL)
   if (!is.null(info)) {
     w_in <- info$width[1] / dpi
@@ -321,9 +321,9 @@ scaled_external_img <- function(path, max_width_in = 6.5, max_height_in = 3.5, d
     scale <- min(max_width_in / w_in, max_height_in / h_in, 1)
     w_in <- w_in * scale
     h_in <- h_in * scale
-    external_img(src = path, width = w_in, height = h_in)
+    officer::external_img(src = path, width = w_in, height = h_in)
   } else {
-    external_img(src = path, width = 3)
+    officer::external_img(src = path, width = 3)
   }
 }
 
@@ -424,6 +424,11 @@ format_line3_blocks <- function(q, choices_map, fp_normal, choice_code, ext_choi
   blks
 }
 
+as_block <- function(x) {
+  if (inherits(x, "flextable")) officer::block_table(x) else x
+}
+
+
 # ---------------- Generate docx ----------------
 generate_docx <- function(questions, choices_map, settings,
                           selected_language, q_images, number_questions,
@@ -481,7 +486,7 @@ generate_docx <- function(questions, choices_map, settings,
         blocks <- append(blocks, list(fpar(ftext(paste0("Repeat count: ", cnt), fp_normal))))
       }
       blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
-      doc <- officer::body_add_blocks(doc, blocks, style = "Normal")
+      doc <- officer::body_add_blocks(doc, blocks)
       next
     }
 
@@ -492,7 +497,7 @@ generate_docx <- function(questions, choices_map, settings,
                                                        label), fp_normal))))
       if (number_questions && length(number_stack)) number_stack <- number_stack[-length(number_stack)]
       blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
-      doc <- officer::body_add_blocks(doc, blocks, style = "Normal")
+      doc <- officer::body_add_blocks(doc, blocks)
       next
     }
 
@@ -536,7 +541,7 @@ generate_docx <- function(questions, choices_map, settings,
     blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
 
     # Add blocks
-    doc <- officer::body_add_blocks(doc, blocks, style = "Normal")
+    doc <- officer::body_add_blocks(doc, blocks)
   }
 
   doc

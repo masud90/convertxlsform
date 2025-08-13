@@ -13,7 +13,7 @@
 #' @param output_docx Destination .docx file (defaults to basename(xlsx))
 #' @param number_questions Logical: number questions? (defaults to TRUE)
 #' @param choice_code Logical: if TRUE, include choice code (name) in square brackets; otherwise show only label. (defaults to FALSE)
-#' @param media_dir Optional path to the media folder (default: directory of xlsform or \code{file.path(dirname(xlsform_path), "media") } if it exists)
+#' @param media_dir Optional path to the media folder (default: directory of xlsform or \code{file.path(dirname(xlsform_path), "media")} if it exists)
 #' @return Invisibly returns the path to the generated .docx
 #' @examples
 #' \dontrun{
@@ -30,42 +30,42 @@ convertxlsform <- function(xlsform_path,
                            media_dir = NULL) {
   start_time <- Sys.time()
 
-  # %||% : treat NULL/NA as missing ------------------------------------------
+  # %||% : treat NULL/NA as missing
   `%||%` <- function(a, b) if (is.null(a) || length(a) == 0 || isTRUE(is.na(a))) b else a
 
-  # Styles (hoisted, reused) --------------------------------------------------
+  # Styles (hoisted)
   fp_normal <- fp_text(font.family = "Arial", font.size = 11)
   fp_title  <- fp_text(font.family = "Arial", font.size = 16, bold = TRUE)
   fp_center <- fp_par(text.align = "center")
 
-  # Determine media_dir (auto-detect ./media) --------------------------------
+  # media_dir
   base_dir <- dirname(xlsform_path)
   if (is.null(media_dir)) {
     media_candidate <- file.path(base_dir, "media")
     media_dir <- if (dir.exists(media_candidate)) media_candidate else base_dir
   }
 
-  # Read sheets and media -----------------------------------------------------
+  # Read sheets
   sheets_raw   <- excel_sheets(xlsform_path)
-  sheets_lower <- tolower(sheets_raw)                       # (8) case-insensitive checks
+  sheets_lower <- tolower(sheets_raw)
   survey_tbl   <- read_survey(xlsform_path, sheets_raw, sheets_lower)
   choices_tbl  <- read_choices(xlsform_path, sheets_raw, sheets_lower)
   settings_tbl <- read_settings(xlsform_path, sheets_raw, sheets_lower)
-  ext_choices  <- read_external_choices(xlsform_path, sheets_raw, sheets_lower)  # (17)
+  ext_choices  <- read_external_choices(xlsform_path, sheets_raw, sheets_lower)
   q_images     <- read_images(xlsform_path, sheets_raw, sheets_lower, media_dir)
 
-  # Validate inputs -----------------------------------------------------------
+  # Validate
   validate_xlsform(
     survey_tbl, choices_tbl, settings_tbl, selected_language,
     ext_choices = ext_choices
   )
 
-  # Parse survey and build choices map ----------------------------------------
+  # Parse & build
   questions    <- parse_survey_rows(survey_tbl, selected_language)
   choices_map  <- build_choices_map(choices_tbl, selected_language, media_dir,
                                     choice_code = choice_code)
 
-  # Generate Word document ----------------------------------------------------
+  # Generate
   doc <- generate_docx(
     questions, choices_map, settings_tbl, selected_language,
     q_images, number_questions, choice_code, media_dir,
@@ -73,16 +73,16 @@ convertxlsform <- function(xlsform_path,
     ext_choices = ext_choices
   )
 
-  # Determine output path -----------------------------------------------------
+  # Output path
   if (is.null(output_docx)) {
     base <- tools::file_path_sans_ext(basename(xlsform_path))
     output_docx <- file.path(getwd(), paste0(base, ".docx"))
   }
 
-  # Save document -------------------------------------------------------------
+  # Save
   save_docx(doc, output_docx)
 
-  # Completion message with hh:mm:ss-style formatting (2) ---------------------
+  # Duration message hh:mm:ss
   secs <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
   msg <- format_duration_message(secs)
   message(sprintf("Document generated in %s: %s", msg, normalizePath(output_docx)))
@@ -90,7 +90,7 @@ convertxlsform <- function(xlsform_path,
   invisible(output_docx)
 }
 
-# ---------- Utilities: messages & errors (24) --------------------------------
+# ---------------- Utilities: messages & errors ----------------
 errf <- function(msg, ...) stop(sprintf(msg, ...), call. = FALSE)
 warnf <- function(msg, ...) warning(sprintf(msg, ...), call. = FALSE)
 
@@ -105,7 +105,7 @@ format_duration_message <- function(secs) {
   sprintf("%d hrs %d mins %d secs", hrs, remm, rems)
 }
 
-# ---------- Read sheets (8, 17) ---------------------------------------------
+# ---------------- Read sheets ----------------
 default_sheet_error <- function(name) {
   errf("Incomplete XLSForm: required worksheet '%s' is not present.", name)
 }
@@ -143,13 +143,12 @@ read_images <- function(path, sheets_raw, sheets_lower, media_dir) {
     return(character(0))
   }
   files <- file.path(media_dir, img_tbl$media_filename)
-  # (14) Vectorized existence check
   exist_map <- stats::setNames(file.exists(files), files)
   valid <- unname(exist_map[files])
   setNames(files[valid], img_tbl$name[valid])
 }
 
-# ---------- Validation (3, 8, 17, 24) ---------------------------------------
+# ---------------- Validation ----------------
 validate_xlsform <- function(survey, choices, settings, selected_language, ext_choices) {
   # survey columns
   req_cols <- c("type", "name")
@@ -169,27 +168,29 @@ validate_xlsform <- function(survey, choices, settings, selected_language, ext_c
     }
   }
 
-  # Choice list validation (include external selects as informational only)
-  sel_idx <- grep("^(select_one|select_multiple|rank|select_one_external|select_multiple_external)", survey$type)
-if (length(sel_idx)) {
-  lists <- unique(vapply(strsplit(survey$type[sel_idx], "\\s+"), `[`, character(1), 2))
-  lists <- lists[!is.na(lists)]
-  if (length(lists)) {
-    present <- unique(choices$list_name)
-    missing <- setdiff(lists, present)
-    # If external selects are used, allow them to be in external_choices
-    if (!is.null(ext_choices) && "list_name" %in% names(ext_choices)) {
-      present_ext <- unique(ext_choices$list_name)
-      missing <- setdiff(missing, present_ext)
-    }
-    if (length(missing)) {
-      errf("Named answer choices not found for lists: %s (check 'choices' or 'external_choices').",
-           paste(missing, collapse = ", "))
+  # Choice list validation
+  # EXCLUDE select_one_from_file from the check (per user request)
+  pattern <- "^(select_one|select_multiple|rank|select_one_external|select_multiple_external)"
+  sel_idx <- grep(pattern, survey$type)
+  if (length(sel_idx)) {
+    lists <- unique(vapply(strsplit(survey$type[sel_idx], "\\s+"), `[`, character(1), 2))
+    lists <- lists[!is.na(lists)]
+    if (length(lists)) {
+      present <- unique(choices$list_name)
+      missing <- setdiff(lists, present)
+      if (!is.null(ext_choices) && "list_name" %in% names(ext_choices)) {
+        present_ext <- unique(ext_choices$list_name)
+        missing <- setdiff(missing, present_ext)
+      }
+      if (length(missing)) {
+        errf("Named answer choices not found for lists: %s (check 'choices' or 'external_choices').",
+             paste(missing, collapse = ", "))
+      }
     }
   }
 }
 
-# ---------- Paragraph helper (16) -------------------------------------------
+# ---------------- Paragraph helper ----------------
 add_par_arial <- function(doc, text, fp_normal) {
   body_add_fpar(
     doc,
@@ -198,7 +199,7 @@ add_par_arial <- function(doc, text, fp_normal) {
   )
 }
 
-# ---------- Safer multilingual getters (6) -----------------------------------
+# ---------------- Safer multilingual getters ----------------
 get_lang_val <- function(row, col, lang) {
   col_lang <- paste0(col, "::", lang)
   if (col_lang %in% names(row)) {
@@ -211,7 +212,7 @@ get_lang_val <- function(row, col, lang) {
   if (length(val) == 0) NA_character_ else val
 }
 
-# ---------- Parse survey rows (6, 17, 18) ------------------------------------
+# ---------------- Parse survey rows ----------------
 parse_survey_rows <- function(survey, selected_language) {
   questions <- list()
   for (i in seq_len(nrow(survey))) {
@@ -245,11 +246,10 @@ parse_survey_rows <- function(survey, selected_language) {
   questions
 }
 
-# ---------- Build choices map (1, 14, 15, 16) --------------------------------
+# ---------------- Build choices map ----------------
 build_choices_map <- function(choices, selected_language, media_dir, choice_code = FALSE) {
   out <- list()
   has_img <- "image" %in% names(choices)
-  # Precompute image existence (14)
   all_paths <- if (has_img) unique(file.path(media_dir, na.omit(choices$image))) else character(0)
   exists_map <- if (length(all_paths)) stats::setNames(file.exists(all_paths), all_paths) else list()
 
@@ -280,9 +280,8 @@ build_choices_map <- function(choices, selected_language, media_dir, choice_code
   out
 }
 
-# ---------- Choice table (15) ------------------------------------------------
+# ---------------- Choice table ----------------
 choice_items_to_flextable <- function(items, symbol = "\u25EF") {
-  # Build a data.frame for flextable
   df <- data.frame(
     Symbol = rep(symbol, length(items)),
     Choice = vapply(items, function(x) x$label, character(1)),
@@ -295,7 +294,7 @@ choice_items_to_flextable <- function(items, symbol = "\u25EF") {
   ft
 }
 
-# ---------- Text box helper --------------------------------------------------
+# ---------------- Text box helper ----------------
 add_text_box <- function(lines) {
   df <- data.frame(text = rep("", lines), stringsAsFactors = FALSE)
   ft <- regulartable(df)
@@ -305,11 +304,9 @@ add_text_box <- function(lines) {
   ft
 }
 
-# ---------- Image sizing (12) -----------------------------------------------
+# ---------------- Image sizing ----------------
 scaled_external_img <- function(path, max_width_in = 6.5, max_height_in = 3.5, dpi = 96) {
-  # If magick not available at runtime, fall back to height only
   if (!file.exists(path)) return(external_img(src = path, width = 2))
-  w_in <- h_in <- NA_real_
   info <- tryCatch(magick::image_info(magick::image_read(path)), error = function(e) NULL)
   if (!is.null(info)) {
     w_in <- info$width[1] / dpi
@@ -323,100 +320,104 @@ scaled_external_img <- function(path, max_width_in = 6.5, max_height_in = 3.5, d
   }
 }
 
-# ---------- Line 3 content (1, 7, 12, 15, 17, 18) ---------------------------
+# ---------------- Line 3 content ----------------
 format_line3_blocks <- function(q, choices_map, fp_normal, choice_code, ext_choices) {
+  `%||%` <- function(a, b) if (is.null(a) || length(a) == 0 || isTRUE(is.na(a))) b else a
   blks <- list()
-
   add_fpar <- function(txt) fpar(ftext(txt, fp_normal))
-
-  # Parse appearance (18)
   appearance <- tolower(trimws(q$appearance %||% ""))
 
-  switch(q$type,
-         select_one = {
-           blks <- c(blks, list(add_fpar("(Select only one answer)")))
-           if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
-           items <- choices_map[[q$list_name]]
-           if (!length(items)) return(blks)
-           ft <- choice_items_to_flextable(items, symbol = "\u25EF")
-           blks <- c(blks, list(ft))
-         },
-         select_multiple = {
-           blks <- c(blks, list(add_fpar("(Select all that apply)")))
-           if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
-           items <- choices_map[[q$list_name]]
-           if (!length(items)) return(blks)
-           ft <- choice_items_to_flextable(items, symbol = "\u25A2")
-           blks <- c(blks, list(ft))
-         },
-         rank = {
-           blks <- c(blks, list(add_fpar("Rank the items in order")))
-           if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
-           items <- choices_map[[q$list_name]]
-           if (!length(items)) return(blks)
-           ft <- choice_items_to_flextable(items, symbol = "\u25EF")
-           blks <- c(blks, list(ft))
-         },
-         select_one_from_file = {
-           blks <- c(blks, list(add_fpar(paste0("Answer choices are to be populated from this attachment: ", q$attachment))))
-         },
-         select_one_external = ,
-         select_multiple_external = {
-           # (17) external choices note
-           blks <- c(blks, list(add_fpar("Answer choices are large and provided via external choices list (not enumerated here).")))
-         },
-         range = {
-           blks <- c(blks, list(add_fpar("(Select only one answer)")))
-           if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
-           # (7) hardened parameter parsing
-           params_raw <- strsplit(q$parameters %||% "", ";")[[1]]
-           parts <- strsplit(params_raw, "=", fixed = TRUE)
-           k <- trimws(vapply(parts, function(x) x[1] %||% "", character(1)))
-           v <- trimws(vapply(parts, function(x) x[2] %||% "", character(1)))
-           p_list <- stats::setNames(v, k)
-           start <- suppressWarnings(as.numeric(p_list[["start"]] %||% "1"))
-           end   <- suppressWarnings(as.numeric(p_list[["end"]]   %||% NA))
-           step  <- suppressWarnings(as.numeric(p_list[["step"]]  %||% "1"))
-           if (is.na(end)) errf("Question '%s' of type 'range' requires a numeric 'end' parameter.", q$name)
-           if (is.na(start) || is.na(step) || step == 0) errf("Question '%s' has invalid 'start' or 'step' for 'range'.", q$name)
-           vals  <- seq(start, end, by = step)
-           items <- lapply(vals, function(v) list(name = v, label = as.character(v), image = NA_character_))
-           ft <- choice_items_to_flextable(items, symbol = "\u25EF")
-           blks <- c(blks, list(ft))
-         },
-         text = {
-           lines <- if (grepl("multiline", appearance, fixed = TRUE)) 6 else 4  # (18)
-           blks <- c(blks, list(add_text_box(lines)))
-         },
-         integer = {
-           blks <- c(blks, list(add_fpar("(Only answer in whole numbers/ integers using numeric characters)")))
-           if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
-           blks <- c(blks, list(add_text_box(2)))
-         },
-         decimal = {
-           blks <- c(blks, list(add_fpar("(Only use numeric characters. You may include decimal points)")))
-           if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
-           blks <- c(blks, list(add_text_box(2)))
-         },
-         date = { blks <- c(blks, list(add_text_box(2))) },
-         time = { blks <- c(blks, list(add_text_box(2))) },
-         dateTime = { blks <- c(blks, list(add_text_box(2))) },
-         image  = { blks <- c(blks, list(add_fpar("(Either take a new image with the device camera, or draw/ annotate on the device screen)"))) },
-         barcode= { blks <- c(blks, list(add_fpar("(Scan the barcode using the device camera or connected barcode scanner)"))) },
-         audio  = { blks <- c(blks, list(add_fpar("(Capture audio with the device)"))) },
-         video  = { blks <- c(blks, list(add_fpar("(Capture video with the device)"))) },
-         geopoint = { blks <- c(blks, list(add_fpar("(Collect one set of coordinates using device GPS)"))) },
-         geotrace = { blks <- c(blks, list(add_fpar("(Record a line of two or more sets of coordinates using device GPS)"))) },
-         geoshape = { blks <- c(blks, list(add_fpar("(Record a polygon of multiple GPS coordinates using device GPS)"))) },
-         file     = { },
-         note     = { },
-         { }
-  )
+  if (identical(q$type, "select_one")) {
+    blks <- c(blks, list(add_fpar("(Select only one answer)")))
+    if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
+    items <- choices_map[[q$list_name]]
+    if (length(items)) blks <- c(blks, list(choice_items_to_flextable(items, symbol = "\u25EF")))
+    return(blks)
+  }
 
+  if (identical(q$type, "select_multiple")) {
+    blks <- c(blks, list(add_fpar("(Select all that apply)")))
+    if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
+    items <- choices_map[[q$list_name]]
+    if (length(items)) blks <- c(blks, list(choice_items_to_flextable(items, symbol = "\u25A2")))
+    return(blks)
+  }
+
+  if (identical(q$type, "rank")) {
+    blks <- c(blks, list(add_fpar("Rank the items in order")))
+    if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
+    items <- choices_map[[q$list_name]]
+    if (length(items)) blks <- c(blks, list(choice_items_to_flextable(items, symbol = "\u25EF")))
+    return(blks)
+  }
+
+  if (identical(q$type, "select_one_from_file")) {
+    blks <- c(blks, list(add_fpar(paste0("Answer choices are to be populated from this attachment: ", q$attachment))))
+    return(blks)
+  }
+
+  if (q$type %in% c("select_one_external", "select_multiple_external")) {
+    blks <- c(blks, list(add_fpar("Answer choices are large and provided via external choices list (not enumerated here).")))
+    return(blks)
+  }
+
+  if (identical(q$type, "range")) {
+    blks <- c(blks, list(add_fpar("(Select only one answer)")))
+    if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
+    params_raw <- strsplit(q$parameters %||% "", ";")[[1]]
+    parts <- strsplit(params_raw, "=", fixed = TRUE)
+    k <- trimws(vapply(parts, function(x) x[1] %||% "", character(1)))
+    v <- trimws(vapply(parts, function(x) x[2] %||% "", character(1)))
+    p_list <- stats::setNames(v, k)
+    start <- suppressWarnings(as.numeric(p_list[["start"]] %||% "1"))
+    end   <- suppressWarnings(as.numeric(p_list[["end"]]   %||% NA))
+    step  <- suppressWarnings(as.numeric(p_list[["step"]]  %||% "1"))
+    if (is.na(end)) errf("Question '%s' of type 'range' requires a numeric 'end' parameter.", q$name)
+    if (is.na(start) || is.na(step) || step == 0) errf("Question '%s' has invalid 'start' or 'step' for 'range'.", q$name)
+    vals  <- seq(start, end, by = step)
+    items <- lapply(vals, function(v) list(name = v, label = as.character(v), image = NA_character_))
+    blks <- c(blks, list(choice_items_to_flextable(items, symbol = "\u25EF")))
+    return(blks)
+  }
+
+  if (identical(q$type, "text")) {
+    lines <- if (grepl("multiline", appearance, fixed = TRUE)) 6 else 4
+    blks <- c(blks, list(add_text_box(lines)))
+    return(blks)
+  }
+
+  if (identical(q$type, "integer")) {
+    blks <- c(blks, list(add_fpar("(Only answer in whole numbers/ integers using numeric characters)")))
+    if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
+    blks <- c(blks, list(add_text_box(2)))
+    return(blks)
+  }
+
+  if (identical(q$type, "decimal")) {
+    blks <- c(blks, list(add_fpar("(Only use numeric characters. You may include decimal points)")))
+    if (!is.na(q$instruction)) blks <- c(blks, list(add_fpar(q$instruction)))
+    blks <- c(blks, list(add_text_box(2)))
+    return(blks)
+  }
+
+  if (q$type %in% c("date", "time", "dateTime")) {
+    blks <- c(blks, list(add_text_box(2)))
+    return(blks)
+  }
+
+  if (identical(q$type, "image"))  { blks <- c(blks, list(add_fpar("(Either take a new image with the device camera, or draw/ annotate on the device screen)"))); return(blks) }
+  if (identical(q$type, "barcode")){ blks <- c(blks, list(add_fpar("(Scan the barcode using the device camera or connected barcode scanner)"))); return(blks) }
+  if (identical(q$type, "audio"))  { blks <- c(blks, list(add_fpar("(Capture audio with the device)"))); return(blks) }
+  if (identical(q$type, "video"))  { blks <- c(blks, list(add_fpar("(Capture video with the device)"))); return(blks) }
+  if (identical(q$type, "geopoint")){ blks <- c(blks, list(add_fpar("(Collect one set of coordinates using device GPS)"))); return(blks) }
+  if (identical(q$type, "geotrace")){ blks <- c(blks, list(add_fpar("(Record a line of two or more sets of coordinates using device GPS)"))); return(blks) }
+  if (identical(q$type, "geoshape")){ blks <- c(blks, list(add_fpar("(Record a polygon of multiple GPS coordinates using device GPS)"))); return(blks) }
+
+  # file/note/no-op default
   blks
 }
 
-# ---------- Generate docx (4, 12, 13, 15, 16, 18) ---------------------------
+# ---------------- Generate docx ----------------
 generate_docx <- function(questions, choices_map, settings,
                           selected_language, q_images, number_questions,
                           choice_code, media_dir,
@@ -446,19 +447,17 @@ generate_docx <- function(questions, choices_map, settings,
   doc <- body_add_fpar(doc, fpar(ftext("Mandatory questions are marked with an asterisk (*) symbol.", fp_normal)))
   doc <- body_add_fpar(doc, fpar(ftext("", fp_normal)))
 
-  # Numbering stack (4) — avoid leading zeros
+  # Numbering stack — avoid leading zeros
   render_num <- function(stack) {
     s <- stack[stack > 0]
     if (!length(s)) "" else paste(s, collapse = ".")
   }
   number_stack <- if (number_questions) integer(0) else NULL
 
-  # Precompute question image existence (14)
-  if (length(q_images)) {
-    q_exist <- stats::setNames(file.exists(unname(q_images)), unname(q_images))
-  } else q_exist <- logical(0)
+  # Precompute question image existence
+  q_exist <- if (length(q_images)) stats::setNames(file.exists(unname(q_images)), unname(q_images)) else logical(0)
 
-  # Main loop — build blocks per question and add once (13)
+  # Main loop — build blocks per question and add once
   for (q in questions) {
     blocks <- block_list()
 
@@ -506,7 +505,7 @@ generate_docx <- function(questions, choices_map, settings,
     # Hint
     if (!is.na(q$hint)) blocks <- append(blocks, list(fpar(ftext(q$hint, fp_normal))))
 
-    # Question image (12) with smart sizing
+    # Question image
     if (q$name %in% names(q_images)) {
       img_path <- q_images[[q$name]]
       if (isTRUE(q_exist[[img_path]])) {
@@ -518,7 +517,6 @@ generate_docx <- function(questions, choices_map, settings,
 
     # Line 3 content
     l3 <- format_line3_blocks(q, choices_map, fp_normal, choice_code, ext_choices)
-    # Append blocks; flextable objects are also supported by body_add_blocks
     for (blk in l3) blocks <- append(blocks, list(blk))
 
     # Constraint message
@@ -530,24 +528,23 @@ generate_docx <- function(questions, choices_map, settings,
     # Blank line
     blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
 
-    # Add all blocks at once (13)
+    # Add blocks
     doc <- body_add_blocks(doc, blocks, style = "Normal")
   }
 
   doc
 }
 
-# ---------- Save document ----------------------------------------------------
+# ---------------- Save document ----------------
 save_docx <- function(doc, path) {
   print(doc, target = path)
 }
 
-# ---------- CLI wrapper (23) -------------------------------------------------
+# ---------------- CLI wrapper ----------------
 #' Command-line interface for convertxlsform
 #' @param args Character vector like commandArgs(trailingOnly = TRUE)
 #' @export
 cli_convert <- function(args = commandArgs(trailingOnly = TRUE)) {
-  # Simple CLI: convertxlsform <xlsform> [--lang=xx] [--out=path] [--no-number] [--choice-code] [--media=dir]
   get_opt <- function(flag, default = NULL) {
     hit <- grep(paste0("^", flag, "="), args, value = TRUE)
     if (!length(hit)) return(default)

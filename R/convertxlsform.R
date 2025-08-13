@@ -92,7 +92,7 @@ read_images <- function(path, sheets) {
 # Validate xlsform structure
 validate_xlsform <- function(survey, choices, settings, selected_language) {
   # Required columns and sheets
-  req_cols <- c("type", "name", "label")
+  req_cols <- c("type", "name")
   if (!all(req_cols %in% names(survey))) {
     stop("Incomplete xlsform. A required column is not present in the 'survey' worksheet.")
   }

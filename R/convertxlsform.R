@@ -486,7 +486,7 @@ generate_docx <- function(questions, choices_map, settings,
       label <- q$label %||% q$name
       blks[[length(blks)+1]] <- fpar(ftext(sprintf('%s name "%s" begins here.',
                                                        ifelse(q$type == "begin_group","Group","Repeat group"),
-                                                       label), fp_normal)))
+                                                       label), fp_normal))
       if (!is.na(q$relevant)) blocks <- append(blocks, list(fpar(ftext(paste0("Relevant clause: ", q$relevant), fp_normal))))
       if (q$type == "begin_repeat") {
         cnt <- if (!is.na(q$repeat_count)) q$repeat_count else "repeat these questions as many times as required"

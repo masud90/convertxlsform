@@ -487,23 +487,23 @@ generate_docx <- function(questions, choices_map, settings,
       blks[[length(blks)+1]] <- fpar(ftext(sprintf('%s name "%s" begins here.',
                                                        ifelse(q$type == "begin_group","Group","Repeat group"),
                                                        label), fp_normal))
-      if (!is.na(q$relevant)) blocks <- append(blocks, list(fpar(ftext(paste0("Relevant clause: ", q$relevant), fp_normal))))
+      if (!is.na(q$relevant)) blks[[length(blks) + 1]] <- as_block(fpar(ftext(paste0("Relevant clause: ", q$relevant), fp_normal)))
       if (q$type == "begin_repeat") {
         cnt <- if (!is.na(q$repeat_count)) q$repeat_count else "repeat these questions as many times as required"
-        blocks <- append(blocks, list(fpar(ftext(paste0("Repeat count: ", cnt), fp_normal))))
+        blks[[length(blks) + 1]] <- as_block(fpar(ftext(paste0("Repeat count: ", cnt), fp_normal)))
       }
-      blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
+      blks[[length(blks) + 1]] <- as_block(fpar(ftext("", fp_normal)))
       doc <- officer::body_add_blocks(doc, to_block_list(blks))
       next
     }
 
     if (q$type %in% c("end_group", "end_repeat")) {
       label <- q$label %||% q$name
-      blocks <- append(blocks, list(fpar(ftext(sprintf('%s name "%s" ends here.',
+      blks[[length(blks) + 1]] <- as_block(fpar(ftext(sprintf('%s name "%s" ends here.',
                                                        ifelse(q$type == "end_group","Group","Repeat group"),
-                                                       label), fp_normal))))
+                                                       label), fp_normal)))
       if (number_questions && length(number_stack)) number_stack <- number_stack[-length(number_stack)]
-      blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
+      blks[[length(blks) + 1]] <- as_block(fpar(ftext("", fp_normal)))
       doc <- officer::body_add_blocks(doc, to_block_list(blks))
       next
     }
@@ -519,33 +519,33 @@ generate_docx <- function(questions, choices_map, settings,
     req_prefix <- if (isTRUE(q$required)) "* " else ""
     base_label <- q$label %||% q$name %||% ""
     lbl_text <- paste0(lbl_prefix, req_prefix, base_label)
-    blocks <- append(blocks, list(fpar(ftext(lbl_text, fp_normal))))
+    blks[[length(blks) + 1]] <- as_block(fpar(ftext(lbl_text, fp_normal)))
 
     # Hint
-    if (!is.na(q$hint)) blocks <- append(blocks, list(fpar(ftext(q$hint, fp_normal))))
+    if (!is.na(q$hint)) blks[[length(blks) + 1]] <- as_block(fpar(ftext(q$hint, fp_normal)))
 
     # Question image
     if (q$name %in% names(q_images)) {
       img_path <- q_images[[q$name]]
       if (isTRUE(q_exist[[img_path]])) {
-        blocks <- append(blocks, list(scaled_external_img(img_path, max_width_in = 6.0, max_height_in = 3.0)))
+        blks[[length(blks) + 1]] <- as_block(scaled_external_img(img_path, max_width_in = 6.0, max_height_in = 3.0))
       } else {
-        blocks <- append(blocks, list(fpar(ftext(sprintf("(image missing: %s)", img_path), fp_normal))))
+        blks[[length(blks) + 1]] <- as_block(fpar(ftext(sprintf("(image missing: %s)", img_path), fp_normal)))
       }
     }
 
     # Line 3 content
     l3 <- format_line3_blocks(q, choices_map, fp_normal, choice_code, ext_choices)
-    for (blk in l3) blocks <- append(blocks, list(as_block(blk)))
+    for (blk in l3) blks[[length(blks) + 1]] <- as_block(as_block(blk))
 
     # Constraint message
-    if (!is.na(q$constraint_message)) blocks <- append(blocks, list(fpar(ftext(paste0("(", q$constraint_message, ")"), fp_normal))))
+    if (!is.na(q$constraint_message)) blks[[length(blks) + 1]] <- as_block(fpar(ftext(paste0("(", q$constraint_message, ")"), fp_normal)))
 
     # Relevant clause
-    if (!is.na(q$relevant)) blocks <- append(blocks, list(fpar(ftext(paste0("Relevant clause: ", q$relevant), fp_normal))))
+    if (!is.na(q$relevant)) blks[[length(blks) + 1]] <- as_block(fpar(ftext(paste0("Relevant clause: ", q$relevant), fp_normal)))
 
     # Blank line
-    blocks <- append(blocks, list(fpar(ftext("", fp_normal))))
+    blks[[length(blks) + 1]] <- as_block(fpar(ftext("", fp_normal)))
 
     # Add blocks
     doc <- officer::body_add_blocks(doc, to_block_list(blks))

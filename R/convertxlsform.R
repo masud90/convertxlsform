@@ -169,11 +169,18 @@ validate_xlsform <- function(survey, choices, settings, selected_language, ext_c
   }
 
   # Choice list validation
-  # EXCLUDE select_one_from_file from the check (per user request)
-  pattern <- "^(select_one|select_multiple|rank|select_one_external|select_multiple_external)"
-  sel_idx <- grep(pattern, survey$type)
-  if (length(sel_idx)) {
-    lists <- unique(vapply(strsplit(survey$type[sel_idx], "\\s+"), `[`, character(1), 2))
+  # Skip *_from_file types entirely (per requirement)
+  types_split <- strsplit(survey$type, "\\s+")
+  base_types  <- vapply(types_split, `[`, character(1), 1)
+  list_names  <- vapply(types_split, function(x) if (length(x) >= 2) x[2] else NA_character_, NA_character_)
+
+  # Only validate these bases (EXACT match); this excludes *_from_file
+  bases_to_check <- c("select_one", "select_multiple", "rank",
+                      "select_one_external", "select_multiple_external")
+
+  idx <- which(base_types %in% bases_to_check)
+  if (length(idx)) {
+    lists <- unique(list_names[idx])
     lists <- lists[!is.na(lists)]
     if (length(lists)) {
       present <- unique(choices$list_name)

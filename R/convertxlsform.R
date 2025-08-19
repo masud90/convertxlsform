@@ -3,7 +3,7 @@
 #' @importFrom readxl    excel_sheets read_excel
 #' @importFrom officer   read_docx body_add_par body_add_fpar body_add_img
 #' @importFrom officer   fpar ftext fp_text fp_par fp_border block_list external_img body_add_blocks
-#' @importFrom officer   body_add_flextable
+#' @importFrom flextable body_add_flextable
 #' @importFrom commonmark markdown_html
 #' @importFrom flextable regulartable border_outer delete_part width body_add_flextable autofit align compose as_paragraph valign add_header_lines colformat_md
 #' @importFrom magick    image_read image_info

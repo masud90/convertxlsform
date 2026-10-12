@@ -14,9 +14,7 @@ Verified on 2026-10-12, on macOS 27.0.1 (aarch64), R 4.6.0:
 - [x] R-hub v2 workflow written to `.github/workflows/rhub.yaml` (not yet pushed).
 - [ ] Not yet run: GitHub Actions on the PR, win-builder, mac builder, R-hub. No results exist for these.
 
-The tarball from the local check is at
-`/private/tmp/claude-501/-Users-masud-Dev-convertxlsform/3bc2c57c-5e5f-4c68-8576-b6df46325101/scratchpad/cran/convertxlsform_0.3.0.tar.gz`.
-It sits in a temp folder, so rebuild it after any further change.
+The tarball from that local check was built in a temporary folder and is gone. Rebuild it from the current `main` before every check or submission (see "How to submit").
 
 ## Before submitting
 

@@ -296,4 +296,4 @@ cd "$(mktemp -d)" && R CMD build "$OLDPWD" && R CMD check --no-manual convertxls
 
 ## License
 
-convertxlsform is released under the MIT license. See [LICENSE.md](LICENSE.md) for the full text.
+convertxlsform is released under the [MIT license](https://opensource.org/license/mit). The [LICENSE](LICENSE) file names the copyright holder and year, in the form CRAN requires.

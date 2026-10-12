@@ -74,6 +74,7 @@ A list:
 - `nested_serial_numbers = TRUE`: counters per depth. A group at depth d takes the next counter at depth d; its children are numbered `<group serial>.<k>`. Example: q (1), group (2) {q (2.1), group (2.2) {q (2.2.1)}}, q (3).
 - Groups with no label (or `appearance` containing `field-list` and no label) are transparent: not numbered, no heading, children numbered at the parent level as if the group were absent.
 - `nested_serial_numbers = FALSE`: groups unnumbered; questions numbered 1..n across the whole form.
+- Clarified after M1 (2026-10-12): only labelless `begin_group` rows are transparent; a labelless repeat is still numbered and gets a banner. `depth` counts every enclosing group including transparent ones. The model derives `level` (heading level, 1 to 3, capped) from visible enclosing sections only. `.read_xlsform()` numbers with `nested_serial_numbers = TRUE`; callers renumber with `.build_structure(form$survey, FALSE)`. `cxf_form` also carries `sheets` and `found` (used by validation).
 
 ## 5. Expression humanizing (`R/expressions.R`)
 
@@ -129,7 +130,11 @@ Data frame, one row per block: `row`, `serial`, `depth`, `block`, `kind`, `name`
 
 `.render_docx(model, opts, path)` writes the file and returns `path`. Uses `officer::read_docx(template)` with the shipped template `system.file("templates", "convertxlsform.docx", package = "convertxlsform")` unless `opts$template` is set. Styles referenced by name: `Title`, `heading 1`, `heading 2`, `heading 3`, `Normal`, plus custom paragraph styles in the template: `cxf Question`, `cxf Hint`, `cxf Logic`, `cxf Choice`, `cxf Note`. Fallback when a style is missing from a user template: `Normal` with direct formatting.
 
-Symbols (`R/utils.R`): circle `◯`, square `▢`, rank box `□`, tick box `☐`.
+Symbols (`R/utils.R`, written as escapes in R source): circle U+25CB, square U+25A1, rank box U+25A1, tick box U+25A1. Use only WGL4 glyphs present in Arial and Liberation Sans: U+25EF and U+2610 fall back to other fonts in LibreOffice, and U+25EF renders filled there. Symbol runs use the document font at `font_size + 3` pt. Also add `cxf Banner` to the custom styles list above.
+
+Heading styles are referenced by style name (`"heading 1"`), never by id: officer's default template has localized ids (`Titre1`).
+
+Character styles `cxf Required` and `cxf Code` exist in the template for users, but officer cannot apply a character style to a run. The renderer formats runs directly: required asterisk `fp_text(bold = TRUE, color = "#C00000")`, codes and variable names `fp_text(font.size = font_size - 2, color = "#595959")`.
 
 ## 9. Options object
 

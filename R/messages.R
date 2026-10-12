@@ -38,3 +38,23 @@
 .cxf_abort <- function(..., call = rlang::caller_env()) {
   cli::cli_abort(c(...), call = call, .envir = parent.frame())
 }
+
+#' Report errors against the user-facing call
+#'
+#' Errors raised by cli/rlang inside `expr` are re-signalled with `call` as
+#' their call, so users see `xlsform_outline()` rather than an internal
+#' helper such as `.check_flag()`.
+#'
+#' @param call The call to report, usually `rlang::current_call()` taken in
+#'   the exported function.
+#' @param expr Code to evaluate.
+#' @noRd
+.with_call <- function(call, expr) {
+  tryCatch(
+    expr,
+    rlang_error = function(e) {
+      e$call <- call
+      stop(e)
+    }
+  )
+}

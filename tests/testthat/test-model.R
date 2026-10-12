@@ -93,7 +93,8 @@ test_that("section and question fields", {
   m <- .build_model(small_form(), test_opts())
   members <- block_named(m, "members", "section")
   expect_true(members$is_repeat)
-  expect_equal(members$repeat_text, "Q3 (hh_size)")
+  expect_equal(members$repeat_text, "Q3")
+  expect_true(is.na(members$repeat_count_value))
   expect_equal(members$label, "Members")
   g1 <- block_named(m, "g1")
   expect_false(g1$is_repeat)
@@ -105,9 +106,11 @@ test_that("section and question fields", {
   expect_equal(q$subtype, "integer")
   expect_false(q$required)
   expect_equal(q$hint, "Count everyone")
-  expect_equal(q$relevant_text, "Q1 (consent) is \"Yes\"")
-  expect_equal(q$constraint_text,
-               "the answer >= 0 and the answer <= 30 (Enter 0 to 30)")
+  expect_equal(q$relevant_text, "Q1 is \"Yes\"")
+  # the constraint message replaces the expression
+  expect_equal(q$constraint_text, "Enter 0 to 30")
+  expect_true(is.na(q$guidance_hint))
+  expect_true(is.na(q$appearance))
   expect_true(is.na(q$choice_filter_text))
   expect_null(q$image)
   expect_false(q$answer$decimal)
@@ -118,7 +121,8 @@ test_that("section and question fields", {
   expect_equal(c1$answer$symbol, "circle")
   expect_equal(c1$answer$choices$name, c("yes", "no"))
   expect_equal(c1$answer$n_total, 2L)
-  expect_false(c1$answer$truncated)
+  expect_equal(c1$answer$layout, "list")
+  expect_equal(c1$answer$choices$write_in, c(FALSE, FALSE))
   expect_equal(c1$answer$source, "choices")
   expect_true(c1$answer$source_found)
   expect_false(c1$answer$or_other)
@@ -134,7 +138,7 @@ test_that("a hidden group's relevance passes to its children", {
   m <- .build_model(small_form(), test_opts())
   t2 <- block_named(m, "t2")
   expect_equal(t2$relevant_text,
-               "Q3 (hh_size) > 1 or Q1 (consent) is \"No\"")
+               "Q3 > 1 or Q1 is \"No\"")
   # a child with its own relevance is combined, parenthesizing an "or"
   survey <- fdf(
     type = c("integer", "begin_group", "text", "end_group"),
@@ -144,7 +148,7 @@ test_that("a hidden group's relevance passes to its children", {
   )
   m2 <- .build_model(read_quiet(make_form(survey)), test_opts())
   expect_equal(block_named(m2, "q")$relevant_text,
-               "(Q1 (n) > 1 or Q1 (n) < 0) and Q1 (n) is not 5")
+               "(Q1 > 1 or Q1 < 0) and Q1 is not 5")
   # off with include_relevants = FALSE
   m3 <- .build_model(read_quiet(make_form(survey)),
                      test_opts(include_relevants = FALSE))
@@ -164,8 +168,7 @@ test_that("include_relevants, include_constraints and include_hints toggle text"
   expect_true(is.na(block_named(no_rel, "hh_size")$relevant_text))
   expect_false(is.na(block_named(no_rel, "hh_size")$constraint_text))
   # repeat_count is not skip logic
-  expect_equal(block_named(no_rel, "members", "section")$repeat_text,
-               "Q3 (hh_size)")
+  expect_equal(block_named(no_rel, "members", "section")$repeat_text, "Q3")
   expect_false(grepl("Ask if", paste(no_rel$meta$legend, collapse = "|")))
   expect_true(grepl("Ask if", paste(on$meta$legend, collapse = "|")))
 
@@ -215,9 +218,9 @@ test_that("flat numbering renumbers questions and the expression text", {
   # groups are unnumbered, questions run 1..n
   expect_equal(ser, c("1", "2", "3", NA, "4", "5", NA, "6", NA, NA))
   expect_equal(block_named(m, "t1")$relevant_text,
-               paste0("Q2 (assets) does not include \"Radio\" and ",
-                      "(Q3 (hh_size) > 2 or Q1 (consent) is \"Yes\")"))
-  expect_equal(block_named(m, "members", "section")$repeat_text, "Q3 (hh_size)")
+               paste0("Q2 does not include \"Radio\" and ",
+                      "(Q3 > 2 or Q1 is \"Yes\")"))
+  expect_equal(block_named(m, "members", "section")$repeat_text, "Q3")
   # groups and repeats are still sections
   expect_equal(sum(block_types(m) == "section"), 2L)
   # the input form is not modified
@@ -260,15 +263,22 @@ test_that("answer specs for every kind (all_types example)", {
   expect_true(a("water_source")$or_other)
   expect_equal(a("priorities")$symbol, "rank")
   expect_equal(a("location")$fields,
-               c("Latitude", "Longitude", "Altitude", "Accuracy"))
+               c("Latitude", "Longitude", "Accuracy (m)"))
   expect_equal(a("location")$subtype, "geopoint")
-  expect_equal(a("trace_route")$fields, "List of points")
+  np <- .cxf_strings("en")$not_on_paper
+  expect_equal(a("trace_route")$prompt, np)
+  expect_equal(a("trace_route")$reference, "Reference no.")
   expect_equal(a("plot_shape")$subtype, "geoshape")
+  expect_equal(a("plot_shape")$prompt, np)
   expect_equal(a("photo_dwelling")$subtype, "image")
-  expect_equal(a("photo_dwelling")$prompt, "[Photo to be taken]")
-  expect_equal(a("audio_comment")$prompt, "[Audio to be recorded]")
-  expect_equal(a("video_water")$prompt, "[Video to be recorded]")
-  expect_equal(a("consent_form")$prompt, "[File to be attached]")
+  for (nm in c("photo_dwelling", "audio_comment", "video_water",
+               "consent_form")) {
+    expect_equal(a(nm)$prompt, np, info = nm)
+    expect_equal(a(nm)$reference, "Reference no.", info = nm)
+  }
+  # a range with more than 20 values is described in words
+  expect_equal(a("food_share")$range_text, "0 to 100, steps of 5")
+  expect_true(is.na(a("water_hours")$range_text))
   expect_equal(a("asset_tag")$lines, 1L)
   expect_equal(a("ack_understood")$prompt, "OK")
 
@@ -283,7 +293,7 @@ test_that("answer specs for every kind (all_types example)", {
 
   # choice filter text and media records
   expect_equal(block_named(m, "village")$choice_filter_text,
-               "district = Q12 (district)")
+               "district = Q12")
   img <- block_named(m, "intro_note")$image
   expect_true(img$found)
   expect_equal(img$file, "household.png")
@@ -293,19 +303,253 @@ test_that("answer specs for every kind (all_types example)", {
   # choice images are records inside a list column
   ws <- a("water_source")$choices
   expect_type(ws$image, "list")
-  expect_equal(nrow(ws), 4L)
+  # four choices and the "other" row
+  expect_equal(nrow(ws), 5L)
+  expect_equal(ws$write_in, c(FALSE, FALSE, FALSE, FALSE, TRUE))
 })
 
-test_that("max_choices truncates long lists in the model", {
+test_that("max_choices no longer truncates; it sets the layout", {
   p <- system.file("extdata", "all_types", "all_types.xlsx",
                    package = "convertxlsform")
   skip_if(!nzchar(p))
-  m <- .build_model(read_quiet(p), test_opts(max_choices = 10))
+  f <- read_quiet(p)
+  m <- .build_model(f, test_opts())
   crop <- block_named(m, "main_crop")$answer
-  expect_equal(nrow(crop$choices), 10L)
+  expect_equal(nrow(crop$choices), 30L)
   expect_equal(crop$n_total, 30L)
-  expect_true(crop$truncated)
-  expect_false(block_named(m, "consent")$answer$truncated)
+  expect_equal(crop$layout, "columns")
+  expect_null(crop$truncated)
+  m10 <- .build_model(f, test_opts(max_choices = 10))
+  crop10 <- block_named(m10, "main_crop")$answer
+  expect_equal(nrow(crop10$choices), 30L)
+  expect_equal(crop10$layout, "code_box")
+  expect_true(crop10$ncol %in% 2:3)
+  expect_equal(block_named(m10, "consent")$answer$layout, "list")
+})
+
+test_that("layouts follow the number of choices and the appearance", {
+  skip_if_no_writexl()
+  mk <- function(n, appearance = NA, label = "Item", or_other = FALSE) {
+    survey <- fdf(type = paste0("select_one l", if (or_other) " or_other" else ""),
+                  name = "q", label = "Q", appearance = appearance)
+    choices <- fdf(list_name = rep("l", n), name = paste0("c", seq_len(n)),
+                   label = paste(label, seq_len(n)))
+    ans <- block_named(.build_model(read_quiet(make_form(survey, choices)),
+                                    test_opts()), "q")$answer
+    ans
+  }
+  expect_equal(mk(7)$layout, "list")
+  expect_equal(mk(8)$layout, "columns")
+  expect_equal(mk(8)$ncol, 3L)
+  # one label above 25 characters: two columns
+  expect_equal(mk(8, label = "A rather long choice label")$ncol, 2L)
+  expect_equal(mk(30)$layout, "columns")
+  expect_equal(mk(31)$layout, "code_box")
+  expect_equal(mk(8, "minimal")$layout, "code_box")
+  expect_equal(mk(7, "minimal")$layout, "list")
+  expect_equal(mk(12, "autocomplete")$layout, "code_box")
+})
+
+test_that("or_other appends a write-in row", {
+  skip_if_no_writexl()
+  survey <- fdf(type = "select_one l or_other", name = "q", label = "Q")
+  choices <- fdf(list_name = c("l", "l"), name = c("a", "b"),
+                 label = c("A", "B"))
+  f <- read_quiet(make_form(survey, choices))
+  a <- block_named(.build_model(f, test_opts()), "q")$answer
+  expect_true(a$or_other)
+  expect_equal(a$choices$name, c("a", "b", "other"))
+  expect_equal(a$choices$label, c("A", "B", "Other (specify)"))
+  expect_equal(a$choices$write_in, c(FALSE, FALSE, TRUE))
+  expect_equal(a$n_total, 2L)
+  expect_type(a$choices$image, "list")
+  expect_null(a$choices$image[[3]])
+  # the label comes from the string table, and can be overridden
+  fr <- block_named(.build_model(f, test_opts(strings = list(
+    other_specify = "Autre"))), "q")$answer
+  expect_equal(fr$choices$label[3], "Autre")
+  # the extra row counts towards the layout (7 choices + other = 8)
+  survey7 <- fdf(type = "select_one l7 or_other", name = "q", label = "Q")
+  ch7 <- fdf(list_name = rep("l7", 7), name = letters[1:7],
+             label = LETTERS[1:7])
+  a7 <- block_named(.build_model(read_quiet(make_form(survey7, ch7)),
+                                 test_opts()), "q")$answer
+  expect_equal(a7$layout, "columns")
+})
+
+test_that("references in labels and hints become [Qn] or [name]", {
+  skip_if_no_writexl()
+  survey <- fdf(
+    type = c("integer", "begin_group", "text", "end_group", "calculate",
+             "note"),
+    name = c("age", "g", "q", NA, "calc", "n"),
+    label = c("Age", "Group", "Is ${age} years right? See ${calc} and ${zzz}",
+              NA, NA, "Note on ${ q }"),
+    hint = c(NA, NA, "Compare with ${age}", NA, NA, NA),
+    guidance_hint = c(NA, NA, "Check ${g}", NA, NA, NA)
+  )
+  m <- .build_model(read_quiet(make_form(survey)), test_opts())
+  q <- block_named(m, "q")
+  expect_equal(q$label, "Is [Q1] years right? See [calc] and [zzz]")
+  expect_equal(q$hint, "Compare with [Q1]")
+  expect_equal(q$guidance_hint, "Check [Q2]")
+  expect_equal(block_named(m, "n")$label, "Note on [Q2.1]")
+  nh <- .build_model(read_quiet(make_form(survey)),
+                     test_opts(include_hints = FALSE))
+  expect_true(is.na(block_named(nh, "q")$guidance_hint))
+})
+
+test_that("line breaks are normalized to \\n", {
+  skip_if_no_writexl()
+  survey <- fdf(type = c("text", "note"), name = c("q", "n"),
+                label = c("Line one\r\nLine two\rLine three", "A\nB"),
+                hint = c("H1\r\nH2", NA))
+  m <- .build_model(read_quiet(make_form(survey)), test_opts())
+  expect_equal(block_named(m, "q")$label, "Line one\nLine two\nLine three")
+  expect_equal(block_named(m, "q")$hint, "H1\nH2")
+  expect_equal(block_named(m, "n")$label, "A\nB")
+})
+
+test_that("appearance is carried on question blocks", {
+  skip_if_no_writexl()
+  survey <- fdf(type = "text", name = "q", label = "Q",
+                appearance = "multiline")
+  m <- .build_model(read_quiet(make_form(survey)), test_opts())
+  expect_equal(block_named(m, "q")$appearance, "multiline")
+})
+
+test_that("show_variable_names controls references in logic text", {
+  skip_if_no_writexl()
+  f <- small_form()
+  on <- .build_model(f, test_opts(show_variable_names = TRUE))
+  off <- .build_model(f, test_opts(show_variable_names = FALSE))
+  expect_equal(block_named(on, "hh_size")$relevant_text,
+               "Q1 (consent) is \"Yes\"")
+  expect_equal(block_named(off, "hh_size")$relevant_text, "Q1 is \"Yes\"")
+  expect_equal(block_named(on, "members", "section")$repeat_text,
+               "Q3 (hh_size)")
+  expect_equal(block_named(on, "t1")$relevant_text,
+               paste0("Q2 (assets) does not include \"Radio\" and ",
+                      "(Q3 (hh_size) > 2 or Q1 (consent) is \"Yes\")"))
+})
+
+test_that("constraint text: message, humanized, or dropped", {
+  skip_if_no_writexl()
+  survey <- fdf(
+    type = rep("integer", 4), name = c("a", "b", "c", "d"),
+    label = c("A", "B", "C", "D"),
+    constraint = c(". >= 0", ". >= 0", "regex(., '^[0-9]+$')",
+                   "regex(., '^[0-9]+$')"),
+    constraint_message = c(NA, "Must be positive", NA, "Digits only")
+  )
+  f <- read_quiet(make_form(survey))
+  off <- .build_model(f, test_opts(show_variable_names = FALSE))
+  on <- .build_model(f, test_opts(show_variable_names = TRUE))
+  ct <- function(m, nm) block_named(m, nm)$constraint_text
+  expect_equal(ct(off, "a"), "the answer >= 0")
+  expect_equal(ct(off, "b"), "Must be positive")
+  # verbatim fallback without a message: dropped unless names are shown
+  expect_true(is.na(ct(off, "c")))
+  expect_equal(ct(on, "c"), "regex(., '^[0-9]+$')")
+  expect_equal(ct(off, "d"), "Digits only")
+  # the range text still comes from the expression
+  expect_equal(block_named(off, "b")$answer$range_text, "at least 0")
+})
+
+test_that("verbatim relevant expressions are kept", {
+  skip_if_no_writexl()
+  survey <- fdf(
+    type = c("integer", "text"), name = c("n", "q"), label = c("N", "Q"),
+    relevant = c(NA, "string-length(${n}) > 3")
+  )
+  f <- read_quiet(make_form(survey))
+  off <- .build_model(f, test_opts(show_variable_names = FALSE))
+  expect_equal(block_named(off, "q")$relevant_text, "string-length(Q1) > 3")
+})
+
+test_that("repeat_count_value is numeric for constant counts", {
+  skip_if_no_writexl()
+  survey <- fdf(
+    type = c("begin_repeat", "text", "end_repeat", "begin_repeat", "text",
+             "end_repeat", "begin_repeat", "text", "end_repeat"),
+    name = c("r1", "q1", NA, "r2", "q2", NA, "r3", "q3", NA),
+    label = c("R1", "Q1", NA, "R2", "Q2", NA, "R3", "Q3", NA),
+    repeat_count = c("3", NA, NA, "${q1}", NA, NA, NA, NA, NA)
+  )
+  m <- .build_model(read_quiet(make_form(survey)), test_opts())
+  v <- function(nm) block_named(m, nm, "section")$repeat_count_value
+  expect_equal(v("r1"), 3)
+  expect_true(is.na(v("r2")))
+  expect_true(is.na(v("r3")))
+})
+
+test_that("the legend explains rank questions and follows the language", {
+  skip_if_no_writexl()
+  sym <- .cxf_symbols()
+  survey <- fdf(type = "rank l", name = "q", label = "Q")
+  choices <- fdf(list_name = c("l", "l"), name = c("a", "b"),
+                 label = c("A", "B"))
+  m <- .build_model(read_quiet(make_form(survey, choices)), test_opts())
+  expect_true(any(startsWith(m$meta$legend, sym$rank)))
+  expect_true(any(grepl("Rank the answers", m$meta$legend)))
+  ml <- .build_model(read_quiet(make_form(survey, choices)),
+                     test_opts(strings = list(legend_rank = "Classez")))
+  expect_true(any(grepl("Classez", ml$meta$legend)))
+})
+
+test_that("meta carries the strings, the font and rtl", {
+  skip_if_no_writexl()
+  m <- .build_model(small_form(), test_opts())
+  expect_equal(m$meta$strings, .cxf_strings("en"))
+  expect_equal(m$meta$font_family_cs, "Arial")
+  expect_false(m$meta$rtl)
+  m2 <- .build_model(small_form(), test_opts(font_family_cs = "My CS Font",
+                                             font_family = "Calibri"))
+  expect_equal(m2$meta$font_family_cs, "My CS Font")
+  m3 <- .build_model(small_form(), test_opts(font_family = "Calibri"))
+  expect_equal(m3$meta$font_family_cs, "Calibri")
+})
+
+test_that("script detection chooses the complex-script font", {
+  d <- function(x) .detect_script_font(x, "Arial")
+  expect_equal(d("Hello")$font_family_cs, "Arial")
+  expect_equal(d(c(NA, ""))$font_family_cs, "Arial")
+  expect_equal(d("\u0995\u09a5\u09be")$font_family_cs, "Noto Sans Bengali")
+  expect_false(d("\u0995\u09a5\u09be")$rtl)
+  ar <- d("\u0645\u0631\u062d\u0628\u0627")
+  expect_equal(ar$font_family_cs, "Noto Naskh Arabic")
+  expect_true(ar$rtl)
+  expect_equal(d("\u0928\u092e\u0938\u094d\u0924\u0947")$font_family_cs,
+               "Noto Sans Devanagari")
+  expect_equal(d("\u1230\u120b\u121d")$font_family_cs, "Noto Sans Ethiopic")
+  he <- d("\u05e9\u05dc\u05d5\u05dd")
+  expect_equal(he$font_family_cs, "Arial")
+  expect_true(he$rtl)
+  # the script with most characters wins
+  expect_equal(d(c("\u0995\u09a5\u09be\u0995", "\u0645"))$font_family_cs,
+               "Noto Sans Bengali")
+})
+
+test_that("the Bengali example gets the Bengali font", {
+  p <- system.file("extdata", "multilang", "multilang.xlsx",
+                   package = "convertxlsform")
+  skip_if(!nzchar(p))
+  bn <- .build_model(read_quiet(p, lang = "bn"), test_opts())
+  expect_equal(bn$meta$font_family_cs, "Noto Sans Bengali")
+  expect_false(bn$meta$rtl)
+  en <- .build_model(read_quiet(p, lang = "en"), test_opts())
+  expect_equal(en$meta$font_family_cs, "Arial")
+})
+
+test_that("French forms use French strings", {
+  p <- system.file("extdata", "all_types", "all_types.xlsx",
+                   package = "convertxlsform")
+  skip_if(!nzchar(p))
+  fr <- .build_model(read_quiet(p, lang = "fr"), test_opts())
+  expect_equal(fr$meta$strings, .cxf_strings("fr"))
+  expect_true(any(grepl("Question obligatoire", fr$meta$legend)))
+  other <- block_named(fr, "water_source")$answer$choices
+  expect_equal(other$label[nrow(other)], "Autre (pr\u00e9ciser)")
 })
 
 test_that("language display names and choice labels follow lang", {

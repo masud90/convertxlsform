@@ -16,7 +16,8 @@ of the settings sheet, or the first language found. See
 
 \item{...}{Further options: \code{nested_serial_numbers}, \code{include_relevants},
 \code{include_constraints}, \code{include_hints}, \code{include_hidden}, \code{media_root},
-\code{max_choices}, \code{title} and the other conversion options. Page and font
+\code{max_choices} (lists longer than this get a code box layout), \code{strings},
+\code{show_variable_names}, \code{title} and the other conversion options. Page and font
 options are accepted and have no effect here.}
 }
 \value{
@@ -26,8 +27,11 @@ the form), \code{serial} (question number, NA when unnumbered), \code{depth}
 \code{"note"} or \code{"question"}), \code{kind} (the question kind, for example
 \code{"select_one"}, or \code{"begin_group"}, \code{"begin_repeat"}, \code{"end_repeat"},
 \code{"note"}), \code{name}, \code{label}, \code{required}, \code{n_choices} (all choices of a
-select or rank question, before any truncation), \code{relevant_text} and
-\code{constraint_text}.
+select or rank question, not counting an "other" row), \code{relevant_text},
+\code{constraint_text} (the constraint message when the form has one, else the
+humanized expression) and \code{layout} (for select and rank questions:
+\code{"list"}, \code{"columns"} or \code{"code_box"}, from the number of choices and
+\code{max_choices}; NA otherwise). A label may contain line breaks (\verb{\\n}).
 }
 \description{
 Parses an XLSForm and returns one row for each item that would appear on

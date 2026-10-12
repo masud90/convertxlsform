@@ -28,7 +28,10 @@
     font_family = "Arial",
     font_size = 11,
     template = NULL,
-    max_choices = Inf,
+    max_choices = 30,
+    strings = NULL,
+    repeat_copies = 1L,
+    font_family_cs = NULL,
     overwrite = FALSE,
     verbose = TRUE
   )
@@ -70,6 +73,10 @@
                                   lower = 6, upper = 20)
   opts$template <- .check_template(opts$template)
   opts$max_choices <- .check_max_choices(opts$max_choices)
+  opts$strings <- .check_strings(opts$strings)
+  opts$repeat_copies <- .check_repeat_copies(opts$repeat_copies)
+  opts$font_family_cs <- .check_optional_string(opts$font_family_cs,
+                                                "font_family_cs")
 
   # Portrait: width is the short side. Landscape swaps the two sides.
   short_side <- switch(opts$page_size, A4 = 8.27, letter = 8.5)
@@ -181,15 +188,59 @@
   x
 }
 
-#' Check max_choices: a positive number or Inf
+#' Check max_choices: a positive whole number or Inf
 #' @noRd
 .check_max_choices <- function(x) {
-  ok <- is.numeric(x) && length(x) == 1L && !is.na(x) && x > 0
+  ok <- is.numeric(x) && length(x) == 1L && !is.na(x) && x > 0 &&
+    (is.infinite(x) || x == floor(x))
   if (!ok) {
     .cxf_abort(c(
-      "{.arg max_choices} must be a single positive number or {.code Inf}.",
+      "{.arg max_choices} must be a single positive whole number or {.code Inf}.",
       i = "Got {.val {x}}."
     ))
   }
   x
+}
+
+#' Check strings: NULL or a named list of single strings with known names
+#' @noRd
+.check_strings <- function(x) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+  valid <- .strings_names()
+  valid_txt <- paste(valid, collapse = ", ")
+  ok <- is.list(x) && length(x) > 0L && !is.null(names(x)) &&
+    all(nzchar(names(x))) &&
+    all(vapply(x, function(v) {
+      is.character(v) && length(v) == 1L && !is.na(v)
+    }, NA))
+  if (!ok) {
+    .cxf_abort(c(
+      "{.arg strings} must be NULL or a named list of single strings.",
+      i = "Valid names are: {valid_txt}."
+    ))
+  }
+  bad <- setdiff(names(x), valid)
+  if (length(bad) > 0L) {
+    .cxf_abort(c(
+      "Unknown name{?s} in {.arg strings}: {.val {bad}}.",
+      i = "Valid names are: {valid_txt}."
+    ))
+  }
+  x
+}
+
+#' Check repeat_copies: a whole number from 1 to 20
+#' @noRd
+.check_repeat_copies <- function(x) {
+  ok <- is.numeric(x) && length(x) == 1L && is.finite(x) && x == floor(x) &&
+    x >= 1 && x <= 20
+  if (!ok) {
+    .cxf_abort(c(
+      "{.arg repeat_copies} must be a whole number from 1 to 20.",
+      i = "Got {.val {x}}."
+    ))
+  }
+  as.integer(x)
 }

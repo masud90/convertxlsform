@@ -129,18 +129,33 @@
   res(choices = choices, found = TRUE, path = path)
 }
 
-#' Keep the first `max_choices` rows
+#' Layout of a choice list on paper
 #'
-#' @return list(choices, n_total, truncated)
+#' `"list"` for up to 7 choices; `"columns"` for 8 up to `max_choices`, in 2
+#' or 3 columns (3 when every label has at most 25 characters); `"code_box"`
+#' for more than `max_choices`, or when the appearance contains `minimal` or
+#' `autocomplete` and there are more than 7 choices: a write-in code box plus
+#' a compact code table of all choices.
+#'
+#' @param labels Character vector of choice labels (including any "other" row).
+#' @param appearance The question's appearance (may be NA).
+#' @param max_choices Largest list still printed in full.
+#' @return list(layout, ncol)
 #' @noRd
-.truncate_choices <- function(choices, max_choices = Inf) {
-  n <- nrow(choices)
-  keep <- if (is.finite(max_choices)) max(1L, floor(max_choices)) else n
-  if (n > keep) {
-    list(choices = choices[seq_len(keep), , drop = FALSE], n_total = n,
-         truncated = TRUE)
+.choice_layout <- function(labels, appearance = NA_character_,
+                           max_choices = 30) {
+  n <- length(labels)
+  app <- tolower(if (is.null(appearance) || is.na(appearance)) "" else appearance)
+  compact <- grepl("minimal", app, fixed = TRUE) ||
+    grepl("autocomplete", app, fixed = TRUE)
+  short <- all(nchar(labels[!is.na(labels)]) <= 25L)
+  ncol3 <- if (short) 3L else 2L
+  if (n > max_choices || (compact && n > 7L)) {
+    list(layout = "code_box", ncol = ncol3)
+  } else if (n <= 7L) {
+    list(layout = "list", ncol = 1L)
   } else {
-    list(choices = choices, n_total = n, truncated = FALSE)
+    list(layout = "columns", ncol = ncol3)
   }
 }
 
@@ -148,10 +163,10 @@
 #'
 #' @param form A `cxf_form`.
 #' @param i Survey row index of the question.
-#' @param max_choices Keep at most this many choices.
-#' @return list(choices, n_total, truncated, source, source_found, note)
+#' @return list(choices, n_total, source, source_found, note). `n_total` is
+#'   the number of choices of the list (before any "other" row is added).
 #' @noRd
-.select_choices <- function(form, i, max_choices = Inf) {
+.select_choices <- function(form, i) {
   sv <- form$survey
   bt <- sv$base_type[i]
   arg <- sv$type_arg[i]
@@ -172,9 +187,8 @@
     found <- TRUE
     note <- NA_character_
   }
-  tr <- .truncate_choices(ch, max_choices)
-  list(choices = tr$choices, n_total = tr$n_total, truncated = tr$truncated,
-       source = source, source_found = found, note = note)
+  list(choices = ch, n_total = nrow(ch), source = source, source_found = found,
+       note = note)
 }
 
 #' Start, end, step and the values of a range question

@@ -139,3 +139,31 @@ Character styles `cxf Required` and `cxf Code` exist in the template for users, 
 ## 9. Options object
 
 `.cxf_options(...)` validates and returns a list with every option named in `dev/plan.md` (Public API), plus derived `text_width_in` from page size, orientation and margins.
+
+## 10. Revisions after the Fable design review (2026-10-12)
+
+These override earlier sections where they conflict.
+
+Model (M2b):
+
+1. `${var}` inside label, hint, guidance_hint and note text becomes `[Q2.2.1]` when the target is numbered, else `[name]`.
+2. Logic display. `constraint_text`: if `constraint_message` exists show only the message; else the humanized expression; if humanizing fell back to verbatim and `show_variable_names = FALSE`, drop it (NA). `relevant_text`: question references render as `Q3.16` when `show_variable_names = FALSE`, `Q3.16 (owns_livestock)` when TRUE; verbatim fallbacks are kept (skip logic must not silently vanish) but only with `${}` substitution.
+3. Labels, hints and notes may contain line breaks (`\r\n`, `\n`); normalize to `\n`. The renderer splits on `\n` and uses `officer::run_linebreak()`.
+4. Question blocks carry `appearance` and `guidance_hint` (shown when `include_hints`).
+5. Select answers carry `layout`: `"list"` (<= 7 choices), `"columns"` (8 to `max_choices`, with `ncol` 2 or 3: 3 when every label is <= 25 characters, else 2), `"code_box"` (more than `max_choices`, or appearance contains `minimal`/`autocomplete` with more than 7 choices): a write-in "Code: ____" box plus a compact multi-column code table of all choices. `max_choices` default changes from `Inf` to 30 and no longer truncates.
+6. `or_other = TRUE` appends a choice `name = "other"`, `label = <strings$other_specify>`, `write_in = TRUE` (every choice row has a `write_in` column, FALSE otherwise).
+7. Legend adds a rank line when the form has rank questions.
+8. String table: `.cxf_strings(lang_code, overrides)` returns ~15 connective strings (ask_if, constraint, includes, does_not_include, is, is_not, is_empty, is_not_empty, the_answer, number_selected_in, today, repeat_for_each, instance_no, other_specify, legend lines, not_on_paper, reference_no, code). Built in: `en`, `fr`. Other languages fall back to `en`; users override with a new option `strings = NULL` (named list). The humanizer uses these strings.
+9. Answer details: geopoint fields are Latitude, Longitude, Accuracy (m) (no altitude). Geotrace, geoshape and media kinds get `prompt = strings$not_on_paper` plus a "Reference no." write-in. Rank choices render with an empty box per choice. Range with <= 20 values: row of circled values; else a box with "start to end, steps of step".
+10. Repeats: `section` blocks for repeats carry `repeat_count_value` (numeric when the count is a constant, else NA). New option `repeat_copies = 1L`: the renderer repeats the block content that many times, each with "Instance no. ____".
+11. Fonts: new option `font_family_cs = NULL`. When NULL, detect script from the chosen language's labels: Bengali (U+0980 to U+09FF) -> "Noto Sans Bengali"; Arabic (U+0600 to U+06FF) -> "Noto Naskh Arabic"; Devanagari -> "Noto Sans Devanagari"; Ethiopic -> "Noto Sans Ethiopic"; else `font_family`. Stored as `meta$font_family_cs`; `meta$rtl` TRUE for Arabic or Hebrew scripts (RTL layout itself is unsupported in 0.3.0, documented).
+
+Renderer (M3):
+
+12. Selects as borderless 3-column flextables (symbol, code in muted smaller text, label), codes shown when `include_choice_name`; choice images (from v0.2.1 parity) under the label in the same cell, max 1 in.
+13. Text, number, barcode: bordered single-cell flextables with fixed row heights (0.3 in per line), number box with range_text beside it.
+14. Page header with title and version; footer with form_id, generation date and "Page X of Y" (`run_word_field("PAGE")`, `run_word_field("NUMPAGES")`). Table rows must not split across pages; question, hint and logic paragraphs keep with next.
+15. `cs.family` set on every text run (`fp_text(font.family, cs.family = meta$font_family_cs)`), complex-script size `font_size + 1`.
+16. Template: drop the `cxf Required` and `cxf Code` character styles.
+
+Deferred to 0.4.0 or later: forward skips ("If No, go to Q5"), roster tables for repeats, bilingual stacked output, RTL layout, XML external choices, annex code lists, structured relevant parsing, rendering of read_only calculations and defaults.

@@ -245,3 +245,79 @@ test_that("simple numeric ranges are described", {
   expect_true(is.na(r(NA)))
   expect_true(is.na(r("")))
 })
+
+test_that("show_variable_names switches between Q3 and Q3 (name)", {
+  skip_if_no_writexl()
+  f <- small_form()
+  on <- function(x, field = "relevant") {
+    .humanize_expr(x, f, field, show_variable_names = TRUE)
+  }
+  off <- function(x, field = "relevant") {
+    .humanize_expr(x, f, field, show_variable_names = FALSE)
+  }
+  expect_equal(on("${hh_size} > 2"), "Q3 (hh_size) > 2")
+  expect_equal(off("${hh_size} > 2"), "Q3 > 2")
+  expect_equal(off("${consent} = 'yes'"), "Q1 is \"Yes\"")
+  expect_equal(off("not(selected(${assets}, 'radio'))"),
+               "Q2 does not include \"Radio\"")
+  expect_equal(off("count-selected(${assets}) > 1"),
+               "number selected in Q2 > 1")
+  expect_equal(off("${t2} = 'x'"), "Q4.2 = \"x\"")
+  # unnumbered and unknown references keep the name either way
+  expect_equal(off("${calc} > 2"), "calc > 2")
+  # the verbatim fallback is substituted the same way
+  expect_equal(off("regex(${t2}, 'a')"), "regex(Q4.2, 'a')")
+  expect_equal(on("regex(${t2}, 'a')"), "regex(Q4.2 (t2), 'a')")
+  v <- .humanize_exprs(c("${hh_size} > 2", "${hh_size}"), f, "relevant",
+                       show_variable_names = FALSE)
+  expect_equal(v, c("Q3 > 2", "Q3"))
+})
+
+test_that("with_fallback flags expressions shown as written", {
+  skip_if_no_writexl()
+  f <- small_form()
+  r <- .humanize_exprs(c("${hh_size} > 2", "regex(., 'a')", NA), f,
+                       "constraint", with_fallback = TRUE)
+  expect_named(r, c("text", "fallback"))
+  expect_equal(r$fallback, c(FALSE, TRUE, FALSE))
+  expect_equal(r$text[1], "Q3 (hh_size) > 2")
+})
+
+test_that("humanized text is built from the French string table", {
+  skip_if_no_writexl()
+  f <- small_form()
+  fr <- .cxf_strings("fr")
+  h <- function(x, field = "relevant", ...) {
+    .humanize_expr(x, f, field, strings = fr, show_variable_names = FALSE, ...)
+  }
+  expect_equal(h("${consent} = 'yes'"), "Q1 est \"Yes\"")
+  expect_equal(h("${consent} != 'yes'"), "Q1 n'est pas \"Yes\"")
+  expect_equal(h("selected(${assets}, 'tv')"), "Q2 comprend \"TV\"")
+  expect_equal(h("not(selected(${assets}, 'tv'))"),
+               "Q2 ne comprend pas \"TV\"")
+  expect_equal(h("${consent} = ''"), "Q1 est vide")
+  expect_equal(h("${consent} != ''"), "Q1 n'est pas vide")
+  expect_equal(h("${hh_size} > 1 and ${hh_size} < 9 or true()"),
+               "Q3 > 1 et Q3 < 9 ou vrai")
+  expect_equal(h(". <= today()", "constraint"),
+               "la r\u00e9ponse <= aujourd'hui")
+  expect_equal(h(". > 0", "relevant"), "cette r\u00e9ponse > 0")
+  expect_equal(h("count-selected(${assets}) > 1"),
+               paste("nombre de choix s\u00e9lectionn\u00e9s dans Q2 > 1"))
+  expect_equal(h("not(${hh_size} > 2)"), "non (Q3 > 2)")
+  # overrides apply
+  ov <- .cxf_strings("fr", list(includes = "contient"))
+  expect_equal(.humanize_expr("selected(${assets}, 'tv')", f, strings = ov),
+               "Q2 (assets) contient \"TV\"")
+})
+
+test_that("the form language selects the strings by default", {
+  p <- system.file("extdata", "all_types", "all_types.xlsx",
+                   package = "convertxlsform")
+  skip_if(!nzchar(p))
+  fr <- read_quiet(p, lang = "fr")
+  en <- read_quiet(p, lang = "en")
+  x <- "${consent} = ''"
+  expect_match(.humanize_expr(x, fr, "relevant"), "est vide$")
+  expect_match(.humanize_expr(x, en, "relevant"), "is empty$")
+})

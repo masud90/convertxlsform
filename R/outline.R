@@ -15,7 +15,8 @@
 #'   [xlsform_languages()].
 #' @param ... Further options: `nested_serial_numbers`, `include_relevants`,
 #'   `include_constraints`, `include_hints`, `include_hidden`, `media_root`,
-#'   `max_choices`, `title` and the other conversion options. Page and font
+#'   `max_choices` (lists longer than this get a code box layout), `strings`,
+#'   `show_variable_names`, `title` and the other conversion options. Page and font
 #'   options are accepted and have no effect here.
 #'
 #' @return A data.frame with one row per block and columns `row` (Excel row of
@@ -24,8 +25,11 @@
 #'   `"note"` or `"question"`), `kind` (the question kind, for example
 #'   `"select_one"`, or `"begin_group"`, `"begin_repeat"`, `"end_repeat"`,
 #'   `"note"`), `name`, `label`, `required`, `n_choices` (all choices of a
-#'   select or rank question, before any truncation), `relevant_text` and
-#'   `constraint_text`.
+#'   select or rank question, not counting an "other" row), `relevant_text`,
+#'   `constraint_text` (the constraint message when the form has one, else the
+#'   humanized expression) and `layout` (for select and rank questions:
+#'   `"list"`, `"columns"` or `"code_box"`, from the number of choices and
+#'   `max_choices`; NA otherwise). A label may contain line breaks (`\n`).
 #'
 #' @examples
 #' path <- system.file("extdata", "multilang", "multilang.xlsx",
@@ -75,6 +79,10 @@ xlsform_outline <- function(xlsform, lang = NULL, ...) {
     n <- if (identical(b$block, "question")) b$answer$n_total else NULL
     if (is.null(n)) NA_integer_ else as.integer(n)
   }, 1L, USE.NAMES = FALSE)
+  layout <- vapply(blocks, function(b) {
+    l <- if (identical(b$block, "question")) b$answer$layout else NULL
+    if (is.null(l)) NA_character_ else l
+  }, "", USE.NAMES = FALSE)
   data.frame(
     row = get("row", 1L, NA_integer_),
     serial = get("serial", "", NA_character_),
@@ -87,6 +95,7 @@ xlsform_outline <- function(xlsform, lang = NULL, ...) {
     n_choices = n_choices,
     relevant_text = get("relevant_text", "", NA_character_),
     constraint_text = get("constraint_text", "", NA_character_),
+    layout = layout,
     stringsAsFactors = FALSE
   )
 }

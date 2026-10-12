@@ -11,10 +11,12 @@ NULL
 #' @noRd
 .cxf_symbols <- function() {
   list(
-    circle = "\u25EF",  # white large circle: choose one (U+25EF)
-    square = "\u25A2",  # white square with rounded corners: choose all (U+25A2)
+    # WGL4 glyphs present in Arial and Liberation Sans (U+25EF and U+2610
+    # fall back to other fonts in LibreOffice)
+    circle = "\u25CB",  # white circle: choose one (U+25CB)
+    square = "\u25A1",  # white square: choose all (U+25A1)
     rank = "\u25A1",    # white square: rank box (U+25A1)
-    tick = "\u2610"     # ballot box: acknowledge (U+2610)
+    tick = "\u25A1"     # white square: acknowledge (U+25A1)
   )
 }
 

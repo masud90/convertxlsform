@@ -184,6 +184,14 @@
     j0 <- (g - 1L) * per
     ft <- flextable::valign(ft, j = j0 + 1L, valign = "center",
                             part = "body")
+    # rows with an image: symbol and code sit beside the label, at the top
+    ks <- which((seq_len(n) - 1L) %/% nr + 1L == g &
+                  !vapply(ch$image, is.null, logical(1)))
+    if (length(ks)) {
+      ft <- flextable::valign(ft, i = (ks - 1L) %% nr + 1L,
+                              j = j0 + seq_len(per - 1L), valign = "top",
+                              part = "body")
+    }
     if (g == 1L) {
       ft <- flextable::padding(ft, j = 1L, padding.left = indent * 72,
                                part = "body")

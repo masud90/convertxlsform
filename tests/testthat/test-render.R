@@ -120,6 +120,16 @@ test_that("images are embedded", {
                 length(media) >= 4L)
 })
 
+test_that("choice rows with an image are top-aligned", {
+  m <- example_model("all_types", "en")
+  doc <- zip_part(render_to(m), "word/document\\.xml$")
+  rows <- regmatches(doc, gregexpr("(?s)<w:tr[ >].*?</w:tr>", doc, perl = TRUE))[[1]]
+  with_img <- rows[grepl("<w:drawing", rows, fixed = TRUE)]
+  skip_if(length(with_img) == 0L, "no image rows rendered")
+  expect_false(any(grepl('<w:vAlign w:val="center"', with_img, fixed = TRUE)))
+  expect_true(any(grepl('<w:vAlign w:val="top"', with_img, fixed = TRUE)))
+})
+
 test_that("header and footer carry title, form id and page fields", {
   m <- example_model("all_types", "en")
   path <- render_to(m)

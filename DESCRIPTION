@@ -4,16 +4,17 @@ Title: Convert an XLSForm to a Word or PDF Document
 Version: 0.2.1.9000
 Authors@R:
     person("Masud", "Rahman", email = "write2masud+convertxlsform@gmail.com", role = c("aut", "cre"))
-Description: Converts XLSForm questionnaires, as used by Open Data Kit (ODK) and
-    KoboToolbox, into formatted paper versions for interviewing and review.
-    Output is a Microsoft Word document (.docx) or, optionally, a PDF produced
-    from that Word document with LibreOffice. Supports multilingual forms,
-    nested question numbering, skip logic display, and question and choice
-    media.
+Description: Converts 'XLSForm' questionnaires, as used by 'Open Data Kit' ('ODK')
+    and 'KoboToolbox', into formatted paper versions for interviewing and
+    review. Output is a 'Microsoft Word' document (.docx) or, optionally, a
+    PDF produced from that Word document with 'LibreOffice'. Supports
+    multilingual forms, nested question numbering, skip logic display, and
+    question and choice media.
 License: MIT + file LICENSE
 URL: https://github.com/masud90/convertxlsform
 BugReports: https://github.com/masud90/convertxlsform/issues
 Encoding: UTF-8
+Language: en-US
 Depends: R (>= 4.1)
 Imports:
     cli,
@@ -24,7 +25,8 @@ Imports:
     rlang,
     stats,
     tools,
-    utils
+    utils,
+    zip
 Suggests:
     doconv,
     knitr,
@@ -32,7 +34,7 @@ Suggests:
     testthat (>= 3.0.0),
     withr,
     writexl
-SystemRequirements: LibreOffice (optional, for PDF output)
+SystemRequirements: 'LibreOffice' (optional, for PDF output)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)

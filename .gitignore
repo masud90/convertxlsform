@@ -12,3 +12,5 @@ CLAUDE.local.md
 *.Rcheck/
 convertxlsform_*.tar.gz
 docs/
+.claude/
+CLAUDE.md

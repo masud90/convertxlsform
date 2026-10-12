@@ -50,17 +50,28 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="convertxlsform">convertxlsform<a class="anchor" aria-label="anchor" href="#convertxlsform"></a>
 </h1></div>
+<!-- badges: start -->
+
 <p>convertxlsform turns an XLSForm, the questionnaire format used by Open Data Kit (ODK) and KoboToolbox, into a formatted paper version. Survey managers can use the output to review a questionnaire with colleagues, print it for interviewers, or check skip logic and constraints in one readable document. It writes a Word file (<code>.docx</code>) by default, and a PDF when LibreOffice or Microsoft Word is available. Forms can be multilingual, and the paper version follows the language you choose.</p>
-<!-- screenshot: man/figures/example-page1.png -->
+<table class="table"><tr>
+<td>
+<img src="reference/figures/example-page1.png" alt="Page 1 of the paper version of the bundled all_types example form: a title, a legend, a consent question with two choices, write-in boxes and a numeric question with a constraint." width="400">
+</td>
+<td>
+<img src="reference/figures/example-page2.png" alt="Page 2 of the same form: date and time patterns, single choice questions with choice images, a multiple choice question, a rank question and a numeric scale." width="400">
+</td>
+</tr></table>
+<p><em>The bundled <code>all_types</code> example, converted to PDF.</em></p>
+<p>Full reference and articles: <a href="https://masud90.github.io/convertxlsform/" class="uri">https://masud90.github.io/convertxlsform/</a>. New here? Start with the <a href="https://masud90.github.io/convertxlsform/articles/convertxlsform.html">Getting started</a> vignette.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"masud90/convertxlsform"</span><span class="op">)</span></span></code></pre></div>
-<p>Until the <code>rewrite</code> branch is merged into <code>main</code>, install that branch instead:</p>
+<p>To install a specific release, add its tag:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"masud90/convertxlsform@rewrite"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"masud90/convertxlsform@v0.3.0"</span><span class="op">)</span></span></code></pre></div>
 <p>Word output needs only R. PDF output needs one of the following:</p>
 <ul>
 <li>
@@ -79,7 +90,7 @@
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<p>In RStudio or any R session:</p>
+<p><strong>In R</strong> (RStudio or any R session):</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/masud90/convertxlsform" class="external-link">convertxlsform</a></span><span class="op">)</span></span>
 <span></span>
@@ -88,10 +99,12 @@
 <span></span>
 <span><span class="fu"><a href="reference/convertxlsform.html">convertxlsform</a></span><span class="op">(</span><span class="va">path</span>, output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>                  <span class="co"># Word file</span></span>
 <span><span class="fu"><a href="reference/convertxlsform.html">convertxlsform</a></span><span class="op">(</span><span class="va">path</span>, output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, format <span class="op">=</span> <span class="st">"pdf"</span><span class="op">)</span>  <span class="co"># PDF file</span></span></code></pre></div>
-<p>The package ships this example form, which covers the question types and features the package renders. Replace <code>path</code> with the path to your own form, for example <code>convertxlsform("survey.xlsx")</code>. The output is written next to the form, with the same base name and a <code>.docx</code> or <code>.pdf</code> extension. The function returns the path of the file it wrote, invisibly.</p>
-<p>From a terminal, run the command with <code>Rscript</code>. Put the form path and the options after the quoted expression:</p>
+<p><strong>From a terminal</strong>, run the command with <code>Rscript</code>. Put the form path and the options after the quoted expression:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'convertxlsform::cli()'</span> form.xlsx <span class="at">--format</span> pdf <span class="at">--lang</span> bn</span></code></pre></div>
-<p>The bundled example works the same way. The installed package folder is usually read-only, so give an output folder:</p>
+<p>The package ships the example form above, which covers the question types and features the package renders. Replace <code>path</code> with the path to your own form, for example <code>convertxlsform("survey.xlsx")</code>. The output is written next to the form, with the same base name and a <code>.docx</code> or <code>.pdf</code> extension. The function returns the path of the file it wrote, invisibly.</p>
+<details><summary>
+More terminal examples, Windows quoting and exit status
+</summary><p>The bundled example works from the terminal too. The installed package folder is usually read-only, so give an output folder:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="va">EXAMPLE</span><span class="op">=</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("extdata", "all_types", "all_types.xlsx", package = "convertxlsform"))'</span><span class="va">)</span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'convertxlsform::cli()'</span> <span class="st">"</span><span class="va">$EXAMPLE</span><span class="st">"</span> <span class="at">--format</span> pdf <span class="at">--output</span> .</span></code></pre></div>
 <p>The <code>Rscript -e '...'</code> examples use single quotes, which work in macOS and Linux shells and in PowerShell. In Windows <code>cmd.exe</code>, use double quotes outside and single quotes inside:</p>
@@ -99,14 +112,151 @@
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>Rscript <span class="at">-e</span> <span class="st">"cat(system.file('extdata', 'all_types', 'all_types.xlsx', package = 'convertxlsform'))"</span></span></code></pre></div>
 <p>Scripts that need the exit status (0 on success, 1 on error) can use:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'quit(status = convertxlsform::cli())'</span> form.xlsx <span class="at">--format</span> pdf</span></code></pre></div>
+</details>
+</div>
+<div class="section level2">
+<h2 id="what-you-get">What you get<a class="anchor" aria-label="anchor" href="#what-you-get"></a>
+</h2>
+<ul>
+<li>
+<strong>Front matter:</strong> the form title, version and form ID, the language, the date of generation, and a legend that explains the marks used in the document.</li>
+<li>
+<strong>Groups:</strong> headings numbered by depth. Repeat groups carry a “Repeat for each …” line that describes the repeat count.</li>
+<li>
+<strong>Questions:</strong> the number and label, a <code>*</code> for required questions, the hint in italics, and the variable name when <code>show_variable_names = TRUE</code>. “Ask if” and “Constraint” lines follow the answer area.</li>
+<li>
+<strong>Single choice (<code>select_one</code>):</strong> a hollow circle before each choice. Lists of seven or fewer choices print in one column; longer lists print in columns.</li>
+<li>
+<strong>Multiple choice (<code>select_multiple</code>):</strong> a hollow square before each choice.</li>
+<li>
+<strong>Rank:</strong> a box beside each choice to write its rank.</li>
+<li>
+<strong>Long choice lists:</strong> when a list is longer than <code>max_choices</code>, the paper form shows a code box for the respondent to write the code, and a compact table of every choice with its code.</li>
+<li>
+<strong>Text and numbers:</strong> a bordered write-in box. Multiline text gets a taller box.</li>
+<li>
+<strong>Date and time:</strong> a printed pattern (<code>dd/mm/yyyy</code>, <code>hh:mm</code>).</li>
+<li>
+<strong>Location:</strong> latitude, longitude and accuracy fields for <code>geopoint</code>. <code>geotrace</code> and <code>geoshape</code> get a prompt and a reference line.</li>
+<li>
+<strong>Media:</strong> an image is printed at its size, scaled down to fit (questions up to 2 inches tall, choices up to 0.6 inches). A missing file prints a placeholder with its name, and convertxlsform warns about it.</li>
+<li>
+<strong>Notes:</strong> printed without a number.</li>
+<li>
+<strong>Hidden types</strong> (<code>calculate</code>, <code>start</code>, <code>end</code>, <code>deviceid</code> and similar) are left out unless <code>include_hidden = TRUE</code>.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="languages">Languages<a class="anchor" aria-label="anchor" href="#languages"></a>
+</h2>
+<div class="section level3">
+<h3 id="how-language-columns-are-read">How language columns are read<a class="anchor" aria-label="anchor" href="#how-language-columns-are-read"></a>
+</h3>
+<p>Translated columns carry the language in the header. convertxlsform accepts any of these forms:</p>
+<ul>
+<li>
+<code>label::English (en)</code>: name and code. This is the form used in the bundled examples.</li>
+<li>
+<code>label::en</code>: code only.</li>
+<li>
+<code>label::English</code>: name only.</li>
+</ul>
+<p>The same pattern works for <code>hint</code>, <code>guidance_hint</code>, <code>required_message</code>, <code>constraint_message</code>, <code>image</code>, <code>audio</code> and <code>video</code>. A plain <code>label</code> column (no suffix) is used when no translated column exists.</p>
+<p>To list the languages in a form and see which one is the default:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/xlsform_languages.html">xlsform_languages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"multilang"</span>, <span class="st">"multilang.xlsx"</span>,</span>
+<span>                              package <span class="op">=</span> <span class="st">"convertxlsform"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The result has one row per language, with <code>suffix</code>, <code>code</code>, <code>name</code> and <code>default</code>. It has no rows for a single-language form.</p>
+</div>
+<div class="section level3">
+<h3 id="choosing-a-language">Choosing a language<a class="anchor" aria-label="anchor" href="#choosing-a-language"></a>
+</h3>
+<p><code>lang</code> accepts a code, a name, or the full header suffix. If the requested language is not in the form, convertxlsform warns, lists the languages it found, and uses the default language instead.</p>
+<p>Within a language, a blank cell falls back in this order: the column for the chosen language, then the plain column (for example <code>hint</code>), then the column of the default language. A blank French hint, for example, shows the English hint when the form has one.</p>
+</div>
+<div class="section level3">
+<h3 id="connective-phrases">Connective phrases<a class="anchor" aria-label="anchor" href="#connective-phrases"></a>
+</h3>
+<p>Phrases such as “Ask if”, “Constraint” and “Repeat for each” come from built-in tables. convertxlsform includes English and French. Any other language uses the English phrases unless you supply translations with <code>strings</code>.</p>
+<p>To translate them, pass a named list. Only the names listed below can be used, and an unknown name is an error:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Name</th>
+<th>English default</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>ask_if</code></td>
+<td>Ask if</td>
+</tr>
+<tr>
+<td><code>constraint</code></td>
+<td>Constraint</td>
+</tr>
+<tr>
+<td><code>choice_filter</code></td>
+<td>Choices shown if</td>
+</tr>
+<tr>
+<td><code>repeat_for_each</code></td>
+<td>Repeat for each</td>
+</tr>
+<tr>
+<td><code>other_specify</code></td>
+<td>Other (specify)</td>
+</tr>
+<tr>
+<td><code>legend_required</code></td>
+<td>* Required question</td>
+</tr>
+<tr>
+<td><code>legend_circle</code></td>
+<td>Choose one answer</td>
+</tr>
+<tr>
+<td><code>legend_square</code></td>
+<td>Choose all answers that apply</td>
+</tr>
+<tr>
+<td><code>legend_rank</code></td>
+<td>Rank the answers: write 1 in the box of the first choice, 2 for the second, and so on</td>
+</tr>
+<tr>
+<td><code>legend_ask_if</code></td>
+<td>Ask if: ask the question only when the condition is met</td>
+</tr>
+</tbody>
+</table>
+<p>The full list of names is in <code>R/strings.R</code>. A Bengali version of the bundled multilingual form would look like this. The <code>"..."</code> values are placeholders to replace with translations that you write or check with a Bengali speaker:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"multilang"</span>, <span class="st">"multilang.xlsx"</span>,</span>
+<span>                    package <span class="op">=</span> <span class="st">"convertxlsform"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/convertxlsform.html">convertxlsform</a></span><span class="op">(</span></span>
+<span>  <span class="va">path</span>,</span>
+<span>  output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  lang <span class="op">=</span> <span class="st">"bn"</span>,</span>
+<span>  strings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    ask_if          <span class="op">=</span> <span class="st">"..."</span>,  <span class="co"># Bengali for "Ask if"</span></span>
+<span>    constraint      <span class="op">=</span> <span class="st">"..."</span>,  <span class="co"># Bengali for "Constraint"</span></span>
+<span>    choice_filter   <span class="op">=</span> <span class="st">"..."</span>,  <span class="co"># Bengali for "Choices shown if"</span></span>
+<span>    repeat_for_each <span class="op">=</span> <span class="st">"..."</span>,  <span class="co"># Bengali for "Repeat for each"</span></span>
+<span>    other_specify   <span class="op">=</span> <span class="st">"..."</span>   <span class="co"># Bengali for "Other (specify)"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Until every placeholder is filled in, the paper form will show the placeholder text.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="options">Options<a class="anchor" aria-label="anchor" href="#options"></a>
 </h2>
-<div class="section level3">
-<h3 id="arguments-of-convertxlsform">Arguments of <code>convertxlsform()</code>
-<a class="anchor" aria-label="anchor" href="#arguments-of-convertxlsform"></a>
-</h3>
+<details><summary>
+R options: arguments of <code>convertxlsform()</code> and other options
+</summary><p><strong>Arguments of <code><a href="reference/convertxlsform.html">convertxlsform()</a></code></strong></p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -143,10 +293,7 @@
 </tbody>
 </table>
 <p>An existing file is not replaced unless <code>overwrite = TRUE</code>.</p>
-</div>
-<div class="section level3">
-<h3 id="other-options-passed-through-">Other options (passed through <code>...</code>)<a class="anchor" aria-label="anchor" href="#other-options-passed-through-"></a>
-</h3>
+<p><strong>Other options (passed through <code>...</code>)</strong></p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -234,7 +381,7 @@
 <tr>
 <td><code>font_family_cs</code></td>
 <td><code>NULL</code></td>
-<td>Font for complex scripts. Chosen from the text when <code>NULL</code>; see <a href="#fonts-and-scripts">Fonts and scripts</a>.</td>
+<td>Font for complex scripts. Chosen from the text when <code>NULL</code>; see <a href="#pdf-output-and-fonts">PDF output and fonts</a>.</td>
 </tr>
 <tr>
 <td><code>template</code></td>
@@ -267,13 +414,9 @@
 <td>Print progress messages.</td>
 </tr>
 </tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="command-line-flags-of-cli">Command-line flags of <code>cli()</code>
-<a class="anchor" aria-label="anchor" href="#command-line-flags-of-cli"></a>
-</h3>
-<table class="table">
+</table></details><details><summary>
+Command-line flags of <code>cli()</code>
+</summary><table class="table">
 <colgroup>
 <col width="50%">
 <col width="50%">
@@ -392,148 +535,12 @@
 </tbody>
 </table>
 <p>Options take a value as <code>--opt value</code> or <code>--opt=value</code>.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="languages">Languages<a class="anchor" aria-label="anchor" href="#languages"></a>
-</h2>
-<div class="section level3">
-<h3 id="how-language-columns-are-read">How language columns are read<a class="anchor" aria-label="anchor" href="#how-language-columns-are-read"></a>
-</h3>
-<p>Translated columns carry the language in the header. convertxlsform accepts any of these forms:</p>
-<ul>
-<li>
-<code>label::English (en)</code>: name and code. This is the form used in the bundled examples.</li>
-<li>
-<code>label::en</code>: code only.</li>
-<li>
-<code>label::English</code>: name only.</li>
-</ul>
-<p>The same pattern works for <code>hint</code>, <code>guidance_hint</code>, <code>required_message</code>, <code>constraint_message</code>, <code>image</code>, <code>audio</code> and <code>video</code>. A plain <code>label</code> column (no suffix) is used when no translated column exists.</p>
-<p>To list the languages in a form and see which one is the default:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/xlsform_languages.html">xlsform_languages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"multilang"</span>, <span class="st">"multilang.xlsx"</span>,</span>
-<span>                              package <span class="op">=</span> <span class="st">"convertxlsform"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>The result has one row per language, with <code>suffix</code>, <code>code</code>, <code>name</code> and <code>default</code>. It has no rows for a single-language form.</p>
-</div>
-<div class="section level3">
-<h3 id="choosing-a-language">Choosing a language<a class="anchor" aria-label="anchor" href="#choosing-a-language"></a>
-</h3>
-<p><code>lang</code> accepts a code, a name, or the full header suffix. If the requested language is not in the form, convertxlsform warns, lists the languages it found, and uses the default language instead.</p>
-<p>Within a language, a blank cell falls back in this order: the column for the chosen language, then the plain column (for example <code>hint</code>), then the column of the default language. A blank French hint, for example, shows the English hint when the form has one.</p>
-</div>
-<div class="section level3">
-<h3 id="connective-phrases">Connective phrases<a class="anchor" aria-label="anchor" href="#connective-phrases"></a>
-</h3>
-<p>Phrases such as “Ask if”, “Constraint” and “Repeat for each” come from built-in tables. convertxlsform includes English and French. Any other language uses the English phrases unless you supply translations with <code>strings</code>.</p>
-<p>To translate them, pass a named list. Only the names listed below can be used, and an unknown name is an error:</p>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Name</th>
-<th>English default</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>ask_if</code></td>
-<td>Ask if</td>
-</tr>
-<tr>
-<td><code>constraint</code></td>
-<td>Constraint</td>
-</tr>
-<tr>
-<td><code>choice_filter</code></td>
-<td>Choices shown if</td>
-</tr>
-<tr>
-<td><code>repeat_for_each</code></td>
-<td>Repeat for each</td>
-</tr>
-<tr>
-<td><code>other_specify</code></td>
-<td>Other (specify)</td>
-</tr>
-<tr>
-<td><code>legend_required</code></td>
-<td>* Required question</td>
-</tr>
-<tr>
-<td><code>legend_circle</code></td>
-<td>Choose one answer</td>
-</tr>
-<tr>
-<td><code>legend_square</code></td>
-<td>Choose all answers that apply</td>
-</tr>
-<tr>
-<td><code>legend_rank</code></td>
-<td>Rank the answers: write 1 in the box of the first choice, 2 for the second, and so on</td>
-</tr>
-<tr>
-<td><code>legend_ask_if</code></td>
-<td>Ask if: ask the question only when the condition is met</td>
-</tr>
-</tbody>
-</table>
-<p>The full list of names is in <code>R/strings.R</code>. A Bengali version of the bundled multilingual form would look like this. The <code>"..."</code> values are placeholders to replace with translations that you write or check with a Bengali speaker:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"multilang"</span>, <span class="st">"multilang.xlsx"</span>,</span>
-<span>                    package <span class="op">=</span> <span class="st">"convertxlsform"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/convertxlsform.html">convertxlsform</a></span><span class="op">(</span></span>
-<span>  <span class="va">path</span>,</span>
-<span>  output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  lang <span class="op">=</span> <span class="st">"bn"</span>,</span>
-<span>  strings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    ask_if          <span class="op">=</span> <span class="st">"..."</span>,  <span class="co"># Bengali for "Ask if"</span></span>
-<span>    constraint      <span class="op">=</span> <span class="st">"..."</span>,  <span class="co"># Bengali for "Constraint"</span></span>
-<span>    choice_filter   <span class="op">=</span> <span class="st">"..."</span>,  <span class="co"># Bengali for "Choices shown if"</span></span>
-<span>    repeat_for_each <span class="op">=</span> <span class="st">"..."</span>,  <span class="co"># Bengali for "Repeat for each"</span></span>
-<span>    other_specify   <span class="op">=</span> <span class="st">"..."</span>   <span class="co"># Bengali for "Other (specify)"</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Until every placeholder is filled in, the paper form will show the placeholder text.</p>
-</div>
+</details>
 </div>
 <div class="section level2">
-<h2 id="what-the-paper-form-shows">What the paper form shows<a class="anchor" aria-label="anchor" href="#what-the-paper-form-shows"></a>
+<h2 id="pdf-output-and-fonts">PDF output and fonts<a class="anchor" aria-label="anchor" href="#pdf-output-and-fonts"></a>
 </h2>
-<ul>
-<li>
-<strong>Front matter:</strong> the form title, version and form ID, the language, the date of generation, and a legend that explains the marks used in the document.</li>
-<li>
-<strong>Groups:</strong> headings numbered by depth. Repeat groups carry a “Repeat for each …” line that describes the repeat count.</li>
-<li>
-<strong>Questions:</strong> the number and label, a <code>*</code> for required questions, the hint in italics, and the variable name when <code>show_variable_names = TRUE</code>. “Ask if” and “Constraint” lines follow the answer area.</li>
-<li>
-<strong>Single choice (<code>select_one</code>):</strong> a hollow circle before each choice. Lists of seven or fewer choices print in one column; longer lists print in columns.</li>
-<li>
-<strong>Multiple choice (<code>select_multiple</code>):</strong> a hollow square before each choice.</li>
-<li>
-<strong>Rank:</strong> a box beside each choice to write its rank.</li>
-<li>
-<strong>Long choice lists:</strong> when a list is longer than <code>max_choices</code>, the paper form shows a code box for the respondent to write the code, and a compact table of every choice with its code.</li>
-<li>
-<strong>Text and numbers:</strong> a bordered write-in box. Multiline text gets a taller box.</li>
-<li>
-<strong>Date and time:</strong> a printed pattern (<code>dd/mm/yyyy</code>, <code>hh:mm</code>).</li>
-<li>
-<strong>Location:</strong> latitude, longitude and accuracy fields for <code>geopoint</code>. <code>geotrace</code> and <code>geoshape</code> get a prompt and a reference line.</li>
-<li>
-<strong>Media:</strong> an image is printed at its size, scaled down to fit (questions up to 2 inches tall, choices up to 0.6 inches). A missing file prints a placeholder with its name, and convertxlsform warns about it.</li>
-<li>
-<strong>Notes:</strong> printed without a number.</li>
-<li>
-<strong>Hidden types</strong> (<code>calculate</code>, <code>start</code>, <code>end</code>, <code>deviceid</code> and similar) are left out unless <code>include_hidden = TRUE</code>.</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="fonts-and-scripts">Fonts and scripts<a class="anchor" aria-label="anchor" href="#fonts-and-scripts"></a>
-</h2>
+<p>PDF output converts the Word document, so it needs LibreOffice, or Microsoft Word through <code>doconv</code> as a fallback (see <a href="#installation">Installation</a>). Word output has no such requirement.</p>
 <p>convertxlsform looks at the characters in the labels of the language in use. When it finds Bengali, Arabic, Devanagari or Ethiopic text, it sets the complex-script font to the matching Noto font:</p>
 <table class="table">
 <thead><tr>
@@ -564,9 +571,10 @@
 <code class="sourceCode R"><span><span class="fu"><a href="reference/convertxlsform.html">convertxlsform</a></span><span class="op">(</span><span class="va">path</span>, lang <span class="op">=</span> <span class="st">"bn"</span>, font_family_cs <span class="op">=</span> <span class="st">"Noto Sans Bengali"</span><span class="op">)</span></span></code></pre></div>
 <p>The font must be installed on the machine that converts the document to PDF. If the named font is missing, LibreOffice or Word substitutes another font, which can show boxes or the wrong script.</p>
 <p>Right-to-left layout is not yet supported. Arabic and Hebrew text is detected, but the document is still laid out left to right.</p>
+<p><strong>Known issue:</strong> PDF output can show blank text for Bengali and other complex scripts when LibreOffice cannot find a suitable font on the machine. The Word document is correct. A fix is planned for 0.4.0. See Troubleshooting below for workarounds.</p>
 </div>
 <div class="section level2">
-<h2 id="inspecting-a-form">Inspecting a form<a class="anchor" aria-label="anchor" href="#inspecting-a-form"></a>
+<h2 id="inspect-a-form">Inspect a form<a class="anchor" aria-label="anchor" href="#inspect-a-form"></a>
 </h2>
 <p><code><a href="reference/xlsform_outline.html">xlsform_outline()</a></code> returns the numbered form as a data frame, one row per item on the paper form. It is a quick way to check numbering, question types, choice counts and skip logic before you convert the form:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -578,29 +586,35 @@
 <p>The columns are <code>row</code> (the Excel row), <code>serial</code>, <code>depth</code>, <code>block</code>, <code>kind</code>, <code>name</code>, <code>label</code>, <code>required</code>, <code>n_choices</code>, <code>relevant_text</code>, <code>constraint_text</code> and <code>layout</code>. Use <code>lang</code> to inspect another language, and <code>nested_serial_numbers = FALSE</code> for flat numbers.</p>
 </div>
 <div class="section level2">
+<h2 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>
+</h2>
+<details><summary>
+The PDF shows boxes or blank text for non-Latin scripts
+</summary><p>The font for that script is not installed on the machine that made the PDF. Either:</p>
+<ul>
+<li>install the Noto font for that script (for example Noto Sans Bengali), then convert again;</li>
+<li>set <code>font_family_cs</code> to a font that is installed; or</li>
+<li>convert with Microsoft Word through <code>docx_to_pdf(docx, engine = "word")</code>, which uses the fonts available to Word.</li>
+</ul></details><details><summary>
+LibreOffice not found
+</summary><p>convertxlsform searches the <code>PATH</code> and the usual install locations. If LibreOffice is installed somewhere else, point convertxlsform to it:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>convertxlsform.soffice <span class="op">=</span> <span class="st">"/path/to/soffice"</span><span class="op">)</span></span></code></pre></div>
+<p>You can also set the environment variable <code>CONVERTXLSFORM_SOFFICE</code> to the same path. <code><a href="reference/has_libreoffice.html">has_libreoffice()</a></code> reports whether the binary was found.</p>
+</details><details><summary>
+Missing images
+</summary><p>A warning names each file that was not found under <code>media_root</code>. Set <code>media_root</code> to the folder that holds the images, or fix the file names in the form.</p>
+</details>
+</div>
+<div class="section level2">
 <h2 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a>
 </h2>
 <p>Very large forms (hundreds of questions and long choice lists) can take tens of seconds to convert, and longer for PDF because LibreOffice has to lay out every page.</p>
 </div>
 <div class="section level2">
-<h2 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>
-</h2>
-<p><strong>The PDF shows boxes or blank text for non-Latin scripts.</strong> The font for that script is not installed on the machine that made the PDF. Either:</p>
-<ul>
-<li>install the Noto font for that script (for example Noto Sans Bengali), then convert again;</li>
-<li>set <code>font_family_cs</code> to a font that is installed; or</li>
-<li>convert with Microsoft Word through <code>docx_to_pdf(docx, engine = "word")</code>, which uses the fonts available to Word.</li>
-</ul>
-<p><strong>LibreOffice not found.</strong> convertxlsform searches the <code>PATH</code> and the usual install locations. If LibreOffice is installed somewhere else, point convertxlsform to it:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>convertxlsform.soffice <span class="op">=</span> <span class="st">"/path/to/soffice"</span><span class="op">)</span></span></code></pre></div>
-<p>You can also set the environment variable <code>CONVERTXLSFORM_SOFFICE</code> to the same path. <code><a href="reference/has_libreoffice.html">has_libreoffice()</a></code> reports whether the binary was found.</p>
-<p><strong>Missing images.</strong> A warning names each file that was not found under <code>media_root</code>. Set <code>media_root</code> to the folder that holds the images, or fix the file names in the form.</p>
-</div>
-<div class="section level2">
 <h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
 </h2>
-<p>Develop on the <code>rewrite</code> branch and open pull requests against it until the rewrite is merged into <code>main</code>. Tests use testthat:</p>
+<p>Work on a feature branch and open a pull request against <code>main</code>. Tests use testthat:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">testthat</span><span class="fu">::</span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_package.html" class="external-link">test_local</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Build and check the package from a temporary folder, so that build products stay out of the repository:</p>
@@ -644,7 +658,16 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/masud90/convertxlsform/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/masud90/convertxlsform/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://masud90.github.io/convertxlsform/"><img src="https://github.com/masud90/convertxlsform/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
+<li><a href="https://github.com/masud90/convertxlsform/releases" class="external-link"><img src="https://img.shields.io/github/v/release/masud90/convertxlsform" alt="GitHub release"></a></li>
+<li><a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a></li>
+<li><a href="https://www.r-project.org/" class="external-link"><img src="https://img.shields.io/badge/R-%E2%89%A5%204.1-276DC3.svg" alt="R &gt;= 4.1"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>

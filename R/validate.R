@@ -93,7 +93,7 @@
                 sv$row[bad], sv$type_arg[bad])
       )
       .cxf_abort(c(
-        "{sum(bad)} select question{?s} use a choice list that does not exist.",
+        "{sum(bad)} select question{?s} {?uses/use} a choice list that does not exist.",
         .bullets(msg, "x")
       ))
     }

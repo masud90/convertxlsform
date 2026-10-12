@@ -40,7 +40,7 @@ external choice files are looked up.
 sheet.
 \item \code{page_size} (\code{"A4"}): \code{"A4"} or \code{"letter"}.
 \item \code{orientation} (\code{"portrait"}): \code{"portrait"} or \code{"landscape"}.
-\item \code{margins_in} (\code{1}): page margins in inches, above 0 and below 3.
+\item \code{margins_in} (\code{1}): page margins in inches, above 0 and at most 2.
 \item \code{font_family} (\code{"Arial"}): font for the document.
 \item \code{font_size} (\code{11}): base font size in points, 6 to 20.
 \item \code{template} (\code{NULL}): a reference \code{.docx} whose styles are used.
@@ -96,7 +96,7 @@ convertxlsform(path, output = tempdir(), lang = "bn",
                verbose = FALSE, overwrite = TRUE)
 
 # PDF needs LibreOffice
-if (has_libreoffice()) {
+if (interactive() && has_libreoffice()) {
   convertxlsform(path, output = tempdir(), format = "pdf",
                  verbose = FALSE, overwrite = TRUE)
 }

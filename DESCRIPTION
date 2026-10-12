@@ -18,9 +18,9 @@ Language: en-US
 Depends: R (>= 4.1)
 Imports:
     cli,
-    flextable,
+    flextable (>= 0.9.5),
     magrittr,
-    officer,
+    officer (>= 0.6.9),
     readxl,
     rlang,
     stats,

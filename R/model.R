@@ -150,7 +150,7 @@
                                   fixed = TRUE)) 4L else 2L),
     number = list(
       decimal = identical(sv$base_type[i], "decimal"),
-      range_text = .simple_range_text(constraint)
+      range_text = .simple_range_text(constraint, strings)
     ),
     range = {
       r <- .range_spec(sv$params[[i]])

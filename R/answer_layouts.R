@@ -32,6 +32,7 @@
 #' @noRd
 .finish_table <- function(ft, ctx, widths, keep_last = FALSE,
                           pad = c(1, 1, 3, 3)) {
+  widths <- pmax(widths, 0.05)  # never a negative or zero column width
   ft <- flextable::border_remove(ft)
   ft <- flextable::font(ft, fontname = ctx$font, part = "all",
                         cs.family = ctx$cs, hansi.family = ctx$font,
@@ -215,7 +216,8 @@
   bx <- .set_cell(bx, 1L, 1L, list(flextable::as_chunk(
     paste0(ctx$strings$code, ":"), props = .fp(ctx, bold = TRUE)
   )))
-  bx <- .finish_table(bx, ctx, c(0.8, 1.6, tw - 2.4), keep_last = TRUE)
+  bx <- .finish_table(bx, ctx, c(0.8, 1.6, max(tw - 2.4, 0.3)),
+                      keep_last = TRUE)
   bx <- .box_cells(bx, 1L, 2L)
   bx <- flextable::valign(bx, j = 1L, valign = "center", part = "body")
   bx <- flextable::height(bx, height = 0.3, part = "body")
@@ -300,7 +302,8 @@
         f[r], props = .fp(ctx)
       )))
     }
-    ft <- .finish_table(ft, ctx, c(1.4, 2.4, tw - 3.8), keep_last = keep_last,
+    ft <- .finish_table(ft, ctx, c(1.4, 2.4, max(tw - 3.8, 0.3)),
+                        keep_last = keep_last,
                         pad = c(2, 2, 3, 3))
     ft <- .box_cells(ft, seq_along(f), 2L)
     ft <- flextable::valign(ft, j = 1L, valign = "center", part = "body")

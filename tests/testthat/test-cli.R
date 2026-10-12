@@ -130,3 +130,18 @@ test_that("cli() passes options through to the conversion", {
   expect_false(seen$dots$nested_serial_numbers)
   expect_equal(seen$dots$orientation, "landscape")
 })
+
+test_that("cli() suggests --overwrite when the output exists", {
+  stub_render_docx()
+  src <- copy_example()
+  out <- file.path(dirname(src), "cli_exists.docx")
+  expect_equal(cli(c(src, "-o", out, "--quiet")), 0L)
+  err <- capture.output(st <- cli(c(src, "-o", out, "--quiet")),
+                        type = "message")
+  expect_equal(st, 1L)
+  expect_true(any(grepl("--overwrite", err, fixed = TRUE)))
+  # the R function keeps its own hint
+  e <- expect_error(convertxlsform(src, output = out, verbose = FALSE),
+                    "overwrite = TRUE")
+  expect_false(grepl("--overwrite", conditionMessage(e), fixed = TRUE))
+})

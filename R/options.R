@@ -65,9 +65,8 @@
   opts$orientation <- .check_choice(opts$orientation, "orientation",
                                     c("portrait", "landscape"))
   opts$margins_in <- .check_number(opts$margins_in, "margins_in",
-                                   lower = 0, upper = 3,
-                                   lower_inclusive = FALSE,
-                                   upper_inclusive = FALSE)
+                                   lower = 0, upper = 2,
+                                   lower_inclusive = FALSE)
   opts$font_family <- .check_string(opts$font_family, "font_family")
   opts$font_size <- .check_number(opts$font_size, "font_size",
                                   lower = 6, upper = 20)

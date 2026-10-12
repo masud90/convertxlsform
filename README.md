@@ -25,7 +25,7 @@ Word output needs only R. PDF output needs one of the following:
   - Ubuntu: `sudo apt install libreoffice-writer`.
 - **Microsoft Word**, through the `doconv` package. Install `doconv` in R. convertxlsform uses Word only when LibreOffice is not found.
 
-Check whether a PDF engine is available with `has_libreoffice()`.
+`has_libreoffice()` detects LibreOffice only. Word is used through `docx_to_pdf(engine = "word")` with `doconv`, and `convertxlsform()` falls back to it when LibreOffice is not found.
 
 ## Quick start
 
@@ -54,6 +54,13 @@ The bundled example works the same way. The installed package folder is usually 
 ```sh
 EXAMPLE=$(Rscript -e 'cat(system.file("extdata", "all_types", "all_types.xlsx", package = "convertxlsform"))')
 Rscript -e 'convertxlsform::cli()' "$EXAMPLE" --format pdf --output .
+```
+
+The `Rscript -e '...'` examples use single quotes, which work in macOS and Linux shells and in PowerShell. In Windows `cmd.exe`, use double quotes outside and single quotes inside:
+
+```bat
+Rscript -e "convertxlsform::cli()" form.xlsx --format pdf --lang bn
+Rscript -e "cat(system.file('extdata', 'all_types', 'all_types.xlsx', package = 'convertxlsform'))"
 ```
 
 Scripts that need the exit status (0 on success, 1 on error) can use:
@@ -90,7 +97,7 @@ An existing file is not replaced unless `overwrite = TRUE`.
 | `title` | `NULL` | Form title. Overrides `form_title` on the settings sheet. |
 | `page_size` | `"A4"` | `"A4"` or `"letter"`. |
 | `orientation` | `"portrait"` | `"portrait"` or `"landscape"`. |
-| `margins_in` | `1` | Page margins in inches, above 0 and below 3. |
+| `margins_in` | `1` | Page margins in inches, above 0 and at most 2. |
 | `font_family` | `"Arial"` | Font for the document. |
 | `font_size` | `11` | Base font size in points, from 6 to 20. |
 | `font_family_cs` | `NULL` | Font for complex scripts. Chosen from the text when `NULL`; see [Fonts and scripts](#fonts-and-scripts). |
@@ -250,6 +257,10 @@ head(outline[, c("serial", "block", "kind", "name", "relevant_text")], 10)
 ```
 
 The columns are `row` (the Excel row), `serial`, `depth`, `block`, `kind`, `name`, `label`, `required`, `n_choices`, `relevant_text`, `constraint_text` and `layout`. Use `lang` to inspect another language, and `nested_serial_numbers = FALSE` for flat numbers.
+
+## Performance
+
+Very large forms (hundreds of questions and long choice lists) can take tens of seconds to convert, and longer for PDF because LibreOffice has to lay out every page.
 
 ## Troubleshooting
 

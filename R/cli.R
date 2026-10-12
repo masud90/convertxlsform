@@ -82,7 +82,11 @@ cli <- function(args = commandArgs(trailingOnly = TRUE)) {
     error = function(e) e
   )
   if (inherits(res, "error")) {
-    .cli_err(paste0("Error: ", conditionMessage(res)))
+    msg <- paste0("Error: ", conditionMessage(res))
+    if (inherits(res, "cxf_exists_error")) {
+      msg <- c(msg, "Use --overwrite to replace the existing file.")
+    }
+    .cli_err(msg)
     return(invisible(1L))
   }
   invisible(0L)

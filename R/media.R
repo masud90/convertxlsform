@@ -28,7 +28,7 @@
     .cxf_warn(c(
       "{length(miss)} media file{?s} not found under {.arg media_root}.",
       .bullets(miss),
-      i = "The questions are still shown, without the picture."
+      i = "The questions are still shown, without the missing files."
     ))
   }
   invisible(miss)

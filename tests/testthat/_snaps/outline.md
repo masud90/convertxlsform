@@ -43,7 +43,7 @@
       37 46  12     0     question    select_one      district        District                                 FALSE     3       
       38 47  13     0     question    select_one      village         Village (filtered by district)           FALSE     6       
       39 48  14     0     question    select_one      village_file    Village (from file)                      FALSE     5       
-      40 49  15     0     question    select_multiple missing_items   Items from an external list              FALSE     0       
+      40 49  15     0     question    select_multiple missing_items   Items from an external list              FALSE     3       
       41 50  16     0     question    select_one      main_crop       Main crop                                FALSE    30       
       42 52  17     0     question    text            comments        Additional comments                      FALSE    NA       
       43 53  <NA>   0     note        note            closing         Thank you. The survey is complete.          NA    NA       
@@ -100,7 +100,7 @@
       37 46  12     0     question    select_one      district        District                                 FALSE     3       
       38 47  13     0     question    select_one      village         Village (filtré par district)            FALSE     6       
       39 48  14     0     question    select_one      village_file    Village (depuis un fichier)              FALSE     5       
-      40 49  15     0     question    select_multiple missing_items   Éléments d'une liste externe             FALSE     0       
+      40 49  15     0     question    select_multiple missing_items   Éléments d'une liste externe             FALSE     3       
       41 50  16     0     question    select_one      main_crop       Culture principale                       FALSE    30       
       42 52  17     0     question    text            comments        Commentaires supplémentaires             FALSE    NA       
       43 53  <NA>   0     note        note            closing         Merci. L'enquête est terminée.              NA    NA       

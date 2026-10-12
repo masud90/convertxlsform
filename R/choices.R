@@ -81,6 +81,7 @@
   }
   path <- .find_media_file(form, file)
   if (is.na(path)) {
+    .media_env$missing <- c(.media_env$missing, file)
     return(res(note = "File not found."))
   }
   ext <- tolower(tools::file_ext(path))

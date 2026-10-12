@@ -100,7 +100,7 @@ has_libreoffice <- function() {
 #' @return The path of the PDF, invisibly.
 #' @export
 #' @examples
-#' if (has_libreoffice()) {
+#' if (interactive() && has_libreoffice()) {
 #'   docx <- tempfile(fileext = ".docx")
 #'   doc <- officer::read_docx()
 #'   doc <- officer::body_add_par(doc, "Hello")

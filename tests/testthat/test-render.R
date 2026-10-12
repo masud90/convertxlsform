@@ -199,3 +199,39 @@ test_that("circle symbols are drawn larger than square symbols", {
   expect_equal(.symbol_size(.cxf_symbols()$circle, 11), 18)
   expect_equal(.cxf_choice_image_max_in, 0.6)
 })
+
+test_that("a relative output path still gets the bumped complex-script size", {
+  skip_if_not_installed("withr")
+  m <- example_model("multilang", "bn")
+  abs_path <- render_to(m)
+  d <- tempfile("cxfwd")
+  dir.create(d)
+  withr::local_dir(d)
+  .render_docx(m$model, m$opts, "rel_out.docx")
+  expect_true(file.exists(file.path(d, "rel_out.docx")))
+  szcs <- function(p) {
+    regmatches(zip_part(p, "word/document.xml"),
+               gregexpr("w:szCs w:val=\"[0-9]+\"",
+                        zip_part(p, "word/document.xml")))[[1L]]
+  }
+  expect_equal(szcs("rel_out.docx"), szcs(abs_path))
+  expect_equal(getwd(), normalizePath(d))
+})
+
+test_that("markdown links and heading markers are cleaned", {
+  s <- .text_segments("See [the guide](https://x.org/a_b) now")
+  expect_equal(paste(s$text, collapse = ""), "See the guide now")
+  s <- .text_segments("## Section title\nplain *it*\n# Top")
+  expect_equal(s$text[!s$br], c("Section title", "plain ", "it", "Top"))
+  expect_equal(s$bold[!s$br], c(TRUE, FALSE, FALSE, TRUE))
+  # a hash that is not a heading marker stays
+  expect_equal(.text_segments("Item #5")$text, "Item #5")
+})
+
+test_that("a very narrow text width does not give negative column widths", {
+  m <- example_model("all_types", "en")
+  path <- expect_no_error(render_to(m, text_width_in = 2.5))
+  expect_true(file.exists(path))
+  doc <- zip_part(path, "word/document.xml")
+  expect_false(grepl("w:w=\"-", doc, fixed = TRUE))
+})

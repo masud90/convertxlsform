@@ -221,7 +221,7 @@ survey_rows <- list(
        label_fr = "Village (filtr\u00e9 par district)",
        choice_filter = "district = ${district}"),
 
-  # choices from external files (missing_list.csv is intentionally absent)
+  # choices from external files (both files ship with the example)
   srow("select_one_from_file villages.csv", "village_file",
        label = "Village (from file)",
        label_fr = "Village (depuis un fichier)"),
@@ -369,6 +369,19 @@ village_file <- data.frame(
 )
 csv_path <- file.path(out_dir, "villages.csv")
 utils::write.csv(village_file, csv_path, row.names = FALSE,
+                 fileEncoding = "UTF-8")
+cat("Wrote", csv_path, "\n")
+
+# missing_list.csv (a second choice file; the name is historical)
+items_file <- data.frame(
+  name = sprintf("item_%d", 1:3),
+  `label::English (en)` = sprintf("Item %d", 1:3),
+  `label::French (fr)` = sprintf("\u00c9l\u00e9ment %d", 1:3),
+  check.names = FALSE,
+  stringsAsFactors = FALSE
+)
+csv_path <- file.path(out_dir, "missing_list.csv")
+utils::write.csv(items_file, csv_path, row.names = FALSE,
                  fileEncoding = "UTF-8")
 cat("Wrote", csv_path, "\n")
 

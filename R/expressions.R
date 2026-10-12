@@ -446,9 +446,10 @@
 #' (the dot on the left, a number on the right). Anything else gives NA.
 #'
 #' @param constraint A single constraint expression.
+#' @param strings A string table from `.cxf_strings()` (English by default).
 #' @return A string such as `"from 0 to 30"`, or NA.
 #' @noRd
-.simple_range_text <- function(constraint) {
+.simple_range_text <- function(constraint, strings = .cxf_strings("en")) {
   if (is.na(constraint) || !nzchar(trimws(constraint))) {
     return(NA_character_)
   }
@@ -474,10 +475,11 @@
   if (anyDuplicated(substr(ops, 1L, 1L)) > 0L) {
     return(NA_character_)
   }
-  phrase <- c(">=" = "at least", ">" = "more than", "<=" = "at most",
-              "<" = "less than")
+  phrase <- c(">=" = strings$at_least, ">" = strings$more_than,
+              "<=" = strings$at_most, "<" = strings$less_than)
   if (length(ops) == 2L && setequal(ops, c(">=", "<="))) {
-    return(paste("from", val[ops == ">="], "to", val[ops == "<="]))
+    return(paste(strings$range_from, val[ops == ">="], strings$range_to,
+                 val[ops == "<="]))
   }
-  paste(paste(phrase[ops], val), collapse = " and ")
+  paste(paste(phrase[ops], val), collapse = paste0(" ", strings$and, " "))
 }

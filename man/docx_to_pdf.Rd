@@ -41,7 +41,7 @@ If LibreOffice is installed in an unusual place, set the option
 \code{CONVERTXLSFORM_SOFFICE} to the path of the \code{soffice} binary.
 }
 \examples{
-if (has_libreoffice()) {
+if (interactive() && has_libreoffice()) {
   docx <- tempfile(fileext = ".docx")
   doc <- officer::read_docx()
   doc <- officer::body_add_par(doc, "Hello")

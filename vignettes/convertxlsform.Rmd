@@ -71,9 +71,9 @@ basename(docx_fr)
 
 ## Converting to PDF
 
-A PDF is made by converting the Word document with LibreOffice, or with Microsoft Word through the `doconv` package. This chunk runs only when LibreOffice is found on the machine that builds the vignette.
+A PDF is made by converting the Word document with LibreOffice, or with Microsoft Word through the `doconv` package. PDF output needs LibreOffice (or Word with `doconv`), so the code below is shown but not run when the vignette is built.
 
-```{r pdf, eval = convertxlsform::has_libreoffice()}
+```{r pdf, eval = FALSE}
 pdf <- convertxlsform(path, output = tempdir(), format = "pdf",
                       overwrite = TRUE, verbose = FALSE)
 basename(pdf)

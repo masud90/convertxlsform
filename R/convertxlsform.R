@@ -48,7 +48,7 @@
 #'     sheet.
 #'   * `page_size` (`"A4"`): `"A4"` or `"letter"`.
 #'   * `orientation` (`"portrait"`): `"portrait"` or `"landscape"`.
-#'   * `margins_in` (`1`): page margins in inches, above 0 and below 3.
+#'   * `margins_in` (`1`): page margins in inches, above 0 and at most 2.
 #'   * `font_family` (`"Arial"`): font for the document.
 #'   * `font_size` (`11`): base font size in points, 6 to 20.
 #'   * `template` (`NULL`): a reference `.docx` whose styles are used.
@@ -82,7 +82,7 @@
 #'                verbose = FALSE, overwrite = TRUE)
 #'
 #' # PDF needs LibreOffice
-#' if (has_libreoffice()) {
+#' if (interactive() && has_libreoffice()) {
 #'   convertxlsform(path, output = tempdir(), format = "pdf",
 #'                  verbose = FALSE, overwrite = TRUE)
 #' }
@@ -252,7 +252,7 @@ convertxlsform <- function(xlsform, output = NULL, format = NULL,
     .cxf_abort(c(
       "File {.file {first}} already exists.",
       i = "Use {.code overwrite = TRUE} to replace it."
-    ), call = call)
+    ), call = call, class = "cxf_exists_error")
   }
   targets
 }

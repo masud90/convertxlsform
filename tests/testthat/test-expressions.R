@@ -237,6 +237,13 @@ test_that("simple numeric ranges are described", {
   expect_equal(r(". > 1 and . < 2"), "more than 1 and less than 2")
   expect_equal(r(". >= 0"), "at least 0")
   expect_equal(r(". < 5"), "less than 5")
+  fr <- .cxf_strings("fr")
+  expect_equal(.simple_range_text(". >= 0 and . <= 30", fr),
+               "de 0 \u00e0 30")
+  expect_equal(.simple_range_text(". > 0 and . <= 30", fr),
+               "plus de 0 et au plus 30")
+  expect_equal(.simple_range_text(". >= 2", fr), "au moins 2")
+  expect_equal(.simple_range_text(". < 5", fr), "moins de 5")
   expect_true(is.na(r(". >= 1900 or . <= 2025")))
   expect_true(is.na(r(". >= 0 and . >= 1")))
   expect_true(is.na(r("regex(., '^[0-9]+$')")))

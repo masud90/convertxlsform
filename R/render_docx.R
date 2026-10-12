@@ -26,6 +26,7 @@
   x <- gsub("&gt;", ">", x, fixed = TRUE)
   x <- gsub("&quot;", "\"", x, fixed = TRUE)
   x <- gsub("&amp;", "&", x, fixed = TRUE)
+  x <- gsub("\\[([^]\n]+)\\]\\([^)\n]*\\)", "\\1", x, perl = TRUE)
   pat <- paste0(
     "\\*\\*(?=\\S)(.+?)(?<=\\S)\\*\\*",
     "|\\*(?=[^\\s*])(.+?)(?<=[^\\s*])\\*",
@@ -44,6 +45,9 @@
   for (li in seq_along(lines)) {
     if (li > 1L) add("", br = TRUE)
     s <- lines[li]
+    first <- length(segs) + 1L
+    is_head <- grepl("^[[:space:]]*#{1,6}[[:space:]]+", s)
+    if (is_head) s <- sub("^[[:space:]]*#{1,6}[[:space:]]+", "", s)
     while (nzchar(s)) {
       m <- regexec(pat, s, perl = TRUE)[[1L]]
       if (m[1L] == -1L) {
@@ -60,6 +64,11 @@
       g <- which(nzchar(grp))[1L]
       add(grp[g], b = g == 1L, i = g != 1L)
       s <- substr(s, st + len, nchar(s))
+    }
+    if (is_head) {
+      for (k in seq_len(length(segs) - first + 1L) + first - 1L) {
+        segs[[k]]$bold <- TRUE
+      }
     }
   }
   do.call(rbind, segs)
@@ -506,6 +515,7 @@
 #' the saved package.
 #' @noRd
 .bump_cs_size <- function(path) {
+  path <- normalizePath(path, winslash = "/", mustWork = TRUE)
   tmp <- tempfile("cxfcs")
   dir.create(tmp)
   on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
@@ -524,11 +534,9 @@
       close(con)
     }
   }
-  owd <- setwd(tmp)
-  on.exit(setwd(owd), add = TRUE)
   unlink(path)
-  zip::zip(path, list.files(".", all.files = TRUE, recursive = TRUE),
-           mode = "mirror")
+  zip::zip(path, list.files(tmp, all.files = TRUE, recursive = TRUE),
+           root = tmp, mode = "mirror")
   invisible(path)
 }
 

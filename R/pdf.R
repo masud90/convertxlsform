@@ -164,18 +164,20 @@ docx_to_pdf <- function(docx,
 }
 
 #' Run LibreOffice headless and copy the result to `pdf`
+#'
+#' The profile directory is not pre-created: LibreOffice creates it on its
+#' first start, which sometimes initializes the profile and exits without
+#' converting. If no PDF appears, the call is repeated once with the now
+#' initialized profile.
 #' @noRd
 .soffice_convert <- function(soffice, docx, pdf) {
   work <- tempfile("cxf_pdf_")
   profile <- tempfile("cxf_profile_")
   dir.create(work)
-  dir.create(profile)
   on.exit(unlink(c(work, profile), recursive = TRUE, force = TRUE), add = TRUE)
 
-  profile_url <- paste0(
-    "file:///",
-    sub("^/+", "", normalizePath(profile, winslash = "/", mustWork = FALSE))
-  )
+  profile_path <- chartr("\\", "/", profile)
+  profile_url <- paste0("file:///", sub("^/+", "", profile_path))
   args <- c(
     "--headless", "--norestore",
     shQuote(paste0("-env:UserInstallation=", profile_url)),
@@ -183,21 +185,44 @@ docx_to_pdf <- function(docx,
     "--outdir", shQuote(work),
     shQuote(docx)
   )
-  out <- tryCatch(
-    suppressWarnings(system2(soffice, args, stdout = TRUE, stderr = TRUE)),
-    error = function(e) conditionMessage(e)
-  )
-
   produced <- file.path(
     work,
     sub("\\.docx$", ".pdf", basename(docx), ignore.case = TRUE)
   )
+
+  attempts <- list()
+  for (i in 1:2) {
+    out_file <- tempfile("cxf_out_")
+    err_file <- tempfile("cxf_err_")
+    status <- tryCatch(
+      suppressWarnings(
+        system2(soffice, args, stdout = out_file, stderr = err_file)
+      ),
+      error = function(e) conditionMessage(e)
+    )
+    read_txt <- function(f) {
+      if (!file.exists(f)) return("")
+      paste(suppressWarnings(readLines(f, warn = FALSE)), collapse = "\n")
+    }
+    attempts[[i]] <- list(
+      status = status,
+      stdout = read_txt(out_file),
+      stderr = read_txt(err_file)
+    )
+    unlink(c(out_file, err_file))
+    if (file.exists(produced)) break
+  }
+
   if (!file.exists(produced)) {
-    captured <- paste(out, collapse = "\n")
+    last <- attempts[[length(attempts)]]
+    status <- paste(last$status, collapse = " ")
     .cxf_abort(c(
       "LibreOffice did not produce a PDF.",
       "i" = "Binary: {.file {soffice}}",
-      "i" = "Output: {captured}"
+      "i" = "Attempts: {length(attempts)}",
+      "i" = "Exit status: {status}",
+      "i" = "Stdout: {last$stdout}",
+      "i" = "Stderr: {last$stderr}"
     ))
   }
   ok <- file.copy(produced, pdf, overwrite = TRUE)

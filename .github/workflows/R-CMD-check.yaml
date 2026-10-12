@@ -40,6 +40,10 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
 
+      - name: Install XQuartz (needed by gdtools binary on macOS)
+        if: runner.os == 'macOS'
+        run: brew install --cask xquartz
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
@@ -48,6 +52,14 @@ jobs:
       - name: Install LibreOffice and Noto fonts (PDF tests)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libreoffice-writer fonts-noto-core
+
+      - name: LibreOffice diagnostics
+        if: runner.os == 'Linux'
+        run: |
+          soffice --version
+          echo hello > /tmp/t.txt
+          soffice --headless --convert-to pdf --outdir /tmp /tmp/t.txt || true
+          ls -la /tmp/t.pdf || true
 
       - uses: r-lib/actions/check-r-package@v2
         with:

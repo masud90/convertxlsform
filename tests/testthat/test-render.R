@@ -215,7 +215,8 @@ test_that("a relative output path still gets the bumped complex-script size", {
                         zip_part(p, "word/document.xml")))[[1L]]
   }
   expect_equal(szcs("rel_out.docx"), szcs(abs_path))
-  expect_equal(getwd(), normalizePath(d))
+  expect_equal(normalizePath(getwd(), winslash = "/"),
+               normalizePath(d, winslash = "/"))
 })
 
 test_that("markdown links and heading markers are cleaned", {

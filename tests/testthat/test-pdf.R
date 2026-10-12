@@ -58,6 +58,35 @@ test_that("a failed LibreOffice run aborts with its output", {
   )
 })
 
+test_that("a first LibreOffice start that makes no PDF is retried once", {
+  skip_on_os("windows")
+  dir <- withr::local_tempdir()
+  counter <- file.path(dir, "counter")
+  fake <- file.path(dir, "fake-soffice")
+  writeLines(c(
+    "#!/bin/sh",
+    sprintf("COUNTER='%s'", counter),
+    "echo x >> \"$COUNTER\"",
+    "n=$(wc -l < \"$COUNTER\" | tr -d ' ')",
+    "if [ \"$n\" -lt 2 ]; then exit 1; fi",
+    "outdir=''; prev=''",
+    "for a in \"$@\"; do",
+    "  if [ \"$prev\" = '--outdir' ]; then outdir=\"$a\"; fi",
+    "  prev=\"$a\"",
+    "  last=\"$a\"",
+    "done",
+    "base=$(basename \"$last\" .docx)",
+    "printf '%%PDF-1.4 fake' > \"$outdir/$base.pdf\""
+  ), fake)
+  Sys.chmod(fake, "755")
+  withr::local_options(convertxlsform.soffice = fake)
+  docx <- make_docx(file.path(dir, "a.docx"))
+  target <- file.path(dir, "out.pdf")
+  expect_no_error(docx_to_pdf(docx, target, verbose = FALSE))
+  expect_true(file.exists(target))
+  expect_equal(length(readLines(counter)), 2L)
+})
+
 test_that("docx_to_pdf() converts with LibreOffice", {
   skip_on_cran()
   skip_if_not(has_libreoffice())

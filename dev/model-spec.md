@@ -101,7 +101,7 @@ A list:
 - `note`: `label`, `hint`, `image`, `relevant_text`.
 - `question`: `label`, `hint`, `required` (lgl), `kind`, `subtype`, `relevant_text`, `constraint_text` (humanized constraint, with `constraint_message` appended in parentheses when present), `choice_filter_text`, `image` (media record or NULL), `answer` (below), `calculation` (only for hidden kind when `include_hidden`).
 
-Media record: `list(path = <abs path or NA>, file = <as written>, found = lgl, width_in, height_in)`; size scaled to `max_height_in` (2 for questions, 1 for choices) and to page text width.
+Media record: `list(path = <abs path or NA>, file = <as written>, found = lgl, width_in, height_in)`; size scaled to `max_height_in` (2 for questions, 0.6 for choices) and to page text width.
 
 `answer` by kind:
 
@@ -160,7 +160,7 @@ Model (M2b):
 
 Renderer (M3):
 
-12. Selects as borderless 3-column flextables (symbol, code in muted smaller text, label), codes shown when `include_choice_name`; choice images (from v0.2.1 parity) under the label in the same cell, max 1 in.
+12. Selects as borderless 3-column flextables (symbol, code in muted smaller text, label), codes shown when `include_choice_name`; choice images (from v0.2.1 parity) under the label in the same cell, max 0.6 in.
 13. Text, number, barcode: bordered single-cell flextables with fixed row heights (0.3 in per line), number box with range_text beside it.
 14. Page header with title and version; footer with form_id, generation date and "Page X of Y" (`run_word_field("PAGE")`, `run_word_field("NUMPAGES")`). Table rows must not split across pages; question, hint and logic paragraphs keep with next.
 15. `cs.family` set on every text run (`fp_text(font.family, cs.family = meta$font_family_cs)`), complex-script size `font_size + 1`.

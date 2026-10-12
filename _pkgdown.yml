@@ -1,0 +1,21 @@
+url: https://masud90.github.io/convertxlsform/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: Convert
+    desc: Convert an XLSForm to a Word document, or to PDF, from R or the terminal.
+    contents:
+      - convertxlsform
+      - cli
+  - title: Inspect
+    desc: Check the languages and the numbered structure of a form before converting it.
+    contents:
+      - xlsform_languages
+      - xlsform_outline
+  - title: PDF
+    desc: Convert a Word document to PDF with LibreOffice or Microsoft Word.
+    contents:
+      - has_libreoffice
+      - docx_to_pdf

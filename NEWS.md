@@ -1,14 +1,29 @@
-# convertxlsform (development version)
+# convertxlsform 0.3.0 (development)
 
-Work in progress on the `rewrite` branch. It does not yet write .docx files; use v0.2.1 on `main` for that.
+A complete rewrite. The package writes Word and PDF paper versions of an XLSForm through a new API, a terminal interface and one document model that both outputs share.
 
-- Modular rewrite organized in phases: entry point (`R/convertxlsform.R`), reading and validation (`R/read_validate.R`), and structure (`R/structure.R`).
-- New entry point signature: `convertxlsform(xlsform_path, output_docx, lang, include_relevants, include_choice_name, nested_serial_numbers, page_size, margins_in, media_root, verbose)`.
-- Language fallback: `label::<lang>`, then plain `label`, then `label::en`.
-- Structure validation: group and repeat nesting is tracked, nested serial numbers are computed, and unmatched `begin`/`end` rows raise errors that name the row number.
-- Command line interface via optparse (`cli()`).
-- Added a testthat suite and a GitHub Actions R-CMD-check workflow.
-- Added a synthetic multilingual example form in `inst/extdata/multilang`, with an external choice list, choice images, and a question image.
+## New features
+
+- `convertxlsform()` writes a Word document (`.docx`) by default. `format = "pdf"` or `format = c("docx", "pdf")` also writes a PDF. The output location, format and overwrite rules follow from the arguments, and the function returns the paths invisibly.
+- PDF output converts the Word document with LibreOffice. Microsoft Word is used through the `doconv` package when LibreOffice is not found. `docx_to_pdf()` and `has_libreoffice()` are exported.
+- `cli()` runs a conversion from a terminal, for example `Rscript -e 'convertxlsform::cli()' form.xlsx --format pdf`. Scripts can use `quit(status = convertxlsform::cli())` to get the exit status.
+- `xlsform_outline()` returns the numbered form as a data frame, for checking a form before conversion.
+- `xlsform_languages()` lists the languages in a form and marks the default.
+- Language columns are read from `label::English (en)`, `label::en` and `label::English`. The `lang` argument accepts a code, a name or the full suffix. A blank translated cell falls back to the plain column, then to the default language.
+- Skip logic, constraints and choice filters are written in plain language. Expressions that cannot be read are shown as written.
+- Connective phrases such as "Ask if" come from built-in English and French tables. The `strings` option replaces any of them for another language.
+- Paper layouts for each question type: single and multiple choice, rank, long lists as code boxes, write-in boxes, numeric, date and time formats, geographic and media questions, and acknowledgements.
+- Groups and repeat groups, with nested numbering (`nested_serial_numbers`) and blank copies of repeats (`repeat_copies`).
+- Question images are scaled to at most 2 inches tall, and choice images to at most 0.6 inches. A missing file prints a placeholder and triggers a warning.
+- Complex-script fonts are chosen from the text for Bengali, Arabic, Devanagari and Ethiopic. The `font_family_cs` option overrides the choice.
+- Page size, orientation, margins, fonts, a reference `template`, `title`, and switches for hints, constraints, relevants, choice codes, variable names and hidden rows.
+- Bundled examples: `inst/extdata/multilang` (multilingual, with an external choice list and images) and `inst/extdata/all_types` (every question type and feature the package renders).
+
+## Changes from 0.2.1
+
+- Arguments are renamed: `xlsform_path` is now `xlsform`, `output_docx` is now `output`, `selected_language` is now `lang`, and `number_questions` is now `nested_serial_numbers`. The 0.2.1 names are not accepted.
+- HTML tags in labels are stripped. Emphasis in Markdown is rendered.
+- Imports are reduced to `cli`, `flextable`, `magrittr`, `officer`, `readxl` and `rlang`, plus base packages (`stats`, `tools`, `utils`). `optparse` is no longer used, and the command line is parsed by `cli()`.
 
 # convertxlsform 0.2.1 (2025-07-XX)
 

@@ -112,9 +112,12 @@ test_that("sizes use 96 dpi and scale down to fit both limits, never up", {
   expect_equal(c(s$width_in, s$height_in), c(0.5, 0.5))
   # aspect ratio is kept
   expect_equal(w$width_in / w$height_in, 10)
-  # choices use a 1 inch limit
-  c1 <- .media_record(form, "tall.png", max_height_in = 1, max_width_in = 5)
-  expect_equal(c(c1$width_in, c1$height_in), c(0.1, 1))
+  # choices use the choice image limit (0.6 in)
+  c1 <- .media_record(form, "tall.png",
+                      max_height_in = .cxf_choice_image_max_in,
+                      max_width_in = 5)
+  expect_equal(.cxf_choice_image_max_in, 0.6)
+  expect_equal(c(c1$width_in, c1$height_in), c(0.06, 0.6))
 })
 
 test_that("a file in an unreadable format is found but has no size", {

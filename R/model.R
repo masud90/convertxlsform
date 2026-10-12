@@ -124,7 +124,7 @@
       ch <- sc$choices
       n <- nrow(ch)
       ch$label <- .norm_newlines(ch$label)
-      imgs <- lapply(ch$image, function(f) .media_record(form, f, 1, tw))
+      imgs <- lapply(ch$image, function(f) .media_record(form, f, .cxf_choice_image_max_in, tw))
       or_other <- isTRUE(sv$or_other[i])
       if (or_other) {
         ch <- data.frame(
@@ -273,7 +273,7 @@
     rep(NA_character_, n)
   has_label <- !.is_blank(sv$label)
   tw <- opts$text_width_in
-  img <- function(i, h = 2) .media_record(form, sv$image[i], h, tw)
+  img <- function(i, h = .cxf_question_image_max_in) .media_record(form, sv$image[i], h, tw)
 
   blocks <- list()
   add <- function(b) blocks[[length(blocks) + 1L]] <<- b

@@ -2,8 +2,9 @@
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
 on:
   push:
-    branches: [main, master]
+    branches: [main, rewrite]
   pull_request:
+    branches: [main, rewrite]
 
 name: R-CMD-check.yaml
 
@@ -43,6 +44,10 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
+
+      - name: Install LibreOffice and Noto fonts (PDF tests)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libreoffice-writer fonts-noto-core
 
       - uses: r-lib/actions/check-r-package@v2
         with:

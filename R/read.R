@@ -131,6 +131,7 @@
 .read_xlsform <- function(path, lang = NULL, media_root = NULL,
                           verbose = TRUE) {
   path <- .check_xlsform_path(path)
+  .cxf_inform(verbose, "Reading {.file {basename(path)}}")
   media_root <- normalizePath(media_root %||% dirname(path),
                               winslash = "/", mustWork = FALSE)
   raw <- .read_raw_sheets(path)
@@ -174,11 +175,6 @@
   .validate_form(form)
   form$survey <- .build_structure(form$survey, nested_serial_numbers = TRUE)
 
-  used <- if (is.na(sfx)) "plain columns" else sfx
-  .cxf_inform(
-    verbose,
-    c(i = "Read {nrow(form$survey)} survey row{?s} and {nrow(form$choices)} choice{?s} from {.file {basename(path)}} (language: {used}).")
-  )
   form
 }
 

@@ -7,7 +7,7 @@ R package that converts XLSForm (ODK / KoboToolbox) questionnaires into paper ve
 ## Repo and branches
 
 - `main` (origin https://github.com/masud90/convertxlsform): v0.2.1, single-file implementation in `R/convertxlsform.R`. Its version of that file is the reference for old behaviour: `git show main:R/convertxlsform.R`, and `git show main:README.md`.
-- `rewrite` (current): the modular rewrite, version 0.2.1.9000 in DESCRIPTION. Develop here. Do not commit or push unless asked.
+- `rewrite` (current): the modular rewrite, version 0.3.0, open as a PR to `main` (2026-10-12). Do not commit or push unless asked.
 - Plan: `dev/plan.md` (scope, public API, milestones M0 to M7). Design contract: `dev/model-spec.md`.
 - Release path: merge `rewrite` into `main` by PR, then tag 0.3.0. Bump DESCRIPTION at merge.
 - The v0.2.1 README claimed a CRAN release, but CRAN has no record of the package. Do not state or imply it is on CRAN.
@@ -93,7 +93,7 @@ XLSForms are instruments, not microdata. Choice lists can still be personal data
 - PDF is the Word output converted by LibreOffice, with Word through doconv as the fallback. No second PDF renderer.
 - Synthetic example forms in `inst/extdata`.
 - CRAN submission is planned.
-- Development version is 0.2.1.9000 until the 0.3.0 release.
+- Version set to 0.3.0 for the PR and CRAN submission (2026-10-12). Bengali and other complex-script PDF output via LibreOffice is a known issue deferred to 0.4.0.
 
 ## Status and next steps
 

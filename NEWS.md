@@ -1,4 +1,4 @@
-# convertxlsform 0.3.0 (development)
+# convertxlsform 0.3.0
 
 A complete rewrite. The package writes Word and PDF paper versions of an XLSForm through a new API, a terminal interface and one document model that both outputs share.
 
@@ -23,7 +23,11 @@ A complete rewrite. The package writes Word and PDF paper versions of an XLSForm
 
 - Arguments are renamed: `xlsform_path` is now `xlsform`, `output_docx` is now `output`, `selected_language` is now `lang`, and `number_questions` is now `nested_serial_numbers`. The 0.2.1 names are not accepted.
 - HTML tags in labels are stripped. Emphasis in Markdown is rendered.
-- Imports are reduced to `cli`, `flextable`, `magrittr`, `officer`, `readxl` and `rlang`, plus base packages (`stats`, `tools`, `utils`). `optparse` is no longer used, and the command line is parsed by `cli()`.
+- Imports are reduced to `cli`, `flextable`, `magrittr`, `officer`, `readxl`, `rlang` and `zip`, plus base packages (`stats`, `tools`, `utils`). `optparse` is no longer used, and the command line is parsed by `cli()`.
+
+## Known issues
+
+- PDF output can show blank text for Bengali and other complex scripts when LibreOffice cannot find a suitable font on the machine. The Word document is correct. A fix is planned for 0.4.0.
 
 # convertxlsform 0.2.1 (2025-07-XX)
 
@@ -33,7 +37,7 @@ A complete rewrite. The package writes Word and PDF paper versions of an XLSForm
 
 # convertxlsform 0.2.0 (2025-07-19)
 
-**First CRAN release.**
+**First public release.**
 
 ## Highlights
 

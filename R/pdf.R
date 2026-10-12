@@ -163,6 +163,24 @@ docx_to_pdf <- function(docx,
   invisible(pdf)
 }
 
+#' LD_LIBRARY_PATH for a LibreOffice child process on Linux
+#'
+#' Puts the folder of the resolved soffice binary (for example
+#' `/usr/lib/libreoffice/program`) before any existing entries.
+#' @param soffice Path to soffice, possibly a symlink or wrapper script.
+#' @param old Current LD_LIBRARY_PATH value, or NA.
+#' @noRd
+.soffice_ld_path <- function(soffice, old = NA) {
+  real <- normalizePath(soffice, mustWork = FALSE)
+  prog <- dirname(real)
+  if (!file.exists(file.path(prog, "soffice.bin"))) {
+    candidates <- c("/usr/lib/libreoffice/program", "/opt/libreoffice/program")
+    found <- candidates[file.exists(file.path(candidates, "soffice.bin"))]
+    if (length(found)) prog <- found[1]
+  }
+  if (is.na(old) || !nzchar(old)) prog else paste(prog, old, sep = ":")
+}
+
 #' Run LibreOffice headless and copy the result to `pdf`
 #'
 #' The profile directory is not pre-created: LibreOffice creates it on its
@@ -189,6 +207,19 @@ docx_to_pdf <- function(docx,
     work,
     sub("\\.docx$", ".pdf", basename(docx), ignore.case = TRUE)
   )
+
+  # R puts its own library folders on LD_LIBRARY_PATH, which stops
+  # soffice.bin from finding LibreOffice's shared libraries on Linux
+  # ("libreglo.so: cannot open shared object file"). Put the program folder
+  # of the real binary first for the duration of the call.
+  if (identical(.Platform$OS.type, "unix") && Sys.info()[["sysname"]] == "Linux") {
+    old_ld <- Sys.getenv("LD_LIBRARY_PATH", unset = NA)
+    on.exit(
+      if (is.na(old_ld)) Sys.unsetenv("LD_LIBRARY_PATH") else Sys.setenv(LD_LIBRARY_PATH = old_ld),
+      add = TRUE
+    )
+    Sys.setenv(LD_LIBRARY_PATH = .soffice_ld_path(soffice, old_ld))
+  }
 
   attempts <- list()
   for (i in 1:2) {

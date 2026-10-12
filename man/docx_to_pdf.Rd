@@ -43,9 +43,9 @@ If LibreOffice is installed in an unusual place, set the option
 \examples{
 if (has_libreoffice()) {
   docx <- tempfile(fileext = ".docx")
-  officer::read_docx() \%>\%
-    officer::body_add_par("Hello") \%>\%
-    print(target = docx)
+  doc <- officer::read_docx()
+  doc <- officer::body_add_par(doc, "Hello")
+  print(doc, target = docx)
   pdf <- docx_to_pdf(docx, pdf = tempfile(fileext = ".pdf"))
   file.exists(pdf)
 }

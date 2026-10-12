@@ -75,6 +75,7 @@
 #' out <- file.path(tempdir(), "multilang.docx")
 #' convertxlsform(path, output = out, verbose = FALSE, overwrite = TRUE)
 #'
+#' \donttest{
 #' # Another language, flat question numbers, US letter paper
 #' convertxlsform(path, output = tempdir(), lang = "bn",
 #'                nested_serial_numbers = FALSE, page_size = "letter",
@@ -84,6 +85,7 @@
 #' if (has_libreoffice()) {
 #'   convertxlsform(path, output = tempdir(), format = "pdf",
 #'                  verbose = FALSE, overwrite = TRUE)
+#' }
 #' }
 #' @export
 convertxlsform <- function(xlsform, output = NULL, format = NULL,

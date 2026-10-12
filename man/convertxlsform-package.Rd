@@ -2,7 +2,6 @@
 % Please edit documentation in R/convertxlsform-package.R
 \docType{package}
 \name{convertxlsform-package}
-\alias{convertxlsform}
 \alias{convertxlsform-package}
 \title{convertxlsform: Convert an XLSForm to a Word or PDF Paper Form}
 \description{

@@ -1,7 +1,7 @@
 Package: convertxlsform
 Type: Package
 Title: Convert an XLSForm to a Word or PDF Document
-Version: 0.2.1.9000
+Version: 0.3.0
 Authors@R:
     person("Masud", "Rahman", email = "write2masud+convertxlsform@gmail.com", role = c("aut", "cre"))
 Description: Converts 'XLSForm' questionnaires, as used by 'Open Data Kit' ('ODK')

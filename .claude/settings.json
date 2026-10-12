@@ -1,0 +1,19 @@
+{
+  "extraKnownMarketplaces": {
+    "masud-tools": {
+      "source": {
+        "source": "github",
+        "repo": "masud90/claude-config"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "survey-manager@masud-tools": true
+  },
+  "permissions": {
+    "deny": [
+      "Read(./data/raw/**)",
+      "Read(./data/processed/**)"
+    ]
+  }
+}

@@ -2,36 +2,52 @@
 % Please edit documentation in R/convertxlsform.R
 \name{convertxlsform}
 \alias{convertxlsform}
-\title{Convert an XLSForm to a Word document}
+\title{Convert XLSForm to Word Document}
 \usage{
 convertxlsform(
   xlsform_path,
-  selected_language = "en",
   output_docx = NULL,
-  number_questions = TRUE
+  lang = "en",
+  include_relevants = TRUE,
+  include_choice_name = TRUE,
+  nested_serial_numbers = TRUE,
+  page_size = "A4",
+  margins_in = 1,
+  media_root = ".",
+  verbose = TRUE
 )
 }
 \arguments{
-\item{xlsform_path}{Path to the .xlsx XLSForm}
+\item{xlsform_path}{Path to the XLSForm (.xlsx file).}
 
-\item{selected_language}{Language code (defaults to "en")}
+\item{output_docx}{Optional output path for the .docx file. Defaults to
+the same folder with form title as filename (implemented later).}
 
-\item{output_docx}{Destination .docx file (defaults to basename(xlsx))}
+\item{lang}{Language code or name. Default = "en". Accepts "English (en)".}
 
-\item{number_questions}{Logical: number questions? (defaults to TRUE)}
+\item{include_relevants}{Logical. Whether to include skip logics. Default = TRUE.}
+
+\item{include_choice_name}{Logical. Whether to include choice names. Default = TRUE.}
+
+\item{nested_serial_numbers}{Logical. Whether to number questions hierarchically. Default = TRUE.}
+
+\item{page_size}{Page size for Word. Default = "A4".}
+
+\item{margins_in}{Page margin in inches. Default = 1.}
+
+\item{media_root}{Folder path to look for media files. Default = current folder.}
+
+\item{verbose}{Logical. If TRUE, prints progress messages. Default = TRUE.}
 }
 \value{
-Invisibly returns the path to the generated .docx
+Invisibly returns the path of the generated Word document.
 }
 \description{
-Convert an XLSForm to a Word document
+This is the main entry point of the package. It takes in an XLSForm path,
+user preferences, and produces a formatted Word document. (Phase 1 skeleton)
 }
 \examples{
 \dontrun{
-# Basic usage, writes survey.docx next to survey.xlsx
-convertxlsform("survey.xlsx")
-
-# Turn off numbering
-convertxlsform("survey.xlsx", number_questions = FALSE)
+convertxlsform("form.xlsx", output_docx = "form.docx")
 }
 }

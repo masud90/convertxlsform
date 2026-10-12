@@ -138,7 +138,6 @@ test_that("select questions report their source", {
   expect_equal(sc$source, "choices")
   expect_true(sc$source_found)
   expect_equal(sc$n_total, 4L)
-  expect_false(sc$truncated)
 
   vf <- .select_choices(f, idx("village_file"))
   expect_equal(vf$source, "villages.csv")
@@ -151,30 +150,41 @@ test_that("select questions report their source", {
   expect_equal(nrow(mf$choices), 0L)
 })
 
-test_that("max_choices keeps the first choices and flags truncation", {
-  df <- data.frame(name = letters[1:6], label = LETTERS[1:6],
-                   image = NA_character_, stringsAsFactors = FALSE)
-  t3 <- .truncate_choices(df, 3)
-  expect_equal(t3$choices$name, c("a", "b", "c"))
-  expect_equal(t3$n_total, 6L)
-  expect_true(t3$truncated)
-  t6 <- .truncate_choices(df, 6)
-  expect_false(t6$truncated)
-  expect_equal(nrow(t6$choices), 6L)
-  ti <- .truncate_choices(df, Inf)
-  expect_false(ti$truncated)
-  expect_equal(ti$n_total, 6L)
-  # never fewer than one
-  expect_equal(nrow(.truncate_choices(df, 0.4)$choices), 1L)
-  expect_equal(nrow(.truncate_choices(df[0, ], 3)$choices), 0L)
-
+test_that("select_choices keeps every choice", {
   skip_if_no_writexl()
   f <- small_form()
   i <- which(f$survey$name == "assets")
-  sc <- .select_choices(f, i, max_choices = 2)
-  expect_equal(sc$choices$name, c("radio", "tv"))
+  sc <- .select_choices(f, i)
+  expect_equal(sc$choices$name, c("radio", "tv", "bike"))
   expect_equal(sc$n_total, 3L)
-  expect_true(sc$truncated)
+  expect_null(sc$truncated)
+})
+
+test_that("layout thresholds", {
+  lab <- function(n, w = 5) rep(strrep("x", w), n)
+  l <- function(n, w = 5, app = NA, mx = 30) {
+    .choice_layout(lab(n, w), app, mx)
+  }
+  expect_equal(l(0)$layout, "list")
+  expect_equal(l(1)$layout, "list")
+  expect_equal(l(7)$layout, "list")
+  expect_equal(l(7)$ncol, 1L)
+  expect_equal(l(8)$layout, "columns")
+  expect_equal(l(30)$layout, "columns")
+  expect_equal(l(31)$layout, "code_box")
+  # columns: 3 when every label has at most 25 characters, else 2
+  expect_equal(l(8, 25)$ncol, 3L)
+  expect_equal(l(8, 26)$ncol, 2L)
+  expect_equal(l(31, 26)$ncol, 2L)
+  # a custom limit
+  expect_equal(l(12, mx = 10)$layout, "code_box")
+  expect_equal(l(10, mx = 10)$layout, "columns")
+  expect_equal(l(5000, mx = Inf)$layout, "columns")
+  # minimal and autocomplete only matter above 7 choices
+  expect_equal(l(8, app = "minimal")$layout, "code_box")
+  expect_equal(l(8, app = "search('x') autocomplete")$layout, "code_box")
+  expect_equal(l(7, app = "minimal")$layout, "list")
+  expect_equal(l(8, app = "horizontal")$layout, "columns")
 })
 
 test_that("range values come from the parameters", {

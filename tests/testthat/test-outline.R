@@ -52,7 +52,7 @@ test_that("outline returns a data frame with the documented columns", {
   expect_s3_class(o, "data.frame")
   expect_named(o, c("row", "serial", "depth", "block", "kind", "name", "label",
                     "required", "n_choices", "relevant_text",
-                    "constraint_text"))
+                    "constraint_text", "layout"))
   expect_type(o$row, "integer")
   expect_type(o$serial, "character")
   expect_type(o$required, "logical")

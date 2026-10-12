@@ -167,8 +167,10 @@
 
 #' Lookup context for humanizing: survey names, serials, choice labels
 #' @noRd
-.expr_ctx <- function(form) {
-  list(form = form, sv = form$survey, cache = new.env(parent = emptyenv()))
+.expr_ctx <- function(form, strings = NULL, show_variable_names = TRUE) {
+  list(form = form, sv = form$survey, cache = new.env(parent = emptyenv()),
+       s = strings %||% .cxf_strings(.form_lang_code(form)),
+       show_names = isTRUE(show_variable_names))
 }
 
 #' Survey row index of a question name (NA if absent)
@@ -223,14 +225,18 @@
   if (is.na(i) || is.na(ctx$sv$serial[i])) {
     return(name)
   }
-  paste0("Q", ctx$sv$serial[i], " (", name, ")")
+  if (ctx$show_names) {
+    paste0("Q", ctx$sv$serial[i], " (", name, ")")
+  } else {
+    paste0("Q", ctx$sv$serial[i])
+  }
 }
 
 #' Quote a string literal for display
 #' @noRd
-.hx_quote <- function(v) {
+.hx_quote <- function(v, empty = "empty") {
   if (!nzchar(v)) {
-    return("empty")
+    return(empty)
   }
   if (grepl("\"", v, fixed = TRUE)) paste0("'", v, "'") else paste0("\"", v, "\"")
 }
@@ -268,9 +274,9 @@
   switch(
     n$t,
     ref = .hx_ref(n$name, ctx),
-    str = .hx_quote(n$value),
+    str = .hx_quote(n$value, ctx$s$empty),
     num = n$text,
-    dot = if (field == "constraint") "the answer" else "this answer",
+    dot = if (field == "constraint") ctx$s$the_answer else ctx$s$this_answer,
     ident = n$text,
     paren = paste0("(", r(n$x), ")"),
     un = paste0("-", r(n$x)),
@@ -294,16 +300,18 @@
     side <- if (is_lit(n$r)) n$l else n$r
     lit <- if (is_lit(n$r)) n$r else n$l
     if (lit$t == "str" && !nzchar(lit$value)) {
-      return(paste(r(side), if (op == "=") "is empty" else "is not empty"))
+      return(paste(r(side),
+                   if (op == "=") ctx$s$is_empty else ctx$s$is_not_empty))
     }
     i <- .hx_node_row(side, ctx, cur)
     if (!is.na(i) && ctx$sv$kind[i] == "select_one") {
       val <- if (lit$t == "str") lit$value else lit$text
-      return(paste(r(side), if (op == "=") "is" else "is not",
-                   .hx_quote(.ctx_label(ctx, i, val))))
+      return(paste(r(side), if (op == "=") ctx$s$is else ctx$s$is_not,
+                   .hx_quote(.ctx_label(ctx, i, val), ctx$s$empty)))
     }
   }
-  txt <- switch(op, "!=" = "is not", div = "/", op)
+  txt <- switch(op, "!=" = ctx$s$is_not, div = "/", and = ctx$s$and,
+                or = ctx$s$or, op)
   paste(r(n$l), txt, r(n$r))
 }
 
@@ -313,10 +321,10 @@
   if (length(n$args) != 2L) stop("bad arity", call. = FALSE)
   a <- n$args[[1L]]
   b <- n$args[[2L]]
-  verb <- if (negate) "does not include" else "includes"
+  verb <- if (negate) ctx$s$does_not_include else ctx$s$includes
   rhs <- if (b$t == "str") {
     i <- .hx_node_row(a, ctx, cur)
-    .hx_quote(.ctx_label(ctx, i, b$value))
+    .hx_quote(.ctx_label(ctx, i, b$value), ctx$s$empty)
   } else {
     .hx_render(b, ctx, field, cur)
   }
@@ -334,7 +342,7 @@
     selected = .hx_selected(n, ctx, field, cur),
     "count-selected" = {
       if (na != 1L) stop("bad arity", call. = FALSE)
-      paste("number selected in", .hx_render(args[[1L]], ctx, field, cur))
+      paste(ctx$s$number_selected_in, .hx_render(args[[1L]], ctx, field, cur))
     },
     not = {
       if (na != 1L) stop("bad arity", call. = FALSE)
@@ -344,12 +352,13 @@
       } else if (a$t == "bin" && a$op %in% c("=", "!=")) {
         .hx_bin(a, ctx, field, cur, negate = TRUE)
       } else {
-        paste0("not (", .hx_render(a, ctx, field, cur), ")")
+        paste0(ctx$s$not, " (", .hx_render(a, ctx, field, cur), ")")
       }
     },
     today = , now = , "true" = , "false" = {
       if (na != 0L) stop("bad arity", call. = FALSE)
-      switch(fn, today = "today", now = "now", fn)
+      switch(fn, today = ctx$s$today, now = ctx$s$now, "true" = ctx$s$true,
+             "false" = ctx$s$false, fn)
     },
     stop("unknown function", call. = FALSE)
   )
@@ -359,13 +368,17 @@
 #' @noRd
 .hx_one <- function(expr, ctx, field, cur) {
   if (is.na(expr) || !nzchar(trimws(expr))) {
-    return(NA_character_)
+    return(list(text = NA_character_, fallback = FALSE))
   }
   res <- tryCatch(
     .hx_render(.hx_parse(.hx_tokenize(expr)), ctx, field, cur),
     error = function(e) NULL
   )
-  if (is.null(res)) .hx_subst(expr, ctx) else res
+  if (is.null(res)) {
+    list(text = .hx_subst(expr, ctx), fallback = TRUE)
+  } else {
+    list(text = res, fallback = FALSE)
+  }
 }
 
 #' Check the `field` argument
@@ -386,31 +399,45 @@
 #'   `"repeat_count"`. Changes how a bare `.` is shown.
 #' @param row Optional survey row index of the question the expression belongs
 #'   to, used to find the choice labels for `.`.
+#' @param strings Optional string table (see `.cxf_strings()`); by default the
+#'   one for the form's language.
+#' @param show_variable_names Show `Q3.2 (name)` (TRUE) or `Q3.2` (FALSE) for
+#'   references to numbered questions.
 #' @return A character string.
 #' @noRd
 .humanize_expr <- function(expr, form, field = "relevant",
-                           row = NA_integer_) {
+                           row = NA_integer_, strings = NULL,
+                           show_variable_names = TRUE) {
   field <- .check_expr_field(field)
-  .hx_one(as.character(expr)[1L], .expr_ctx(form), field, row)
+  ctx <- .expr_ctx(form, strings, show_variable_names)
+  .hx_one(as.character(expr)[1L], ctx, field, row)$text
 }
 
 #' Vectorized `.humanize_expr()`
 #'
 #' @param exprs Character vector.
 #' @param rows Optional integer vector (same length) of survey row indices.
+#' @param with_fallback If TRUE, return `list(text, fallback)` where `fallback`
+#'   flags the expressions that could not be humanized and are shown as
+#'   written (with `${name}` substituted).
+#' @inheritParams .humanize_expr
 #' @return Character vector the same length as `exprs`.
 #' @noRd
-.humanize_exprs <- function(exprs, form, field = "relevant", rows = NULL) {
+.humanize_exprs <- function(exprs, form, field = "relevant", rows = NULL,
+                            strings = NULL, show_variable_names = TRUE,
+                            with_fallback = FALSE) {
   field <- .check_expr_field(field)
   exprs <- as.character(exprs)
-  if (length(exprs) == 0L) {
-    return(character(0))
-  }
   rows <- rows %||% rep(NA_integer_, length(exprs))
-  ctx <- .expr_ctx(form)
-  vapply(seq_along(exprs), function(k) {
+  ctx <- .expr_ctx(form, strings, show_variable_names)
+  res <- lapply(seq_along(exprs), function(k) {
     .hx_one(exprs[k], ctx, field, rows[k])
-  }, "")
+  })
+  text <- vapply(res, function(x) x$text, "")
+  if (!with_fallback) {
+    return(text)
+  }
+  list(text = text, fallback = vapply(res, function(x) x$fallback, NA))
 }
 
 #' Plain-language range from a simple numeric constraint

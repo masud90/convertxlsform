@@ -17,7 +17,10 @@ test_that("defaults are complete and typed", {
   expect_equal(opts$font_family, "Arial")
   expect_equal(opts$font_size, 11)
   expect_null(opts$template)
-  expect_equal(opts$max_choices, Inf)
+  expect_equal(opts$max_choices, 30)
+  expect_null(opts$strings)
+  expect_identical(opts$repeat_copies, 1L)
+  expect_null(opts$font_family_cs)
   expect_false(opts$overwrite)
   expect_true(opts$verbose)
 })
@@ -89,7 +92,8 @@ test_that("font_size must be between 6 and 20", {
   expect_equal(.cxf_options(font_size = 20)$font_size, 20)
 })
 
-test_that("max_choices must be a positive number or Inf", {
+test_that("max_choices must be a positive whole number or Inf", {
+  expect_error(.cxf_options(max_choices = 2.5), "max_choices")
   expect_error(.cxf_options(max_choices = 0), "max_choices")
   expect_error(.cxf_options(max_choices = -3), "max_choices")
   expect_error(.cxf_options(max_choices = NA), "max_choices")
@@ -123,4 +127,35 @@ test_that("string options reject blank and vector values", {
   expect_error(.cxf_options(media_root = NA_character_), "media_root")
   expect_error(.cxf_options(font_family = ""), "font_family")
   expect_equal(.cxf_options(lang = "en")$lang, "en")
+})
+
+test_that("strings must be a named list of known single strings", {
+  ok <- .cxf_options(strings = list(other_specify = "Autre", ask_if = "Si"))
+  expect_equal(ok$strings$other_specify, "Autre")
+  expect_error(.cxf_options(strings = list(nope = "x")), "nope")
+  expect_error(.cxf_options(strings = list(nope = "x")), "other_specify")
+  expect_error(.cxf_options(strings = list("x")), "strings")
+  expect_error(.cxf_options(strings = c(ask_if = "x")), "strings")
+  expect_error(.cxf_options(strings = list(ask_if = c("a", "b"))), "strings")
+  expect_error(.cxf_options(strings = list(ask_if = 1)), "strings")
+  expect_error(.cxf_options(strings = list(ask_if = NA_character_)),
+               "strings")
+  expect_error(.cxf_options(strings = list()), "strings")
+})
+
+test_that("repeat_copies is a whole number from 1 to 20", {
+  expect_identical(.cxf_options(repeat_copies = 3)$repeat_copies, 3L)
+  expect_identical(.cxf_options(repeat_copies = 20L)$repeat_copies, 20L)
+  expect_error(.cxf_options(repeat_copies = 0), "repeat_copies")
+  expect_error(.cxf_options(repeat_copies = 21), "repeat_copies")
+  expect_error(.cxf_options(repeat_copies = 1.5), "repeat_copies")
+  expect_error(.cxf_options(repeat_copies = "2"), "repeat_copies")
+  expect_error(.cxf_options(repeat_copies = NA), "repeat_copies")
+})
+
+test_that("font_family_cs is NULL or a string", {
+  expect_equal(.cxf_options(font_family_cs = "Noto Sans")$font_family_cs,
+               "Noto Sans")
+  expect_error(.cxf_options(font_family_cs = ""), "font_family_cs")
+  expect_error(.cxf_options(font_family_cs = 1), "font_family_cs")
 })

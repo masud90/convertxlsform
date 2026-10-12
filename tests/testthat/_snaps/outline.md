@@ -47,13 +47,13 @@
       41 50  16     0     question    select_one      main_crop       Main crop                                FALSE    30       
       42 52  17     0     question    text            comments        Additional comments                      FALSE    NA       
       43 53  <NA>   0     note        note            closing         Thank you. The survey is complete.          NA    NA       
-         row serial relevant_text                                         constraint_text                                                         
-      6  11  3.2    <NA>                                                  the answer >= 0 and the answer <= 30 (Enter a whole number from 0 to 30)
-      20 25  3.14.2 Q3.14.1 (food_sources) does not include "Market"      <NA>                                                                    
-      21 26  3.14.3 Q3.2 (hh_size) > 2 and Q3.8 (assets) includes "Radio" <NA>                                                                    
-      22 29  3.15   number selected in Q3.8 (assets) > 1                  <NA>                                                                    
-      24 32  3.17   Q3.16 (owns_livestock) is "Yes"                       <NA>                                                                    
-      27 36  4.2    <NA>                                                  the answer >= 0 and the answer <= 120 (Enter an age from 0 to 120)      
+         row serial relevant_text                      constraint_text                  
+      6  11  3.2    <NA>                               Enter a whole number from 0 to 30
+      20 25  3.14.2 Q3.14.1 does not include "Market"  <NA>                             
+      21 26  3.14.3 Q3.2 > 2 and Q3.8 includes "Radio" <NA>                             
+      22 29  3.15   number selected in Q3.8 > 1        <NA>                             
+      24 32  3.17   Q3.16 is "Yes"                     <NA>                             
+      27 36  4.2    <NA>                               Enter an age from 0 to 120       
 
 # outline of the all_types form in French
 
@@ -104,75 +104,64 @@
       41 50  16     0     question    select_one      main_crop       Culture principale                       FALSE    30       
       42 52  17     0     question    text            comments        Commentaires supplémentaires             FALSE    NA       
       43 53  <NA>   0     note        note            closing         Merci. L'enquête est terminée.              NA    NA       
-         row serial relevant_text                                         constraint_text                                                         
-      6  11  3.2    <NA>                                                  the answer >= 0 and the answer <= 30 (Enter a whole number from 0 to 30)
-      20 25  3.14.2 Q3.14.1 (food_sources) does not include "Marché"      <NA>                                                                    
-      21 26  3.14.3 Q3.2 (hh_size) > 2 and Q3.8 (assets) includes "Radio" <NA>                                                                    
-      22 29  3.15   number selected in Q3.8 (assets) > 1                  <NA>                                                                    
-      24 32  3.17   Q3.16 (owns_livestock) is "Oui"                       <NA>                                                                    
-      27 36  4.2    <NA>                                                  the answer >= 0 and the answer <= 120 (Enter an age from 0 to 120)      
+         row serial relevant_text                              constraint_text                  
+      6  11  3.2    <NA>                                       Enter a whole number from 0 to 30
+      20 25  3.14.2 Q3.14.1 ne comprend pas "Marché"           <NA>                             
+      21 26  3.14.3 Q3.2 > 2 et Q3.8 comprend "Radio"          <NA>                             
+      22 29  3.15   nombre de choix sélectionnés dans Q3.8 > 1 <NA>                             
+      24 32  3.17   Q3.16 est "Oui"                            <NA>                             
+      27 36  4.2    <NA>                                       Enter an age from 0 to 120       
 
 # outline of the multilang form in English
 
     Code
       print_outline(xlsform_outline(p, lang = "en"))
     Output
-         row serial depth block       kind            name                 label                                      required n_choices
-      1   5  1      0     section     begin_group     groupA               A: Interview Metadata                        NA      NA      
-      2   6  1.1    1     question    date            surveydate           What is the date today?                    TRUE      NA      
-      3   7  1.2    1     question    select_one      enumname             Select enumerator name.                    TRUE     100      
-      4  10  <NA>   1     note        note            note_consent         **Consent message**:\r\nThis message wi...   NA      NA      
-      5  11  1.3    1     question    acknowledge     consent              Has the respondent consented?              TRUE      NA      
-      6  13  2      0     section     begin_group     groupB               B: Household roster                          NA      NA      
-      7  14  2.1    1     question    number          hhsize               How many individuals do you have in y...   TRUE      NA      
-      8  15  2.2    1     section     begin_repeat    hhroster             B1. Household member details                 NA      NA      
-      9  17  2.2.1  2     question    text            mem_name             What is the name of person ${hhroster...   TRUE      NA      
-      10 18  2.2.2  2     question    select_one      mem_sex              What is the sex of <span style="color...   TRUE       2      
-      11 19  2.2.3  2     question    date            mem_birthyear        In which year was <span style="color:...   TRUE      NA      
-      12 21  2.2.4  2     question    select_one      mem_relationship     What is the relationship of <span sty...   TRUE       7      
-      13 22  2.2    1     section_end end_repeat      hhroster             <NA>                                         NA      NA      
-      14 24  3      0     section     begin_group     groupC               C: Housing/ Shelter                          NA      NA      
-      15 25  3.1    1     question    geo             location_coordinates What are the coordinates of this dwel...   TRUE      NA      
-      16 26  3.2    1     question    media           landmark_photo       Please take a photo of the house.          TRUE      NA      
-      17 27  3.3    1     question    media           landmark_video       Please take a video of the street in ...   TRUE      NA      
-      18 28  3.4    1     question    number          room_num             How many rooms are there in this house?    TRUE      NA      
-      19 29  3.5    1     question    select_one      dwelling_ownership   Do you own this dwelling?                  TRUE       2      
-      20 30  3.6    1     question    select_one      dwelling_rent        Do you pay rent to stay in this dwell...   TRUE       2      
-      21 31  3.7    1     question    range           rent_range           How much do you pay as rent for this ...   TRUE      NA      
-      22 33  4      0     section     begin_group     groupD               D: Assets                                    NA      NA      
-      23 34  4.1    1     question    select_multiple asset_owned          Which of the following assets do you ...   TRUE      10      
-      24 35  4.2    1     question    text            asset_owned_other    If you selected Other, specify in the...   TRUE      NA      
-      25 36  4.3    1     section     begin_group     groupD1              D1: Mobile Phone                             NA      NA      
-      26 37  4.3.1  2     question    select_one      phone_brand          What is the name of your phone manufa...   TRUE       7      
-      27 38  4.3.2  2     question    text            phone_brand_other    If you selected Other, specify in the...   TRUE      NA      
-      28 39  4.3.3  2     question    rank            phone_feature        Which features of your phone are the ...   TRUE       5      
-      29 42  5      0     section     begin_group     groupE               E: Some more test questions                  NA      NA      
-      30 43  5.1    1     question    number          decimal_entry        What is a number that is bigger than ...   TRUE      NA      
-      31 44  5.2    1     question    geo             street_coordinates   Please trace the coordinates of this ...   TRUE      NA      
-      32 45  5.3    1     question    geo             house_coordinates    Please draw a polygon shape of the ar...   TRUE      NA      
-      33 46  5.4    1     question    barcode         barcode_entry        Scan the barcode of a book in front o...   TRUE      NA      
-         row serial relevant_text                                 
-      2   6  1.1    <NA>                                          
-      7  14  2.1    <NA>                                          
-      11 19  2.2.3  <NA>                                          
-      20 30  3.6    Q3.5 (dwelling_ownership) is "Yes"            
-      21 31  3.7    Q3.6 (dwelling_rent) is "Yes"                 
-      23 34  4.1    <NA>                                          
-      24 35  4.2    Q4.1 (asset_owned) includes "Other, specify"  
-      25 36  4.3    Q4.1 (asset_owned) includes "Mobile phone"    
-      27 38  4.3.2  Q4.3.1 (phone_brand) includes "Other, specify"
-      30 43  5.1    <NA>                                          
-         constraint_text                                                                                                                             
-      2  the answer = today (Selected date must be the same as today.)                                                                               
-      7  the answer > 0 and the answer <= 30 (Entered number must be higher than 0. Maximum allowed number is 30.)                                   
-      11 the answer >= 1900 or the answer <= 2025 (Year cannot be greater than 2025, or lower than 1900.)                                            
-      20 <NA>                                                                                                                                        
-      21 <NA>                                                                                                                                        
-      23 if(selected(Q4.1 (asset_owned), '-98') or selected(Q4.1 (asset_owned), '-99') or selected(Q4.1 (asset_owned), '0'), count-selected(Q4.1 (...
-      24 <NA>                                                                                                                                        
-      25 <NA>                                                                                                                                        
-      27 <NA>                                                                                                                                        
-      30 the answer > 1 and the answer < 2                                                                                                           
+         row serial depth block       kind            name                 label                                     required n_choices
+      1   5  1      0     section     begin_group     groupA               A: Interview Metadata                       NA      NA      
+      2   6  1.1    1     question    date            surveydate           What is the date today?                   TRUE      NA      
+      3   7  1.2    1     question    select_one      enumname             Select enumerator name.                   TRUE     100      
+      4  10  <NA>   1     note        note            note_consent         **Consent message**:\nThis message wil...   NA      NA      
+      5  11  1.3    1     question    acknowledge     consent              Has the respondent consented?             TRUE      NA      
+      6  13  2      0     section     begin_group     groupB               B: Household roster                         NA      NA      
+      7  14  2.1    1     question    number          hhsize               How many individuals do you have in y...  TRUE      NA      
+      8  15  2.2    1     section     begin_repeat    hhroster             B1. Household member details                NA      NA      
+      9  17  2.2.1  2     question    text            mem_name             What is the name of person [hhroster_...  TRUE      NA      
+      10 18  2.2.2  2     question    select_one      mem_sex              What is the sex of <span style="color...  TRUE       2      
+      11 19  2.2.3  2     question    date            mem_birthyear        In which year was <span style="color:...  TRUE      NA      
+      12 21  2.2.4  2     question    select_one      mem_relationship     What is the relationship of <span sty...  TRUE       7      
+      13 22  2.2    1     section_end end_repeat      hhroster             <NA>                                        NA      NA      
+      14 24  3      0     section     begin_group     groupC               C: Housing/ Shelter                         NA      NA      
+      15 25  3.1    1     question    geo             location_coordinates What are the coordinates of this dwel...  TRUE      NA      
+      16 26  3.2    1     question    media           landmark_photo       Please take a photo of the house.         TRUE      NA      
+      17 27  3.3    1     question    media           landmark_video       Please take a video of the street in ...  TRUE      NA      
+      18 28  3.4    1     question    number          room_num             How many rooms are there in this house?   TRUE      NA      
+      19 29  3.5    1     question    select_one      dwelling_ownership   Do you own this dwelling?                 TRUE       2      
+      20 30  3.6    1     question    select_one      dwelling_rent        Do you pay rent to stay in this dwell...  TRUE       2      
+      21 31  3.7    1     question    range           rent_range           How much do you pay as rent for this ...  TRUE      NA      
+      22 33  4      0     section     begin_group     groupD               D: Assets                                   NA      NA      
+      23 34  4.1    1     question    select_multiple asset_owned          Which of the following assets do you ...  TRUE      10      
+      24 35  4.2    1     question    text            asset_owned_other    If you selected Other, specify in the...  TRUE      NA      
+      25 36  4.3    1     section     begin_group     groupD1              D1: Mobile Phone                            NA      NA      
+      26 37  4.3.1  2     question    select_one      phone_brand          What is the name of your phone manufa...  TRUE       7      
+      27 38  4.3.2  2     question    text            phone_brand_other    If you selected Other, specify in the...  TRUE      NA      
+      28 39  4.3.3  2     question    rank            phone_feature        Which features of your phone are the ...  TRUE       5      
+      29 42  5      0     section     begin_group     groupE               E: Some more test questions                 NA      NA      
+      30 43  5.1    1     question    number          decimal_entry        What is a number that is bigger than ...  TRUE      NA      
+      31 44  5.2    1     question    geo             street_coordinates   Please trace the coordinates of this ...  TRUE      NA      
+      32 45  5.3    1     question    geo             house_coordinates    Please draw a polygon shape of the ar...  TRUE      NA      
+      33 46  5.4    1     question    barcode         barcode_entry        Scan the barcode of a book in front o...  TRUE      NA      
+         row serial relevant_text                    constraint_text                                                                                                   
+      2   6  1.1    <NA>                             Selected date must be the same as today.                                                                          
+      7  14  2.1    <NA>                             Entered number must be higher than 0. Maximum allowed number is 30.                                               
+      11 19  2.2.3  <NA>                             Year cannot be greater than 2025, or lower than 1900.                                                             
+      20 30  3.6    Q3.5 is "Yes"                    <NA>                                                                                                              
+      21 31  3.7    Q3.6 is "Yes"                    <NA>                                                                                                              
+      23 34  4.1    <NA>                             If you select **None of these** or **Refused to respond** or **Do not know**, you can not select any other option.
+      24 35  4.2    Q4.1 includes "Other, specify"   <NA>                                                                                                              
+      25 36  4.3    Q4.1 includes "Mobile phone"     <NA>                                                                                                              
+      27 38  4.3.2  Q4.3.1 includes "Other, specify" <NA>                                                                                                              
+      30 43  5.1    <NA>                             the answer > 1 and the answer < 2                                                                                 
 
 # outline of the multilang form in Bengali
 
@@ -183,15 +172,15 @@
       1   5  1      0     section     begin_group     groupA               A: সাক্ষাৎকারের মেটাডেটা                    NA      NA      
       2   6  1.1    1     question    date            surveydate           আজ কত তারিখ?                             TRUE      NA      
       3   7  1.2    1     question    select_one      enumname             গণনাকারীর নাম নির্বাচন করুন।               TRUE     100      
-      4  10  <NA>   1     note        note            note_consent         **সম্মতি বার্তা**:\r\nএই বার্তাটি ${enu...    NA      NA      
+      4  10  <NA>   1     note        note            note_consent         **সম্মতি বার্তা**:\nএই বার্তাটি [enumn...     NA      NA      
       5  11  1.3    1     question    acknowledge     consent              নির্বাচিত উত্তরদাতা কি সম্মতি দিয়েছেন?      TRUE      NA      
       6  13  2      0     section     begin_group     groupB               B: পরিবারের তালিকা                         NA      NA      
       7  14  2.1    1     question    number          hhsize               আপনার পরিবারে/ খানায় কতজন ব্যক্তি আছেন?    TRUE      NA      
       8  15  2.2    1     section     begin_repeat    hhroster             B1. পরিবারের সদস্যদের বিবরণ                 NA      NA      
-      9  17  2.2.1  2     question    text            mem_name             সদস্য সংখ্যা  ${hhroster_position} এর...   TRUE      NA      
-      10 18  2.2.2  2     question    select_one      mem_sex              <span style="color:red">${mem_name}</... TRUE       2      
-      11 19  2.2.3  2     question    date            mem_birthyear        <span style="color:red">${mem_name}</... TRUE      NA      
-      12 21  2.2.4  2     question    select_one      mem_relationship     <span style="color:red">${mem_name}</... TRUE       7      
+      9  17  2.2.1  2     question    text            mem_name             সদস্য সংখ্যা  [hhroster_position] এর ...   TRUE      NA      
+      10 18  2.2.2  2     question    select_one      mem_sex              <span style="color:red">[Q2.2.1]</spa... TRUE       2      
+      11 19  2.2.3  2     question    date            mem_birthyear        <span style="color:red">[Q2.2.1]</spa... TRUE      NA      
+      12 21  2.2.4  2     question    select_one      mem_relationship     <span style="color:red">[Q2.2.1]</spa... TRUE       7      
       13 22  2.2    1     section_end end_repeat      hhroster             <NA>                                       NA      NA      
       14 24  3      0     section     begin_group     groupC               C: আবাসন/আশ্রয়স্থল                           NA      NA      
       15 25  3.1    1     question    geo             location_coordinates এই বাসস্থানের স্থানাঙ্কগুলি কী কী?           TRUE      NA      
@@ -213,26 +202,15 @@
       31 44  5.2    1     question    geo             street_coordinates   এই রাস্তার স্থানাঙ্কগুলি দাগান।              TRUE      NA      
       32 45  5.3    1     question    geo             house_coordinates    বাড়ির ক্ষেত্রফলের একটি বহুভুজ আকৃতি ...       TRUE      NA      
       33 46  5.4    1     question    barcode         barcode_entry        আপনার সামনে থাকা একটি বইয়ের বারকোড স...  TRUE      NA      
-         row serial relevant_text                                    
-      2   6  1.1    <NA>                                             
-      7  14  2.1    <NA>                                             
-      11 19  2.2.3  <NA>                                             
-      20 30  3.6    Q3.5 (dwelling_ownership) is "হ্যাঁ"               
-      21 31  3.7    Q3.6 (dwelling_rent) is "হ্যাঁ"                    
-      23 34  4.1    <NA>                                             
-      24 35  4.2    Q4.1 (asset_owned) includes "অন্যান্য, উল্লেখ করুন"  
-      25 36  4.3    Q4.1 (asset_owned) includes "মোবাইল ফোন"         
-      27 38  4.3.2  Q4.3.1 (phone_brand) includes "অন্যান্য, উল্লেখ করুন"
-      30 43  5.1    <NA>                                             
-         constraint_text                                                                                                                             
-      2  the answer = today (নির্বাচিত তারিখটি আজকের তারিখ হতে হবে।)                                                                                  
-      7  the answer > 0 and the answer <= 30 (নির্বাচিত সংখ্যাটি অবশ্যই ০ এর বেশি হতে হবে। সর্বোচ্চ অনুমোদিত সংখ্যা হচ্ছে ৩০।)                               
-      11 the answer >= 1900 or the answer <= 2025 (বছরটি ২০২৫ সালের বেশি বা ১৯০০ সালের কম হতে পারবে না।)                                             
-      20 <NA>                                                                                                                                        
-      21 <NA>                                                                                                                                        
-      23 if(selected(Q4.1 (asset_owned), '-98') or selected(Q4.1 (asset_owned), '-99') or selected(Q4.1 (asset_owned), '0'), count-selected(Q4.1 (...
-      24 <NA>                                                                                                                                        
-      25 <NA>                                                                                                                                        
-      27 <NA>                                                                                                                                        
-      30 the answer > 1 and the answer < 2                                                                                                           
+         row serial relevant_text                       constraint_text                                                                                                                     
+      2   6  1.1    <NA>                                নির্বাচিত তারিখটি আজকের তারিখ হতে হবে।                                                                                               
+      7  14  2.1    <NA>                                নির্বাচিত সংখ্যাটি অবশ্যই ০ এর বেশি হতে হবে। সর্বোচ্চ অনুমোদিত সংখ্যা হচ্ছে ৩০।                                                             
+      11 19  2.2.3  <NA>                                বছরটি ২০২৫ সালের বেশি বা ১৯০০ সালের কম হতে পারবে না।                                                                                
+      20 30  3.6    Q3.5 is "হ্যাঁ"                       <NA>                                                                                                                                
+      21 31  3.7    Q3.6 is "হ্যাঁ"                       <NA>                                                                                                                                
+      23 34  4.1    <NA>                                যদি আপনি **এর কোনটিই নয়** অথবা **উত্তর দিতে অস্বীকৃতি** অথবা **জানি না** নির্বাচন করেন, তাহলে আপনি অন্য কোন বিকল্প নির্বাচন করতে পারবেন না।
+      24 35  4.2    Q4.1 includes "অন্যান্য, উল্লেখ করুন"   <NA>                                                                                                                                
+      25 36  4.3    Q4.1 includes "মোবাইল ফোন"          <NA>                                                                                                                                
+      27 38  4.3.2  Q4.3.1 includes "অন্যান্য, উল্লেখ করুন" <NA>                                                                                                                                
+      30 43  5.1    <NA>                                the answer > 1 and the answer < 2                                                                                                   
 

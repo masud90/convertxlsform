@@ -1,10 +1,10 @@
 test_that("symbols are the documented Unicode characters", {
   sym <- .cxf_symbols()
   expect_named(sym, c("circle", "square", "rank", "tick"))
-  expect_equal(utf8ToInt(sym$circle), 0x25EF)
-  expect_equal(utf8ToInt(sym$square), 0x25A2)
+  expect_equal(utf8ToInt(sym$circle), 0x25CB)
+  expect_equal(utf8ToInt(sym$square), 0x25A1)
   expect_equal(utf8ToInt(sym$rank), 0x25A1)
-  expect_equal(utf8ToInt(sym$tick), 0x2610)
+  expect_equal(utf8ToInt(sym$tick), 0x25A1)
   expect_true(all(vapply(sym, length, integer(1)) == 1L))
 })
 

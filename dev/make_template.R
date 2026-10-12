@@ -46,7 +46,7 @@ x <- para(x, "cxfHint", "cxf Hint",
           pp(keep_with_next = TRUE, padding.bottom = 2),
           tx(10, italic = TRUE, color = "#595959"))
 x <- para(x, "cxfLogic", "cxf Logic",
-          pp(padding.bottom = 2), tx(10, color = "#7F6000"))
+          pp(keep_with_next = TRUE, padding.bottom = 2), tx(10, color = "#7F6000"))
 x <- para(x, "cxfChoice", "cxf Choice",
           pp(padding.left = 0.3 * 72, padding.bottom = 2), tx(11))
 x <- para(x, "cxfNote", "cxf Note",
@@ -57,11 +57,6 @@ x <- para(x, "cxfBanner", "cxf Banner",
              padding.top = 6, padding.bottom = 4),
           tx(10, bold = TRUE, color = "#1F3864"))
 
-x <- docx_set_character_style(x, "cxfRequired", "cxf Required", base_on = "Default Paragraph Font",
-                              fp_t = fp_text_lite(bold = TRUE, color = "#C00000"))
-x <- docx_set_character_style(x, "cxfCode", "cxf Code", base_on = "Default Paragraph Font",
-                              fp_t = fp_text_lite(font.family = font, font.size = 9,
-                                                  color = "#595959"))
 x <- set_doc_properties(x, title = "convertxlsform template")
 print(x, target = out)
 

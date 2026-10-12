@@ -45,7 +45,16 @@
     fmt_date = "dd/mm/yyyy",
     fmt_month_year = "mm/yyyy",
     fmt_year = "yyyy",
-    fmt_time = "hh:mm"
+    fmt_time = "hh:mm",
+    choices_from = "Choices from",
+    calculated = "Calculated",
+    page = "Page",
+    of = "of",
+    version = "Version",
+    generated = "Generated",
+    form_id = "Form ID",
+    language = "Language",
+    image = "image"
   )
 }
 
@@ -94,7 +103,16 @@
     fmt_date = "jj/mm/aaaa",
     fmt_month_year = "mm/aaaa",
     fmt_year = "aaaa",
-    fmt_time = "hh:mm"
+    fmt_time = "hh:mm",
+    choices_from = "Choix provenant de",
+    calculated = "Calcul\u00e9",
+    page = "Page",
+    of = "sur",
+    version = "Version",
+    generated = "G\u00e9n\u00e9r\u00e9 le",
+    form_id = "Identifiant du formulaire",
+    language = "Langue",
+    image = "image"
   )
 }
 

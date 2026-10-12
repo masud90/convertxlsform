@@ -1,0 +1,89 @@
+---
+title: "Getting started with convertxlsform"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+convertxlsform reads an XLSForm, the questionnaire format used by Open Data Kit (ODK) and KoboToolbox, and writes a paper version as a Word document or a PDF. This vignette walks through the main steps using the example form that ships with the package. All output goes to `tempdir()`, so nothing is written next to the installed package.
+
+## The example form
+
+The example is `all_types.xlsx`. It covers the question types and features the package renders, including groups, repeats, cascading choice lists, and geo and media questions.
+
+```{r example}
+library(convertxlsform)
+
+path <- system.file("extdata", "all_types", "all_types.xlsx",
+                    package = "convertxlsform")
+basename(path)
+```
+
+## Languages
+
+`xlsform_languages()` lists the languages in the form and marks the default. Language columns are named like `label::English (en)` or `label::French (fr)`.
+
+```{r languages}
+xlsform_languages(path)
+```
+
+The default language is used when no `lang` is given. Pass a code (`"fr"`), a name (`"French"`) or the full suffix (`"French (fr)"`) to choose another one.
+
+## Inspecting the form
+
+`xlsform_outline()` returns one row per item on the paper form, with the question numbers, the question kind and the skip logic in plain language. Use it to check a form before converting it. The example below shows the first ten rows.
+
+```{r outline}
+outline <- xlsform_outline(path)
+nrow(outline)
+head(outline[, c("serial", "block", "kind", "name", "relevant_text")], 10)
+```
+
+Groups and notes also appear as rows. Notes are not numbered, so their `serial` is `NA`.
+
+## Converting to Word
+
+`convertxlsform()` writes a Word document. The default output is a `.docx` file with the same base name as the form. Here the output goes to `tempdir()`, and the function returns the path of the file it wrote.
+
+```{r docx}
+docx <- convertxlsform(path, output = tempdir(), overwrite = TRUE,
+                       verbose = FALSE)
+basename(docx)
+file.exists(docx)
+```
+
+To produce the French version, pass `lang`. Where a French hint is blank, the English hint is shown, because a blank cell falls back to the plain column and then to the default language.
+
+```{r docx-fr}
+docx_fr <- convertxlsform(path, output = file.path(tempdir(), "all_types_fr.docx"),
+                          lang = "fr", overwrite = TRUE, verbose = FALSE)
+basename(docx_fr)
+```
+
+## Converting to PDF
+
+A PDF is made by converting the Word document with LibreOffice, or with Microsoft Word through the `doconv` package. PDF output needs LibreOffice (or Word with `doconv`), so the code below is shown but not run when the vignette is built.
+
+```{r pdf, eval = FALSE}
+pdf <- convertxlsform(path, output = tempdir(), format = "pdf",
+                      overwrite = TRUE, verbose = FALSE)
+basename(pdf)
+file.exists(pdf)
+```
+
+If LibreOffice is installed in an unusual place, set `options(convertxlsform.soffice = "/path/to/soffice")` before converting.
+
+## Next steps
+
+- The README lists every option, the terminal commands and how to translate the built-in phrases with `strings`.
+- `?convertxlsform` gives the full description of the options.
+- `?xlsform_outline` describes the columns of the outline.

@@ -1,1 +1,14 @@
 .Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+data/raw/
+data/processed/
+outputs/*
+!outputs/.gitkeep
+CLAUDE.local.md
+.claude/settings.local.json
+*.Rcheck/
+convertxlsform_*.tar.gz
+docs/

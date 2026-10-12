@@ -14,7 +14,7 @@ Local checks verified on 2026-10-12, on macOS 27.0.1 (aarch64), R 4.6.0:
 - [x] R-hub v2 workflow is on `main` (`.github/workflows/rhub.yaml`).
 - [x] PR #1 merged into `main`. GitHub Actions R-CMD-check was green on macOS, Windows, and Ubuntu release and oldrel-1.
 - [x] `v0.3.0` tagged and released on GitHub: <https://github.com/masud90/convertxlsform/releases/tag/v0.3.0>.
-- [x] Win-builder R-devel (first run): 2 NOTEs. (1) CRAN incoming: new submission plus a possibly misspelled word, 'docx' in DESCRIPTION; fixed by quoting it as `'.docx'`. (2) Examples with elapsed time over 10 s (`cli` 12.90 s, `convertxlsform` 11.19 s); fixed by pointing those examples at a small form (`inst/extdata/minimal/minimal.xlsx`) and moving the larger ones into `\donttest{}`. The tests also took 308 s there; the heavy rendering tests are now `skip_on_cran()`. **Re-run win-builder devel to confirm.**
+- [x] Win-builder R-devel (first run): 2 NOTEs. (1) CRAN incoming: new submission plus a possibly misspelled word, 'docx' in DESCRIPTION; fixed by quoting it as `'.docx'`. (2) Examples with elapsed time over 10 s (`cli` 12.90 s, `convertxlsform` 11.19 s); fixed by pointing those examples at a small form (`inst/extdata/minimal/minimal.xlsx`) and moving the larger ones into `\donttest{}`. The tests also took 308 s there; the heavy rendering tests are now `skip_on_cran()`. Re-run on 2026-10-12 after the fixes: 1 NOTE (new submission). Examples OK, tests 80 s.
 - [x] Win-builder R-release (after the fixes, 2026-10-12): 1 NOTE (new submission). Examples OK, tests 81 s.
 - [x] GitHub Actions on `main` (f81b5b6): macOS, Windows, Ubuntu devel, release and oldrel-1 all passed.
 - [ ] Not yet run: mac builder, R-hub. No results exist for these.
@@ -27,7 +27,7 @@ The tarball from that local check was built in a temporary folder and is gone. R
 - [x] CI green on PR #1 (macOS, Windows, Ubuntu release and oldrel-1).
 - [x] Merge PR #1 into `main`. The R-hub workflow is on the default branch, as `rhub_check()` requires.
 - [x] Tag `v0.3.0` on `main`.
-- [ ] Win-builder R-devel re-run (R-release is done). `devtools` is not installed, so either install it (`install.packages("devtools")`) and run:
+- [x] Win-builder R-devel re-run and R-release: both 1 NOTE (new submission). `devtools` is not installed, so either install it (`install.packages("devtools")`) and run:
   ```r
   devtools::check_win_devel()
   devtools::check_win_release()

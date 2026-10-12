@@ -44,9 +44,10 @@ Other platforms:
 * GitHub Actions `R-CMD-check` on macOS (release), Windows (release) and Ubuntu
   (devel, release, oldrel-1), commit f81b5b6 on `main`, 2026-10-12: all five
   jobs passed.
-* win-builder, R-devel (Windows Server 2022, x86_64): 2 NOTEs: new submission
-  and a spelling flag for 'docx' (fixed by quoting); example timing over 10 s
-  (fixed by a smaller example form). To be re-run.
+* win-builder, R-devel (r90659, Windows Server 2022, x86_64): the first run
+  had 2 NOTEs (a spelling flag for 'docx' in DESCRIPTION, fixed by quoting;
+  examples over 10 s, fixed by a smaller example form). Re-run on 2026-10-12
+  after the fixes: 1 NOTE (new submission). Examples OK; tests 80 s.
 * win-builder, R-release (R 4.6.1, Windows Server 2022, x86_64), 2026-10-12,
   after the fixes above: 1 NOTE (new submission). Examples OK; tests 81 s.
 * R-hub v2 (`rhub::rhub_check()`), platforms: [to fill after R-hub]

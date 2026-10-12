@@ -84,14 +84,16 @@ An existing file is never replaced unless \code{overwrite = TRUE}.
 }
 
 \examples{
-path <- system.file("extdata", "multilang", "multilang.xlsx",
+path <- system.file("extdata", "minimal", "minimal.xlsx",
                     package = "convertxlsform")
-out <- file.path(tempdir(), "multilang.docx")
+out <- file.path(tempdir(), "minimal.docx")
 convertxlsform(path, output = out, verbose = FALSE, overwrite = TRUE)
 
 \donttest{
-# Another language, flat question numbers, US letter paper
-convertxlsform(path, output = tempdir(), lang = "bn",
+# A multilingual form: another language, flat question numbers, US letter
+path_ml <- system.file("extdata", "multilang", "multilang.xlsx",
+                       package = "convertxlsform")
+convertxlsform(path_ml, output = tempdir(), lang = "bn",
                nested_serial_numbers = FALSE, page_size = "letter",
                verbose = FALSE, overwrite = TRUE)
 

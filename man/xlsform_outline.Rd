@@ -41,12 +41,16 @@ skip logic and constraints in plain language, so a form can be checked
 before it is converted.
 }
 \examples{
-path <- system.file("extdata", "multilang", "multilang.xlsx",
+path <- system.file("extdata", "minimal", "minimal.xlsx",
                     package = "convertxlsform")
 out <- xlsform_outline(path)
-head(out[, c("serial", "block", "kind", "name", "relevant_text")], 12)
+out[, c("serial", "block", "kind", "name", "relevant_text")]
 
-# Another language, with flat question numbers
-out <- xlsform_outline(path, lang = "bn", nested_serial_numbers = FALSE)
+\donttest{
+# A multilingual form: another language, with flat question numbers
+path_ml <- system.file("extdata", "multilang", "multilang.xlsx",
+                       package = "convertxlsform")
+out <- xlsform_outline(path_ml, lang = "bn", nested_serial_numbers = FALSE)
 head(out[, c("serial", "name")], 5)
+}
 }

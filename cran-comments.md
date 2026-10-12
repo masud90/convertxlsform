@@ -43,7 +43,9 @@ Still to be run by the maintainer before submission:
 
 * GitHub Actions `R-CMD-check` on macOS (release), Windows (release) and Ubuntu
   (devel, release, oldrel-1): [to fill]
-* win-builder, R-devel: [to fill after win-builder]
+* win-builder, R-devel (Windows Server 2022, x86_64): 2 NOTEs: new submission
+  and a spelling flag for 'docx' (fixed by quoting); example timing over 10 s
+  (fixed by a smaller example form). To be re-run.
 * win-builder, R-release: [to fill after win-builder]
 * R-hub v2 (`rhub::rhub_check()`), platforms: [to fill after R-hub]
 * mac builder (<https://mac.r-project.org/macbuilder/submit.html>): [to fill
@@ -65,7 +67,9 @@ Still to be run by the maintainer before submission:
   'LibreOffice' run only in interactive sessions and are guarded by
   `has_libreoffice()`. Tests that need it skip when it is not found and on
   CRAN. Microsoft Word through the suggested package 'doconv' is a fallback.
-* The tests take about 49 s locally.
+* The tests take about 12 s locally with `NOT_CRAN=false`. The heavy
+  end-to-end rendering tests are skipped on CRAN with `skip_on_cran()`; the
+  full set takes about 50 s.
 * `cli()` prints its help and version text with `writeLines()` because that
   output is the purpose of the terminal interface. Progress messages use
   `message()` and are suppressed with `verbose = FALSE` or `--quiet`.

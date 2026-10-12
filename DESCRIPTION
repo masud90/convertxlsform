@@ -1,15 +1,15 @@
 Package: convertxlsform
 Type: Package
-Title: Convert an XLSForm to a Word or PDF Document
+Title: Convert an 'XLSForm' to a 'Word' or PDF Document
 Version: 0.3.0
 Authors@R:
-    person("Masud", "Rahman", email = "write2masud+convertxlsform@gmail.com", role = c("aut", "cre"))
-Description: Converts 'XLSForm' questionnaires, as used by 'Open Data Kit' ('ODK')
-    and 'KoboToolbox', into formatted paper versions for interviewing and
-    review. Output is a 'Microsoft Word' document (.docx) or, optionally, a
-    PDF produced from that Word document with 'LibreOffice'. Supports
-    multilingual forms, nested question numbering, skip logic display, and
-    question and choice media.
+    person("Masud", "Rahman", email = "write2masud+convertxlsform@gmail.com", role = c("aut", "cre", "cph"))
+Description: Converts 'XLSForm' questionnaires, as used by 'Open Data Kit'
+    ('ODK') and 'KoboToolbox', into formatted paper versions for interviewing
+    and review. See <https://xlsform.org> for the 'XLSForm' standard. Output
+    is a 'Word' document (.docx) or, optionally, a PDF produced from that
+    'Word' document with 'LibreOffice'. Supports multilingual forms, nested
+    question numbering, skip logic display, and question and choice media.
 License: MIT + file LICENSE
 URL: https://github.com/masud90/convertxlsform
 BugReports: https://github.com/masud90/convertxlsform/issues

@@ -18,11 +18,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Masud Rahman \email{write2masud+convertxlsform@gmail.com}
+\strong{Maintainer}: Masud Rahman \email{write2masud+convertxlsform@gmail.com} [copyright holder]
 
 Authors:
 \itemize{
-  \item Masud Rahman \email{write2masud+convertxlsform@gmail.com}
+  \item Masud Rahman \email{write2masud+convertxlsform@gmail.com} [copyright holder]
 }
 
 }

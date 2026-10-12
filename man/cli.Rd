@@ -26,6 +26,12 @@ Put the XLSForm path and the options after the quoted expression. If a
 script or CI job needs the exit status, use
 \verb{Rscript -e 'quit(status = convertxlsform::cli())' form.xlsx}. The plain
 form above also works for normal use.
+
+This function is a terminal interface. Its help and version text go to
+standard output, and usage errors go to standard error, because that
+output is its purpose. Progress messages are sent with \code{\link[=message]{message()}} and
+\code{--quiet} suppresses them (the same as \code{verbose = FALSE} in
+\code{\link[=convertxlsform]{convertxlsform()}}).
 }
 \section{Usage}{
 

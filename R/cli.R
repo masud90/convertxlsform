@@ -14,6 +14,12 @@
 #' `Rscript -e 'quit(status = convertxlsform::cli())' form.xlsx`. The plain
 #' form above also works for normal use.
 #'
+#' This function is a terminal interface. Its help and version text go to
+#' standard output, and usage errors go to standard error, because that
+#' output is its purpose. Progress messages are sent with [message()] and
+#' `--quiet` suppresses them (the same as `verbose = FALSE` in
+#' [convertxlsform()]).
+#'
 #' @section Usage:
 #' `cli(args)`: `form.xlsx [options]`. Options accept `--name value` and
 #' `--name=value`.

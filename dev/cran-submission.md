@@ -1,27 +1,29 @@
 # CRAN submission guide for convertxlsform 0.3.0
 
-Owner's step-by-step guide. Nothing has been submitted, committed or pushed.
+Owner's step-by-step guide. Nothing has been submitted to CRAN.
 
 ## Status
 
-Verified on 2026-10-12, on macOS 27.0.1 (aarch64), R 4.6.0:
+Local checks verified on 2026-10-12, on macOS 27.0.1 (aarch64), R 4.6.0:
 
 - [x] `R CMD build` with vignettes (pandoc 3.10 from RStudio via `RSTUDIO_PANDOC`).
 - [x] `R CMD check --as-cran convertxlsform_0.3.0.tar.gz` with the PDF manual: 0 errors, 0 warnings, 2 notes (New submission; local HTML Tidy too old). Details in `cran-comments.md`.
 - [x] `testthat::test_local()` with `NOT_CRAN=true`: 0 failures, 0 warnings, 1 skip (doconv/Word test), 1058 passes.
 - [x] `spelling::spell_check_package()`: no errors (`inst/WORDLIST` updated).
 - [x] `urlchecker::url_check()`: all URLs correct.
-- [x] R-hub v2 workflow written to `.github/workflows/rhub.yaml` (not yet pushed).
-- [ ] Not yet run: GitHub Actions on the PR, win-builder, mac builder, R-hub. No results exist for these.
+- [x] R-hub v2 workflow is on `main` (`.github/workflows/rhub.yaml`).
+- [x] PR #1 merged into `main`. GitHub Actions R-CMD-check was green on macOS, Windows, and Ubuntu release and oldrel-1.
+- [x] `v0.3.0` tagged and released on GitHub: <https://github.com/masud90/convertxlsform/releases/tag/v0.3.0>.
+- [ ] Not yet run: win-builder, mac builder, R-hub. No results exist for these.
 
 The tarball from that local check was built in a temporary folder and is gone. Rebuild it from the current `main` before every check or submission (see "How to submit").
 
 ## Before submitting
 
-- [ ] Review and commit the changes of this session (DESCRIPTION, NEWS.md, R/cli.R, man/, inst/WORDLIST, cran-comments.md, dev/cran-submission.md, `.github/workflows/rhub.yaml`), then push `rewrite`.
-- [ ] CI green on PR #1 (R-CMD-check on macOS, Windows, Ubuntu devel/release/oldrel-1).
-- [ ] Merge PR #1 into `main`. The R-hub workflow must be on the default branch for `rhub_check()` to work.
-- [ ] Tag `v0.3.0` on `main`.
+- [x] Review and commit the session changes, and push them.
+- [x] CI green on PR #1 (macOS, Windows, Ubuntu release and oldrel-1).
+- [x] Merge PR #1 into `main`. The R-hub workflow is on the default branch, as `rhub_check()` requires.
+- [x] Tag `v0.3.0` on `main`.
 - [ ] Win-builder. `devtools` is not installed, so either install it (`install.packages("devtools")`) and run:
   ```r
   devtools::check_win_devel()
@@ -81,7 +83,7 @@ The tarball from that local check was built in a temporary folder and is gone. R
 
 ## After acceptance
 
-- [ ] Change the README install lines to `install.packages("convertxlsform")`, keep the GitHub line for the development version, and remove the note about the `rewrite` branch.
+- [ ] Change the README install lines to `install.packages("convertxlsform")`, keep the GitHub line for the development version.
 - [ ] Add the CRAN badge to the README (`usethis::use_cran_badge()`, or the shields.io CRAN version badge).
 - [ ] Check the NEWS heading is `# convertxlsform 0.3.0`.
 - [ ] Bump `DESCRIPTION` to `0.3.0.9000` and add a `# convertxlsform (development version)` heading at the top of `NEWS.md`.

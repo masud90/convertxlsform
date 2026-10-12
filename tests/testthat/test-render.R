@@ -54,7 +54,21 @@ test_that(".text_runs handles markdown, html and line breaks", {
   expect_length(.text_runs(NA_character_, fp), 0L)
 })
 
+test_that("the minimal form renders with title, serials and choices", {
+  m <- example_model("minimal")
+  path <- render_to(m)
+  expect_true(file.exists(path))
+  txt <- docx_text(path)
+  expect_true(m$model$meta$title %in% txt)
+  expect_true(any(startsWith(txt, "1. What is the respondent")))
+  expect_true(any(startsWith(txt, "5.1. Where is the tap")))
+  expect_true(any(startsWith(trimws(txt), "Tap")))
+  expect_true(any(grepl("^Ask if: ", txt)))
+  expect_equal(sum(grepl("Enter an age between 0 and 120", txt)), 1L)
+})
+
 test_that("all_types renders with title, serials in order and choices", {
+  skip_on_cran()
   m <- example_model("all_types", "en")
   path <- render_to(m)
   expect_true(file.exists(path))
@@ -80,6 +94,7 @@ test_that("all_types renders with title, serials in order and choices", {
 })
 
 test_that("Ask if lines follow include_relevants", {
+  skip_on_cran()
   on <- render_to(example_model("all_types", "en"))
   expect_true(any(grepl("^Ask if: ", docx_text(on))))
   off <- render_to(example_model("all_types", "en", include_relevants = FALSE))
@@ -87,6 +102,7 @@ test_that("Ask if lines follow include_relevants", {
 })
 
 test_that("French strings appear in the French render", {
+  skip_on_cran()
   m <- example_model("all_types", "fr")
   txt <- docx_text(render_to(m))
   expect_true(any(grepl("^Poser si", txt)))
@@ -97,6 +113,7 @@ test_that("French strings appear in the French render", {
 })
 
 test_that("repeat_copies duplicates repeat content", {
+  skip_on_cran()
   m <- example_model("all_types", "en")
   one <- docx_text(render_to(m))
   two <- docx_text(render_to(m, repeat_copies = 2L))
@@ -110,6 +127,7 @@ test_that("repeat_copies duplicates repeat content", {
 })
 
 test_that("images are embedded", {
+  skip_on_cran()
   m <- example_model("all_types", "en")
   path <- render_to(m)
   files <- utils::unzip(path, list = TRUE)$Name
@@ -121,6 +139,7 @@ test_that("images are embedded", {
 })
 
 test_that("choice rows with an image are top-aligned", {
+  skip_on_cran()
   m <- example_model("all_types", "en")
   doc <- zip_part(render_to(m), "word/document\\.xml$")
   rows <- regmatches(doc, gregexpr("(?s)<w:tr[ >].*?</w:tr>", doc, perl = TRUE))[[1]]
@@ -131,7 +150,7 @@ test_that("choice rows with an image are top-aligned", {
 })
 
 test_that("header and footer carry title, form id and page fields", {
-  m <- example_model("all_types", "en")
+  m <- example_model("minimal")
   path <- render_to(m)
   hdr <- zip_part(path, "word/header[0-9]*\\.xml$")
   ftr <- zip_part(path, "word/footer[0-9]*\\.xml$")
@@ -142,6 +161,7 @@ test_that("header and footer carry title, form id and page fields", {
 })
 
 test_that("multilang renders in Bengali with the complex-script font", {
+  skip_on_cran()
   m <- example_model("multilang", "bn")
   path <- render_to(m)
   txt <- docx_text(path)
@@ -154,19 +174,19 @@ test_that("multilang renders in Bengali with the complex-script font", {
 test_that("a user template without cxf styles falls back to Normal", {
   tpl <- tempfile(fileext = ".docx")
   print(officer::read_docx(), target = tpl)
-  m <- example_model("all_types", "en")
+  m <- example_model("minimal")
   path <- tempfile(fileext = ".docx")
   expect_no_error(.render_docx(m$model, utils::modifyList(
     unclass(m$opts), list(template = tpl)), path))
   txt <- docx_text(path)
-  expect_true(any(startsWith(txt, "1. Does the respondent")))
+  expect_true(any(startsWith(txt, "1. What is the respondent")))
   s <- officer::docx_summary(officer::read_docx(path))
   expect_false(any(s$style_name %in% c("cxf Question", "cxf Hint"),
                    na.rm = TRUE))
 })
 
 test_that("landscape letter page setup is applied", {
-  m <- example_model("all_types", "en", page_size = "letter",
+  m <- example_model("minimal", page_size = "letter",
                      orientation = "landscape", margins_in = 0.75)
   doc <- zip_part(render_to(m), "word/document.xml")
   expect_match(doc, "w:orient=\"landscape\"", fixed = TRUE)
@@ -186,6 +206,7 @@ test_that("small forms render with codes hidden and variable names shown", {
 })
 
 test_that("every Bengali run, including code-table cells, uses the cs font", {
+  skip_on_cran()
   m <- example_model("multilang", "bn")
   doc <- zip_part(render_to(m), "word/document.xml")
   runs <- regmatches(doc, gregexpr("<w:r>.*?</w:r>", doc))[[1L]]
@@ -201,6 +222,7 @@ test_that("circle symbols are drawn larger than square symbols", {
 })
 
 test_that("a relative output path still gets the bumped complex-script size", {
+  skip_on_cran()
   skip_if_not_installed("withr")
   m <- example_model("multilang", "bn")
   abs_path <- render_to(m)
@@ -230,7 +252,7 @@ test_that("markdown links and heading markers are cleaned", {
 })
 
 test_that("a very narrow text width does not give negative column widths", {
-  m <- example_model("all_types", "en")
+  m <- example_model("minimal")
   path <- expect_no_error(render_to(m, text_width_in = 2.5))
   expect_true(file.exists(path))
   doc <- zip_part(path, "word/document.xml")

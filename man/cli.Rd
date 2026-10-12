@@ -68,7 +68,7 @@ folder of the form).
 }
 
 \examples{
-path <- system.file("extdata", "multilang", "multilang.xlsx",
+path <- system.file("extdata", "minimal", "minimal.xlsx",
                     package = "convertxlsform")
 cli(c(path, "-o", tempdir(), "--overwrite", "--quiet"))
 }

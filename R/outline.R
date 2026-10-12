@@ -32,14 +32,18 @@
 #'   `max_choices`; NA otherwise). A label may contain line breaks (`\n`).
 #'
 #' @examples
-#' path <- system.file("extdata", "multilang", "multilang.xlsx",
+#' path <- system.file("extdata", "minimal", "minimal.xlsx",
 #'                     package = "convertxlsform")
 #' out <- xlsform_outline(path)
-#' head(out[, c("serial", "block", "kind", "name", "relevant_text")], 12)
+#' out[, c("serial", "block", "kind", "name", "relevant_text")]
 #'
-#' # Another language, with flat question numbers
-#' out <- xlsform_outline(path, lang = "bn", nested_serial_numbers = FALSE)
+#' \donttest{
+#' # A multilingual form: another language, with flat question numbers
+#' path_ml <- system.file("extdata", "multilang", "multilang.xlsx",
+#'                        package = "convertxlsform")
+#' out <- xlsform_outline(path_ml, lang = "bn", nested_serial_numbers = FALSE)
 #' head(out[, c("serial", "name")], 5)
+#' }
 #' @export
 xlsform_outline <- function(xlsform, lang = NULL, ...) {
   call <- rlang::current_call()

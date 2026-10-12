@@ -2,35 +2,56 @@
 
 ## Purpose and audience
 
-R package that converts XLSForm (ODK / KoboToolbox) questionnaires into Word documents (paper versions for review and PAPI). Author and maintainer: Masud Rahman, regional statistician, UNHCR RBESA, Nairobi. Users are survey managers and information management staff who need a reviewable paper copy of a CAPI instrument.
+R package that converts XLSForm (ODK / KoboToolbox) questionnaires into paper versions: Word (.docx), and PDF converted from that Word document. Author and maintainer: Masud Rahman, regional statistician, UNHCR RBESA, Nairobi. Users are survey managers and information management staff who need a reviewable or printable copy of a CAPI instrument.
 
 ## Repo and branches
 
-- `main` (origin https://github.com/masud90/convertxlsform): v0.2.1, single-file implementation in `R/convertxlsform.R` (about 600 lines). It already writes .docx.
-- `rewrite` (current): modular rewrite, version 0.2.1.9000. Develop here. Do not commit or push unless asked.
-- Workflow: open a PR to `main` once the rewrite reaches parity with v0.2.1 (writes a .docx with at least the v0.2.1 features). Bump to 0.3.0 at merge.
-- Reference for porting rendering: `git show main:R/convertxlsform.R` (and `git show main:README.md`).
+- `main` (origin https://github.com/masud90/convertxlsform): v0.2.1, single-file implementation in `R/convertxlsform.R`. Its version of that file is the reference for old behaviour: `git show main:R/convertxlsform.R`, and `git show main:README.md`.
+- `rewrite` (current): the modular rewrite, version 0.2.1.9000 in DESCRIPTION. Develop here. Do not commit or push unless asked.
+- Plan: `dev/plan.md` (scope, public API, milestones M0 to M7). Design contract: `dev/model-spec.md`.
+- Release path: merge `rewrite` into `main` by PR, then tag 0.3.0. Bump DESCRIPTION at merge.
 - The v0.2.1 README claimed a CRAN release, but CRAN has no record of the package. Do not state or imply it is on CRAN.
 
 ## Architecture
 
-Pipeline by phase. Data flow: `survey` and `choices` tibbles -> structure tibble -> .docx.
+Pipeline (data flows left to right, each step returns a plain list or data frame):
 
-| Phase | File | Role |
-|---|---|---|
-| 1 | `R/convertxlsform.R` | Entry point `convertxlsform(xlsform_path, output_docx = NULL, lang = "en", include_relevants = TRUE, include_choice_name = TRUE, nested_serial_numbers = TRUE, page_size = "A4", margins_in = 1, media_root = ".", verbose = TRUE)`. Returns the output path invisibly. Currently writes a placeholder tempfile, no .docx yet. |
-| 2 | `R/read_validate.R` | Read sheets, validate required sheets and columns, normalize names, resolve language columns (`label::<lang>`, then plain `label`, then `label::en`), parse `base_type`, `type_arg`, `parameters`, `required`. |
-| 3 | `R/structure.R` | Group and repeat stack, depth, nested serial numbers. Errors on unmatched begin/end. |
-| n/a | `R/cli.R` | optparse command line interface `cli()`. |
-| 4+ | not built | docx rendering (officer), choice lists and `choice_filter` display, `relevant` (skip logic) display, media embedding, `settings` `form_title`, output path defaulting. |
+read -> validate -> language -> structure -> model -> render_docx -> pdf
+
+| File | Role |
+|---|---|
+| `R/convertxlsform.R` | Public entry point `convertxlsform(xlsform, output, format, lang, ...)`. Output paths, format rules, timing message. |
+| `R/cli.R` | Terminal entry point `cli()`. Parses `commandArgs()` by hand (no optparse). Returns 0 or 1 invisibly. |
+| `R/outline.R` | Public `xlsform_outline()`: flattens the model into one row per paper item. |
+| `R/language.R` | Public `xlsform_languages()`. Detects languages from `label::English (en)`, `label::en`, `label::English`. Resolves `lang` and per-cell fallback. |
+| `R/read.R` | Reads the survey, choices and settings sheets, normalizes headers, keeps Excel row numbers. |
+| `R/validate.R` | Required sheets and columns, unknown types, missing lists, unmatched begin and end, duplicate names. Errors name sheet, column and row. |
+| `R/structure.R` | Group and repeat depth, display numbering (1, 1.1, 1.2), `field-list` groups, repeat counts. |
+| `R/types.R` | Type registry: every XLSForm type mapped to a display kind. Parameter parsing. |
+| `R/expressions.R` | Plain-language text for `relevant`, `constraint`, `choice_filter` and `repeat_count`. Unreadable input is shown as written. |
+| `R/choices.R` | Choice lists, external CSV and XML lists, range values, layout (list, columns, code box). |
+| `R/media.R` | Image files under `media_root`: pixel size from file headers in base R, scaling, missing-file warnings. |
+| `R/options.R` | `.cxf_options()`: checks and completes every option, adds page geometry. |
+| `R/strings.R` | Built-in English and French connective strings, `strings` override, language code for a form. |
+| `R/model.R` | Builds the document model: one block per paper item (section, question, note, end of repeat), with answer specs, logic text, media records and script font detection. |
+| `R/render_docx.R` | Writes the .docx with officer and flextable: front matter, legend, headers and footers, question blocks. |
+| `R/answer_layouts.R` | One layout function per display kind (choice symbols, boxes, ranges, dates, geo, media, acknowledge). |
+| `R/pdf.R` | Exported `has_libreoffice()` and `docx_to_pdf()`. Finds LibreOffice; falls back to Word through doconv. |
+| `R/messages.R`, `R/utils.R` | `.cxf_inform`, `.cxf_warn`, `.cxf_abort` (cli-based); `%||%`; ASCII symbols as `\uXXXX`. |
+| `inst/templates/convertxlsform.docx` | Reference document with the styles (Title, Heading, Question, Hint, Logic, Choice). |
 
 ## Directory layout
 
 - `R/`, `man/`, `NAMESPACE`: package code and generated docs.
-- `tests/testthat/`: tests (helpers in `helper-fixtures.R`).
-- `inst/extdata/multilang/`: synthetic multilingual example form `multilang.xlsx`, external choice list `enumname.csv`, choice images (apple, samsung, vivo, xiaomi .png), question image `survey.jpg`.
-- `dev/`: manual run scripts such as `smoke.R` (Rbuildignored).
-- `outputs/`: gitignored scratch outputs (generated .docx).
+- `tests/testthat/`: tests. Helpers in `helper-fixtures.R` and `helper-model.R`.
+- `inst/extdata/multilang/`: synthetic multilingual example (`multilang.xlsx`, `enumname.csv`, choice images, `survey.jpg`).
+- `inst/extdata/all_types/`: synthetic example covering every question type and feature. Generated by `dev/make_examples.R`; see its README.
+- `inst/templates/`: reference .docx (generated by `dev/make_template.R`).
+- `vignettes/convertxlsform.Rmd`: "Getting started" vignette.
+- `_pkgdown.yml`: pkgdown site config (bootstrap 5, reference sections Convert, Inspect, PDF).
+- `.github/workflows/`: `R-CMD-check.yaml` (macOS, Windows, Ubuntu; LibreOffice on Ubuntu) and `pkgdown.yaml` (deploys to gh-pages on push to main).
+- `dev/`: plan, model contract, example and template builders, `smoke.R` (manual run script). Rbuildignored.
+- `outputs/`: gitignored scratch outputs (generated .docx and .pdf).
 - `data/raw/`, `data/processed/`: gitignored; see Data handling.
 - `.claude/settings.json`: enables the `survey-manager@masud-tools` plugin (has an `xlsform-questionnaire-designer` skill) and denies reads of the data folders.
 
@@ -46,56 +67,40 @@ Rscript -e 'pkgload::load_all()'             # load (check: cat(requireNamespace
 cd "$(mktemp -d)" && R CMD build "$OLDPWD" && R CMD check --no-manual convertxlsform_*.tar.gz
 ```
 
-CI: GitHub Actions R-CMD-check (check-standard).
+CI: GitHub Actions R-CMD-check (check-standard) on `main` and `rewrite`.
 
 ## Conventions
 
-- Style: magrittr `%>%`, internal helpers prefixed with `.`, errors with `rlang::abort()`, progress messages with `message()` gated by `verbose`.
+- Style: magrittr `%>%` (settled), internal helpers prefixed with `.`, documented with `@noRd` when not exported, errors with `rlang::abort()` or the `.cxf_abort()` wrapper, messages with `cli` gated by `verbose`.
 - Error messages name the sheet, column, and row number (as in Excel) so the author can fix the XLSForm.
-- Keep Imports minimal. Add a dependency only when base R or an existing Import cannot do the job.
+- Keep Imports minimal. Add a dependency only when base R or an existing Import cannot do the job. Imports must not need system software; LibreOffice is a runtime option, not a dependency.
 - Roxygen with markdown (`Roxygen: list(markdown = TRUE)`). Regenerate docs after changing comments.
 - Every new behavior gets a testthat test. Build fixtures in `tests/testthat/helper-fixtures.R` or keep them in `inst/extdata`.
 - Prefer editing existing files over creating parallel versions.
 - US English, but keep UN terms (for example "programme"). No em-dashes in code, docs, or messages.
-- R source is ASCII only. Use `\uXXXX` escapes for non-ASCII characters (as in v0.2.1), required for R CMD check.
+- R source is ASCII only. Use `\uXXXX` escapes for non-ASCII characters, required for R CMD check.
 - Never fabricate figures, citations, or sources in docs or examples.
 
 ## Data handling
 
-XLSForms are instruments, not microdata. Choice lists can still be personal data (for example enumerator or location lists). Those files go in `data/raw/`, are never committed, and Claude does not open them. Real XLSForms or anything sensitive also go in `data/raw/`. The synthetic form in `inst/extdata/multilang` is the only committed example. See `rules/data-handling.md` in the global config.
+XLSForms are instruments, not microdata. Choice lists can still be personal data (for example enumerator or location lists). Those files go in `data/raw/`, are never committed, and Claude does not open them. Real XLSForms or anything sensitive also go in `data/raw/`. The synthetic forms in `inst/extdata/multilang` and `inst/extdata/all_types` are the only committed examples. See `rules/data-handling.md` in the global config.
 
-## Decisions made (2026-10-12)
+## Decisions made
 
-- Rewrite on branch `rewrite`; keep `main` as v0.2.1.
-- Synthetic example form in `inst/extdata/multilang`.
-- Development version is 0.2.1.9000.
-
-## Open decisions
-
-- Pipe style: keep `%>%` or migrate to native `|>` (the owner prefers `|>` for new code). (Keep ``%>%).
-- Keep v0.2.1 argument names for backward compatibility (`selected_language`, `number_questions`) or use the new ones (`lang`, `nested_serial_numbers`). (Use the new ones).
-- Whether and when to submit to CRAN. (Will submit to CRAN).
+- Rewrite on branch `rewrite`; `main` stays at v0.2.1 until the PR.
+- Argument names are the new ones: `xlsform`, `output`, `lang`, `nested_serial_numbers`, `include_*`. No v0.2.1 compatibility layer.
+- Keep `%>%` (magrittr). No native `|>` migration in the package code.
+- PDF is the Word output converted by LibreOffice, with Word through doconv as the fallback. No second PDF renderer.
+- Synthetic example forms in `inst/extdata`.
+- CRAN submission is planned.
+- Development version is 0.2.1.9000 until the 0.3.0 release.
 
 ## Status and next steps
 
-Phases 1 to 3 and the CLI exist. No .docx is written yet.
+The rewrite is done through M4. Reading, validation, language, structure, model, outline, Word rendering, PDF conversion and the CLI all exist.
 
-Known bugs (found 2026-10-12 when the tests were added; the tests encode the intended behavior and fail until fixed):
+Next:
 
-- `R/read_validate.R` `pick_col()`: matches only `label::<lang>` exactly, so headers like `label::English (en)` (as in the example form) are never found.
-- `R/structure.R` `purrr::list_rbind(items)`: items are plain lists, not data frames, so `.build_structure()` always errors.
-- `R/structure.R` `begin_*` branch: groups never bump the parent counter, giving serials "0.1" instead of "1.1".
-- `R/read_validate.R` `.parse_parameters_vectorized()`: `"[,\\s]+"` without `perl = TRUE` splits on the letter "s".
-- `R/read_validate.R` `.parse_base_type()`: leading whitespace returns NA.
-- R CMD check: non-ASCII `…` and `–` in messages; `library(optparse)` in `cli()`; unused `tidyr` Import; undeclared globals (`type`, `required`, `parameters`, `n`).
-
-Roadmap:
-
-1. Phase 4: docx skeleton with officer (title from `settings` `form_title`, mandatory-question note, page size and margins).
-2. Question rendering: numbering, notes, hints, constraint messages, required asterisk.
-3. Answer layouts: select_one / select_multiple bullets, text boxes, range choices, `select_one_from_file`.
-4. Choice lists and `choice_filter` display, external CSV choice lists.
-5. `relevant` (skip logic) display, controlled by `include_relevants`.
-6. Media: question images (max 2 in) and choice images (max 1 in) from `media_root`, warn on missing files.
-7. Output path defaulting, then reach v0.2.1 parity, open PR to `main`, bump to 0.3.0.
-8. Settle open decisions above before the PR.
+1. M6: `R CMD check --as-cran` with 0 errors and 0 warnings; explain any NOTE.
+2. Fable final review of code and outputs.
+3. M7: commit, push `rewrite`, open the PR to `main`, tag v0.3.0 after merge. Only with explicit approval.

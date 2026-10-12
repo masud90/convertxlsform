@@ -286,26 +286,36 @@
   hsize <- ctx$size + c(h1 = 2, h2 = 1, h3 = 0)[[role]]
   fp <- .fp(ctx, size = hsize, bold = TRUE, color = .cxf_blue)
   doc <- .add_text(doc, ctx, .serial_label(b$serial, b$label), role, fp)
-  doc <- .add_hint(doc, ctx, b$hint)
-  doc <- .add_image(doc, ctx, b$image)
   lines <- .logic_lines(b, ctx)
+  has_img <- !is.null(b$image)
+  has_lines <- length(lines) > 0L
+  doc <- .add_hint(doc, ctx, b$hint, keep = has_img || has_lines)
+  doc <- .add_image(doc, ctx, b$image, keep = has_lines)
   .add_logic(doc, ctx, lines)
 }
 
-.add_hint <- function(doc, ctx, hint) {
+#' Add a hint paragraph; `keep` says whether something of the same block
+#' follows (the last paragraph of a block must not keep with next)
+#' @noRd
+.add_hint <- function(doc, ctx, hint, keep = TRUE) {
   if (is.null(hint) || is.na(hint) || !nzchar(hint)) {
     return(doc)
   }
   .add_text(doc, ctx, hint, "hint",
-            .fp(ctx, size = ctx$size - 1, italic = TRUE, color = .cxf_gray))
+            .fp(ctx, size = ctx$size - 1, italic = TRUE, color = .cxf_gray),
+            keep_with_next = keep)
 }
 
 .render_note <- function(doc, ctx, b) {
-  doc <- .add_text(doc, ctx, b$label, "note",
-                   .fp(ctx, italic = TRUE), keep_with_next = !is.null(b$image))
-  doc <- .add_hint(doc, ctx, b$hint)
-  doc <- .add_image(doc, ctx, b$image)
-  .add_logic(doc, ctx, .logic_lines(b, ctx))
+  lines <- .logic_lines(b, ctx)
+  has_hint <- !is.na(b$hint %||% NA_character_) && nzchar(b$hint)
+  has_img <- !is.null(b$image)
+  has_lines <- length(lines) > 0L
+  doc <- .add_text(doc, ctx, b$label, "note", .fp(ctx, italic = TRUE),
+                   keep_with_next = has_hint || has_img || has_lines)
+  doc <- .add_hint(doc, ctx, b$hint, keep = has_img || has_lines)
+  doc <- .add_image(doc, ctx, b$image, keep = has_lines)
+  .add_logic(doc, ctx, lines)
 }
 
 .render_question <- function(doc, ctx, b) {
@@ -326,12 +336,20 @@
       .fp(ctx, size = ctx$size - 2, color = .cxf_gray)
     )))
   }
-  doc <- .add_runs(doc, runs, .pp(ctx, "question"))
-  doc <- .add_hint(doc, ctx, b$hint)
-  doc <- .add_hint(doc, ctx, b$guidance_hint)
-  doc <- .add_image(doc, ctx, b$image, keep = TRUE)
   lines <- .logic_lines(b, ctx)
   els <- .answer_elements(b, ctx, has_logic = length(lines) > 0L)
+  # the last paragraph or table row of the question never keeps with next
+  more <- length(els) > 0L || length(lines) > 0L
+  has_hint <- !is.na(b$hint %||% NA_character_) && nzchar(b$hint)
+  has_gh <- !is.na(b$guidance_hint %||% NA_character_) &&
+    nzchar(b$guidance_hint)
+  has_img <- !is.null(b$image)
+  doc <- .add_runs(doc, runs, .pp(ctx, "question",
+                                  keep_with_next = has_hint || has_gh ||
+                                    has_img || more))
+  doc <- .add_hint(doc, ctx, b$hint, keep = has_gh || has_img || more)
+  doc <- .add_hint(doc, ctx, b$guidance_hint, keep = has_img || more)
+  doc <- .add_image(doc, ctx, b$image, keep = more)
   doc <- .add_elements(doc, ctx, els)
   .add_logic(doc, ctx, lines)
 }
@@ -401,7 +419,7 @@
   first <- substr(line, 1L, 1L)
   fp <- .fp(ctx, size = ctx$size - 1)
   if (first %in% sy) {
-    c(list(officer::ftext(first, .fp(ctx, size = ctx$size + 3))),
+    c(list(officer::ftext(first, .fp(ctx, size = .symbol_size(first, ctx$size)))),
       .text_runs(substr(line, 2L, nchar(line)), fp))
   } else {
     .text_runs(line, fp)

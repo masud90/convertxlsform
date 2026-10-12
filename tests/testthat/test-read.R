@@ -103,9 +103,9 @@ test_that("multiple settings and extra sheets do not disturb reading", {
   expect_equal(f$sheets, c("survey", "other"))
 })
 
-test_that("verbose reading prints one summary line", {
+test_that("verbose reading announces the file", {
   skip_if_no_writexl()
   p <- make_form(fdf(type = "text", name = "a", label = "A"))
-  expect_message(.read_xlsform(p, verbose = TRUE), "1 survey row")
+  expect_message(.read_xlsform(p, verbose = TRUE), "Reading")
   expect_no_message(.read_xlsform(p, verbose = FALSE))
 })

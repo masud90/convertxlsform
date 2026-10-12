@@ -101,17 +101,14 @@ convertxlsform <- function(xlsform, output = NULL, format = NULL,
 
     targets <- .cxf_targets(xlsform, output, format, opts$overwrite)
 
-    .cxf_inform(verbose, "Reading {.file {basename(xlsform)}}.")
     form <- .read_xlsform(xlsform, lang = opts$lang,
                           media_root = opts$media_root, verbose = verbose)
     model <- .build_model(form, opts)
     n_questions <- sum(vapply(model$blocks, function(b) {
       identical(b$block, "question")
     }, NA))
-    lang_used <- if (is.na(form$lang$suffix)) "plain columns" else form$lang$suffix
-    .cxf_inform(verbose, c(
-      i = "Language: {lang_used}. {n_questions} question{?s} to write."
-    ))
+    lang_used <- .language_label(form)
+    .cxf_inform(verbose, "Language: {lang_used}; {n_questions} question{?s}")
 
     docx_path <- targets[["docx"]]
     temp_docx <- is.null(docx_path)
@@ -135,6 +132,24 @@ convertxlsform <- function(xlsform, output = NULL, format = NULL,
     .cxf_inform(verbose, c(v = "Wrote {.file {written}} in {secs} s"))
     invisible(written)
   })
+}
+
+#' Language shown in the progress messages: "Name (code)"
+#' @noRd
+.language_label <- function(form) {
+  sfx <- form$lang$suffix
+  if (is.null(sfx) || is.na(sfx)) {
+    return("single language")
+  }
+  langs <- form$languages
+  i <- match(tolower(sfx), tolower(langs$suffix))
+  if (is.na(i)) {
+    return(sfx)
+  }
+  nm <- langs$name[i]
+  cd <- langs$code[i]
+  if (!is.na(nm) && !is.na(cd)) paste0(nm, " (", cd, ")") else
+    if (!is.na(nm)) nm else if (!is.na(cd)) cd else sfx
 }
 
 #' Check the input path and return it normalized

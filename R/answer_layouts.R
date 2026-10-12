@@ -154,7 +154,7 @@
   ft <- .new_table(nr, per * ncol)
   sym <- .cxf_symbols()[[switch(a$symbol, circle = "circle",
                                 square = "square", "rank")]]
-  fp_sym <- .fp(ctx, size = ctx$size + 3)
+  fp_sym <- .fp(ctx, size = .symbol_size(sym, ctx$size))
   fp_code <- .fp(ctx, size = ctx$size - 2, color = .cxf_gray)
   widths <- numeric(0)
   for (g in seq_len(ncol)) {
@@ -182,6 +182,8 @@
   ft <- .finish_table(ft, ctx, widths, keep_last = keep_last)
   for (g in seq_len(ncol)) {
     j0 <- (g - 1L) * per
+    ft <- flextable::valign(ft, j = j0 + 1L, valign = "center",
+                            part = "body")
     if (g == 1L) {
       ft <- flextable::padding(ft, j = 1L, padding.left = indent * 72,
                                part = "body")
@@ -217,23 +219,25 @@
   mx <- max(nchar(ch$name), 1L)
   code_w <- min(gw * 0.35, max(0.4, 0.065 * mx + 0.15))
   fsz <- ctx$size - 2
-  df <- as.data.frame(matrix("", nr, 2L * ncol), stringsAsFactors = FALSE)
-  names(df) <- paste0("c", seq_len(2L * ncol))
+  ft <- .new_table(nr, 2L * ncol)
   lab <- gsub("\n", " ", ch$label, fixed = TRUE)
+  # compose every cell with chunks so that the complex-script font
+  # (cs.family) is set on each run
+  fp_code <- .fp(ctx, size = fsz, bold = TRUE, color = .cxf_gray)
+  fp_lab <- .fp(ctx, size = fsz)
   for (k in seq_len(n)) {
     g <- (k - 1L) %/% nr + 1L
     r <- (k - 1L) %% nr + 1L
-    df[r, 2L * g - 1L] <- ch$name[k]
-    df[r, 2L * g] <- lab[k]
+    ft <- .set_cell(ft, r, 2L * g - 1L, list(flextable::as_chunk(
+      ch$name[k], props = fp_code
+    )))
+    ft <- .set_cell(ft, r, 2L * g, list(flextable::as_chunk(
+      lab[k], props = fp_lab
+    )))
   }
-  ft <- flextable::delete_part(flextable::flextable(df), part = "header")
   widths <- rep(c(code_w, gw - code_w), ncol)
   ft <- .finish_table(ft, ctx, widths, keep_last = keep_last,
                       pad = c(0.5, 0.5, 3, 3))
-  ft <- flextable::fontsize(ft, size = fsz, part = "body")
-  ft <- flextable::bold(ft, j = seq(1L, 2L * ncol, by = 2L), part = "body")
-  ft <- flextable::color(ft, j = seq(1L, 2L * ncol, by = 2L),
-                         color = .cxf_gray, part = "body")
   list(bx, ft)
 }
 
@@ -267,12 +271,14 @@
       format(v[k]), props = .fp(ctx, size = nsz)
     )))
     ft <- .set_cell(ft, 2L, k, list(flextable::as_chunk(
-      .cxf_symbols()$circle, props = .fp(ctx, size = ctx$size + 3)
+      .cxf_symbols()$circle,
+      props = .fp(ctx, size = .symbol_size(.cxf_symbols()$circle, ctx$size))
     )))
   }
   ft <- .finish_table(ft, ctx, c(rep(cw, n), tw - n * cw),
                       keep_last = keep_last, pad = c(0, 0, 0, 0))
   ft <- flextable::align(ft, j = seq_len(n), align = "center", part = "body")
+  ft <- flextable::valign(ft, valign = "center", part = "body")
   list(ft)
 }
 
@@ -324,7 +330,8 @@
 
 .layout_acknowledge <- function(a, ctx) {
   list(officer::fpar(
-    officer::ftext(.cxf_symbols()$tick, .fp(ctx, size = ctx$size + 3)),
+    officer::ftext(.cxf_symbols()$tick,
+                   .fp(ctx, size = .symbol_size(.cxf_symbols()$tick, ctx$size))),
     officer::ftext(paste0("  ", a$prompt), .fp(ctx)),
     fp_p = officer::fp_par_lite(word_style = "Normal", padding.left = 18)
   ))

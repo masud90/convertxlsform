@@ -20,6 +20,25 @@ NULL
   )
 }
 
+#' Maximum height in inches of a choice image
+#' @noRd
+.cxf_choice_image_max_in <- 0.6
+
+#' Maximum height in inches of a question image
+#' @noRd
+.cxf_question_image_max_in <- 2
+
+#' Font size for a symbol run
+#'
+#' The hollow circle glyph is drawn much smaller than the square at the same
+#' point size, so circles get a larger size.
+#' @param sym The symbol character.
+#' @param size Body font size in points.
+#' @noRd
+.symbol_size <- function(sym, size) {
+  if (identical(sym, .cxf_symbols()$circle)) size + 7 else size + 3
+}
+
 #' Test for blank values
 #'
 #' @param x A vector.

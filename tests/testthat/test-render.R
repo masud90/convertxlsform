@@ -174,3 +174,18 @@ test_that("small forms render with codes hidden and variable names shown", {
   expect_true("Radio" %in% txt)
   expect_false("radio" %in% txt)
 })
+
+test_that("every Bengali run, including code-table cells, uses the cs font", {
+  m <- example_model("multilang", "bn")
+  doc <- zip_part(render_to(m), "word/document.xml")
+  runs <- regmatches(doc, gregexpr("<w:r>.*?</w:r>", doc))[[1L]]
+  bn <- runs[grepl("[\u0980-\u09ff]", runs)]
+  expect_true(length(bn) > 0L)
+  expect_false(any(grepl("w:cs=\"Arial\"", bn, fixed = TRUE)))
+})
+
+test_that("circle symbols are drawn larger than square symbols", {
+  expect_equal(.symbol_size(.cxf_symbols()$square, 11), 14)
+  expect_equal(.symbol_size(.cxf_symbols()$circle, 11), 18)
+  expect_equal(.cxf_choice_image_max_in, 0.6)
+})

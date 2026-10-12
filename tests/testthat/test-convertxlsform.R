@@ -125,7 +125,7 @@ test_that("verbose = TRUE reports the steps and the timing", {
   msgs <- testthat::capture_messages(convertxlsform(src))
   msgs <- paste(msgs, collapse = "\n")
   expect_match(msgs, "Reading")
-  expect_match(msgs, "question")
+  expect_match(msgs, "Language: .*; [0-9]+ questions")
   expect_match(msgs, "Wrote .*myform\\.docx.* in [0-9.]+ s")
 })
 

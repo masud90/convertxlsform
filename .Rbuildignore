@@ -10,3 +10,7 @@
 ^outputs$
 ^\.github$
 ^[^/]+\.xlsx$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^vignettes/.*_cache$

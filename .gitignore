@@ -11,3 +11,4 @@ CLAUDE.local.md
 .claude/settings.local.json
 *.Rcheck/
 convertxlsform_*.tar.gz
+docs/

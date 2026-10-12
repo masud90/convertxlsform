@@ -1,22 +1,31 @@
 Package: convertxlsform
-type: Package
+Type: Package
 Title: Convert an XLSForm to a Word Document
-Version: 0.2.1
-Authors@R: 
+Version: 0.2.1.9000
+Authors@R:
     person("Masud", "Rahman", email = "write2masud+convertxlsform@gmail.com", role = c("aut", "cre"))
-Description: convertxlsform is an R package that converts XLSForm questionnaires—commonly used in Open Data Kit (ODK) surveys—into neatly formatted Microsoft Word documents. This package was tested using KoboToolbox, but should ideally work for most XLSForm based survey platforms. The package supports multiple languages (if language-specific columns are present) and applies several formatting options.
+Description: Converts XLSForm questionnaires, as used by Open Data Kit (ODK) and
+    KoboToolbox, into formatted Microsoft Word documents for paper-based
+    interviewing and review. Supports multilingual forms, nested question
+    numbering, skip logic display, and question and choice media.
 License: MIT + file LICENSE
+URL: https://github.com/masud90/convertxlsform
+BugReports: https://github.com/masud90/convertxlsform/issues
 Encoding: UTF-8
-LazyData: true
-Depends: R (>= 3.6)
+Depends: R (>= 4.1)
 Imports:
+    dplyr,
+    magrittr,
+    optparse,
+    purrr,
     readxl,
-    officer,
-    commonmark,
-    flextable,
-    magick
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-Suggests: 
-    testthat (>= 3.0.0)
+    rlang,
+    stringr,
+    tibble,
+    tidyr
+Suggests:
+    testthat (>= 3.0.0),
+    writexl
 Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.1.0

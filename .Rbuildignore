@@ -1,3 +1,12 @@
 ^convertxlsform\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^cran-comments\.md$
+^CLAUDE\.md$
+^CLAUDE\.local\.md$
+^\.claude$
+^dev$
+^data$
+^outputs$
+^\.github$
+^[^/]+\.xlsx$

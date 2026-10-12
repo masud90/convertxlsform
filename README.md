@@ -1,117 +1,98 @@
 # convertxlsform
 
-[![CRAN status](https://www.r-pkg.org/badges/version/convertxlsform)](https://CRAN.R-project.org/package=convertxlsform)
+Convert ODK-style XLSForm questionnaires into neatly formatted Microsoft Word (`.docx`) documents.
 
-Convert ODK‐style XLSForm questionnaires into neatly formatted Microsoft Word (`.docx`) documents.
+> **Status:** this is the `rewrite` branch (version 0.2.1.9000), a modular rewrite under development. It reads and validates XLSForms but **does not yet write `.docx` files**. To produce Word documents today, use `main` (v0.2.1). Rendering is being ported from v0.2.1 and the rewrite will be merged as 0.3.0.
 
 ---
 
 ## Installation
 
-From CRAN:
-```r
-install.packages("convertxlsform")
-```
-
-Or the latest development version on GitHub:
+The package is not on CRAN. Install from GitHub:
 
 ```r
-# install.packages("devtools")
-# (explicitly specify the 'main' branch)
-devtools::install_github("masud90/convertxlsform@main")
+# install.packages("remotes")
+
+# Stable v0.2.1 (writes .docx)
+remotes::install_github("masud90/convertxlsform")
+
+# Development branch (rewrite, no .docx output yet)
+remotes::install_github("masud90/convertxlsform@rewrite")
 ```
+
 ## Usage
 
 ```r
 library(convertxlsform)
-```
 
-### 1. Basic conversion (numbering on by default)
-
-```r
 convertxlsform("survey.xlsx")
-#> Document generated in 0.42 secs: /full/path/survey.docx
-```
 
-### 2. Specify language and output path
-
-```r
 convertxlsform(
-  xlsform_path      = "survey.xlsx",
-  selected_language = "en",
-  output_docx       = "reports/MyForm.docx"
+  xlsform_path = "survey.xlsx",
+  output_docx  = "reports/MyForm.docx",
+  lang         = "fr"
 )
 ```
 
-### 3. Turn numbering off
+A synthetic multilingual example form ships with the package:
 
 ```r
-convertxlsform("survey.xlsx", number_questions = FALSE)
+system.file("extdata", "multilang", "multilang.xlsx", package = "convertxlsform")
 ```
 
-## Function signature
+## Function signature (rewrite branch)
 
 ```r
 convertxlsform(
-  xlsform_path,        # (chr) Path to XLSForm .xlsx
-  selected_language = "en",  # (chr) language code (must match label::<lang> column)
-  output_docx       = NULL,  # (chr) destination .docx (defaults to basename(xlsx))
-  number_questions  = TRUE   # (bool) nested numbering of questions/groups
+  xlsform_path,                 # (chr) path to the XLSForm .xlsx
+  output_docx           = NULL, # (chr) destination .docx
+  lang                  = "en", # (chr) language code, matches label::<lang> columns
+  include_relevants     = TRUE, # (lgl) show skip logic (relevant)
+  include_choice_name   = TRUE, # (lgl) show choice names next to labels
+  nested_serial_numbers = TRUE, # (lgl) nested numbering of questions and groups
+  page_size             = "A4", # (chr) page size
+  margins_in            = 1,    # (num) page margins in inches
+  media_root            = ".",  # (chr) folder holding question and choice media
+  verbose               = TRUE  # (lgl) print progress messages
 )
 ```
 
-## XLSForm Requirements
+Returns the output path invisibly. Language columns resolve in this order: `label::<lang>`, plain `label`, then `label::en`.
+
+The v0.2.1 signature on `main` is `convertxlsform(xlsform_path, selected_language = "en", output_docx = NULL, number_questions = TRUE)`. Whether the rewrite keeps those argument names is an open decision.
+
+## XLSForm requirements
 
 - `survey` sheet with `type`, `name`, `label` columns (and optional `label::<lang>`, `hint::<lang>`, `instructions::<lang>`, `required`, `relevant`, `constraint_message`, `parameters`, `repeat_count`).
-- `choices` sheet with `list_name`, `name`, `label` column (and optional `label::<lang>`, `image`).
+- `choices` sheet with `list_name`, `name`, `label` columns (and optional `label::<lang>`, `image`).
 - `settings` sheet with `form_title` column (and optional `form_title::<lang>`).
-- If you have image files in the CAPI and wish for them to appear in the PAPI, upload the files of the same name to the root folder of your project (where the CAPI form is).
+- If you have image files in the CAPI form and want them to appear in the PAPI version, put files of the same name in the root folder of your project (where the CAPI form is).
 
+## Output formatting (v0.2.1 behavior; being ported)
 
-## Output formatting
-
-- Title: Arial 16 pt, bold, centered.
-- Mandatory note: “Mandatory questions are marked with an asterisk (*) symbol.”
-- Body text: Arial 11 pt, left-aligned.
-- Question numbering: Nested (“1.”, “1.1.” in groups, etc.), default TRUE.
-- Notes: Unnumbered, prefixed Note:.
+- Title: Arial 16 pt, bold, centered.
+- Mandatory note: "Mandatory questions are marked with an asterisk (*) symbol."
+- Body text: Arial 11 pt, left-aligned.
+- Question numbering: nested ("1.", "1.1." in groups, etc.), on by default.
+- Notes: unnumbered, prefixed "Note:".
 - Select questions:
-  - select_one, rank, range: hollow‐circle bullets (◯).
-  - select_multiple: hollow‐square bullets (▢).
-  - Text/range boxes: bordered tables spanning full width with only blank lines.
+  - select_one, rank, range: hollow-circle bullets.
+  - select_multiple: hollow-square bullets.
+  - Text and range boxes: bordered tables spanning the full width with only blank lines.
 - Images:
-  - Question images: up to 2″ tall.
-  - Choice images: up to 1″ tall, with warnings if missing.
-
- ## Example
-
-```r
- # Multi‐language support:
-convertxlsform("survey_multilang.xlsx", selected_language = "fr")
-
-# Custom output location and no numbering:
-convertxlsform(
-  xlsform_path     = "survey.xlsx",
-  output_docx      = "out/MySurvey.docx",
-  number_questions = FALSE
-)
-```
+  - Question images: up to 2 in tall.
+  - Choice images: up to 1 in tall, with warnings if missing.
 
 ## Dependencies
 
-- `readxl` (read .xlsx)
-- `officer` (generate Word docs)
-- `commonmark` (Markdown parsing – unused by default)
-- `flextable` (create boxed answer fields)
-- `magick` (image sizing)
-- `stats` (utility setNames)
+Imports (from `DESCRIPTION`): `dplyr`, `magrittr`, `optparse`, `purrr`, `readxl`, `rlang`, `stringr`, `tibble`, `tidyr`. Suggests: `testthat`, `writexl`.
 
+The rendering packages used by v0.2.1 (`officer`, `flextable`, `magick`) are not yet imported on this branch.
 
 ## License
 
-This project is licensed under the MIT license.
-See [LICENSE](license.md) for full text.
+This project is licensed under the MIT license. See [LICENSE.md](LICENSE.md) for the full text.
 
 ## Contribution
 
-Clone the repo and send a pull request.
+Clone the repo and send a pull request. Develop on the `rewrite` branch.

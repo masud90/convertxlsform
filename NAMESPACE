@@ -3,5 +3,6 @@
 export(docx_to_pdf)
 export(has_libreoffice)
 export(xlsform_languages)
+export(xlsform_outline)
 importFrom(magrittr,"%>%")
 importFrom(rlang,"%||%")

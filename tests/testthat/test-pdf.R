@@ -116,3 +116,19 @@ test_that("engine = 'word' explains the missing doconv package", {
     "doconv"
   )
 })
+
+test_that(".soffice_ld_path puts the LibreOffice program folder first", {
+  d <- withr::local_tempdir()
+  prog <- file.path(d, "program")
+  dir.create(prog)
+  file.create(file.path(prog, "soffice.bin"))
+  bin <- file.path(prog, "soffice")
+  file.create(bin)
+  real_prog <- dirname(normalizePath(bin, mustWork = FALSE))
+  expect_equal(.soffice_ld_path(bin, NA), real_prog)
+  expect_equal(.soffice_ld_path(bin, ""), real_prog)
+  expect_equal(
+    .soffice_ld_path(bin, "/opt/R/lib"),
+    paste(real_prog, "/opt/R/lib", sep = ":")
+  )
+})

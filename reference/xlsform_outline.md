@@ -51,26 +51,24 @@ the humanized expression) and `layout` (for select and rank questions:
 ## Examples
 
 ``` r
-path <- system.file("extdata", "multilang", "multilang.xlsx",
+path <- system.file("extdata", "minimal", "minimal.xlsx",
                     package = "convertxlsform")
 out <- xlsform_outline(path)
-head(out[, c("serial", "block", "kind", "name", "relevant_text")], 12)
-#>    serial    block         kind             name relevant_text
-#> 1       1  section  begin_group           groupA          <NA>
-#> 2     1.1 question         date       surveydate          <NA>
-#> 3     1.2 question   select_one         enumname          <NA>
-#> 4    <NA>     note         note     note_consent          <NA>
-#> 5     1.3 question  acknowledge          consent          <NA>
-#> 6       2  section  begin_group           groupB          <NA>
-#> 7     2.1 question       number           hhsize          <NA>
-#> 8     2.2  section begin_repeat         hhroster          <NA>
-#> 9   2.2.1 question         text         mem_name          <NA>
-#> 10  2.2.2 question   select_one          mem_sex          <NA>
-#> 11  2.2.3 question         date    mem_birthyear          <NA>
-#> 12  2.2.4 question   select_one mem_relationship          <NA>
+out[, c("serial", "block", "kind", "name", "relevant_text")]
+#>   serial    block            kind            name relevant_text
+#> 1   <NA>     note            note           intro          <NA>
+#> 2      1 question            text respondent_name          <NA>
+#> 3      2 question          number             age          <NA>
+#> 4      3 question      select_one    water_source          <NA>
+#> 5      4 question select_multiple       water_use          <NA>
+#> 6      5  section     begin_group       follow_up   Q3 is "Tap"
+#> 7    5.1 question            text    tap_location      Q2 >= 18
 
-# Another language, with flat question numbers
-out <- xlsform_outline(path, lang = "bn", nested_serial_numbers = FALSE)
+# \donttest{
+# A multilingual form: another language, with flat question numbers
+path_ml <- system.file("extdata", "multilang", "multilang.xlsx",
+                       package = "convertxlsform")
+out <- xlsform_outline(path_ml, lang = "bn", nested_serial_numbers = FALSE)
 head(out[, c("serial", "name")], 5)
 #>   serial         name
 #> 1   <NA>       groupA
@@ -78,4 +76,5 @@ head(out[, c("serial", "name")], 5)
 #> 3      2     enumname
 #> 4   <NA> note_consent
 #> 5      3      consent
+# }
 ```

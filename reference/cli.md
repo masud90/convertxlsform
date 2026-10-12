@@ -100,7 +100,7 @@ suppresses them (the same as `verbose = FALSE` in
 ## Examples
 
 ``` r
-path <- system.file("extdata", "multilang", "multilang.xlsx",
+path <- system.file("extdata", "minimal", "minimal.xlsx",
                     package = "convertxlsform")
 cli(c(path, "-o", tempdir(), "--overwrite", "--quiet"))
 ```

@@ -161,3 +161,20 @@ test_that("xlsform_languages lists languages and the default", {
   expect_type(single$default, "logical")
   expect_equal(xlsform_languages(read_quiet(p)), l)
 })
+
+test_that("name-only headers get an ISO code so lang = 'en' matches", {
+  skip_if_no_writexl()
+  sv <- ml(`label::English` = c("A", "B"), `label::French` = c("AF", "BF"),
+           `label::Bengali` = c("AB", "BB"))
+  ch <- cbind(ch2, `label::English` = c("Y", "N"),
+              `label::French` = c("O", "N"), `label::Bengali` = c("H", "N"))
+  p <- make_form(sv, ch)
+  f <- read_quiet(p, lang = "fr")
+  expect_equal(f$languages$code, c("en", "fr", "bn"))
+  expect_equal(f$lang$suffix, "French")
+  expect_equal(read_quiet(p, lang = "en")$lang$suffix, "English")
+  expect_equal(read_quiet(p, lang = "bn")$survey$label, c("AB", "BB"))
+  # unknown names stay without a code
+  d <- .detect_languages(c("label::Klingon", "label::en"))
+  expect_equal(d$code, c(NA, "en"))
+})

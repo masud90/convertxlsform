@@ -183,3 +183,24 @@ test_that("model building warns once for all missing media", {
   expect_false(q1$answer$choices$image[[1L]]$found)
   expect_null(block_named(model, "q3")$image)
 })
+
+test_that("a missing choice file joins the single missing-files warning", {
+  skip_if_no_writexl()
+  survey <- fdf(type = c("select_one_from_file gone.csv", "text"),
+                name = c("q1", "q2"), label = c("One", "Two"),
+                image = c(NA, "gone.png"))
+  form <- read_quiet(make_form(survey, fdf(list_name = "x", name = "a",
+                                          label = "A")))
+  warnings <- list()
+  withCallingHandlers(
+    .build_model(form, test_opts()),
+    warning = function(w) {
+      warnings[[length(warnings) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_length(warnings, 1L)
+  expect_match(warnings[[1L]], "gone.csv", fixed = TRUE)
+  expect_match(warnings[[1L]], "gone.png", fixed = TRUE)
+  expect_match(warnings[[1L]], "2 media files not found")
+})

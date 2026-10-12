@@ -146,6 +146,17 @@ test_that("select questions report their source", {
 
   mf <- .select_choices(f, idx("missing_items"))
   expect_equal(mf$source, "missing_list.csv")
+  expect_true(mf$source_found)
+  expect_equal(nrow(mf$choices), 3L)
+})
+
+test_that("a choice file that does not exist is reported as not found", {
+  skip_if_no_writexl()
+  f <- read_quiet(make_form(
+    fdf(type = "select_one_from_file nope.csv", name = "q", label = "Q")
+  ))
+  mf <- .select_choices(f, 1L)
+  expect_equal(mf$source, "nope.csv")
   expect_false(mf$source_found)
   expect_equal(nrow(mf$choices), 0L)
 })

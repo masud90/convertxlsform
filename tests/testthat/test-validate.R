@@ -99,3 +99,14 @@ test_that("braces in user text do not break messages", {
   ch <- fdf(list_name = "ok", name = "1", label = "One")
   expect_error(read_quiet(make_form(sv, ch)), "{bad}", fixed = TRUE)
 })
+
+test_that("the missing-list error agrees in number", {
+  skip_if_no_writexl()
+  one <- make_form(fdf(type = "select_one nope", name = "a", label = "A"),
+                   fdf(list_name = "l", name = "1", label = "x"))
+  expect_error(read_quiet(one), "1 select question uses a choice list")
+  two <- make_form(fdf(type = c("select_one nope", "select_one nah"),
+                       name = c("a", "b"), label = c("A", "B")),
+                   fdf(list_name = "l", name = "1", label = "x"))
+  expect_error(read_quiet(two), "2 select questions use a choice list")
+})

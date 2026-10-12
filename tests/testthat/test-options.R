@@ -74,14 +74,14 @@ test_that("logical flags must be single TRUE or FALSE", {
   }
 })
 
-test_that("margins_in must be a positive number below 3", {
+test_that("margins_in must be a positive number of at most 2", {
   expect_error(.cxf_options(margins_in = 0), "margins_in")
-  expect_error(.cxf_options(margins_in = 3), "margins_in")
+  expect_error(.cxf_options(margins_in = 2.01), "margins_in")
   expect_error(.cxf_options(margins_in = -1), "margins_in")
   expect_error(.cxf_options(margins_in = "1"), "margins_in")
   expect_error(.cxf_options(margins_in = NA), "margins_in")
   expect_error(.cxf_options(margins_in = Inf), "margins_in")
-  expect_equal(.cxf_options(margins_in = 2.9)$margins_in, 2.9)
+  expect_equal(.cxf_options(margins_in = 2)$margins_in, 2)
 })
 
 test_that("font_size must be between 6 and 20", {

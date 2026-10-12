@@ -36,8 +36,8 @@ the media files by hand. Change the script and regenerate from the project root:
 - Media questions: `image`, `audio`, `video`, `file`.
 - Cascading selects: `district`, then `village` filtered by `district = ${district}`.
 - `select_one_from_file villages.csv`, and `select_multiple_from_file
-  missing_list.csv`. The second file is intentionally absent, to test the
-  missing-file path.
+  missing_list.csv`. Both CSV files ship with the example (the second
+  keeps its historical name).
 - A 30-item list (`crop`).
 - A `calculate` (`${hh_size} * 2`), a `multiline` text question, and a closing note.
 - Some French hints are left blank on purpose, to test fallback to English.

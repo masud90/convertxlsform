@@ -33,10 +33,11 @@
 #'   [cli::cli_abort()].
 #' @param call The call reported in the error. Defaults to the function that
 #'   called this helper.
+#' @param class Optional extra condition class.
 #' @return Does not return.
 #' @noRd
-.cxf_abort <- function(..., call = rlang::caller_env()) {
-  cli::cli_abort(c(...), call = call, .envir = parent.frame())
+.cxf_abort <- function(..., call = rlang::caller_env(), class = NULL) {
+  cli::cli_abort(c(...), call = call, class = class, .envir = parent.frame())
 }
 
 #' Report errors against the user-facing call

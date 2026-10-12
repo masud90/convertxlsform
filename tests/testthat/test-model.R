@@ -282,14 +282,14 @@ test_that("answer specs for every kind (all_types example)", {
   expect_equal(a("asset_tag")$lines, 1L)
   expect_equal(a("ack_understood")$prompt, "OK")
 
-  # choices from a file, and from a file that does not exist
+  # choices from a file (a missing file is covered in test-media.R)
   vf <- a("village_file")
   expect_equal(vf$source, "villages.csv")
   expect_true(vf$source_found)
   expect_equal(nrow(vf$choices), 5L)
   mi <- a("missing_items")
-  expect_false(mi$source_found)
-  expect_equal(nrow(mi$choices), 0L)
+  expect_true(mi$source_found)
+  expect_equal(nrow(mi$choices), 3L)
 
   # choice filter text and media records
   expect_equal(block_named(m, "village")$choice_filter_text,

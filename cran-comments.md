@@ -9,7 +9,7 @@
 
 ## R CMD check results
 
-Local run (with and without `--no-manual`): 0 errors | 0 warnings | 3 notes
+Local run (`--no-manual`, final run): 0 errors | 0 warnings | 2 notes
 
 * CRAN incoming feasibility: "New submission". The development version
   number 0.2.1.9000 also triggers "Version contains large components"; the
@@ -24,8 +24,8 @@ Local run (with and without `--no-manual`): 0 errors | 0 warnings | 3 notes
 
 * This is a new release. The package has not been on CRAN before.
 * LibreOffice is an optional system requirement, used only to produce PDF. All
-  examples and tests that need it are guarded by `has_libreoffice()` and tests
-  skip on CRAN. Microsoft Word through the suggested package 'doconv' is a
+  examples that need it run only in interactive sessions and are guarded by
+  `has_libreoffice()`; tests that need it skip on CRAN. Microsoft Word through the suggested package 'doconv' is a
   fallback.
-* Tests take about 38 s with `NOT_CRAN=false` locally.
+* Tests take about 47 s with `NOT_CRAN=false` locally.
 * Examples and tests write only to `tempdir()`.

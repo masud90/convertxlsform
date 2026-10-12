@@ -77,7 +77,38 @@
   keep <- sp$field %in% .lang_fields() & !is.na(sp$suffix) & nzchar(sp$suffix)
   suf <- sp$suffix[keep]
   suf <- suf[!duplicated(tolower(suf))]
-  .parse_lang_suffix(suf)
+  out <- .parse_lang_suffix(suf)
+  need <- is.na(out$code) & !is.na(out$name)
+  out$code[need] <- unname(.lang_name_codes()[.fold_name(out$name[need])])
+  out
+}
+
+#' Lower-case a language name and drop accents that matter here
+#' @noRd
+.fold_name <- function(x) {
+  x <- tolower(trimws(x))
+  x <- gsub("\u00e7", "c", x, fixed = TRUE)
+  x <- gsub("\u00e9", "e", x, fixed = TRUE)
+  x <- gsub("\u00f1", "n", x, fixed = TRUE)
+  x <- gsub("\u00ea", "e", x, fixed = TRUE)
+  x
+}
+
+#' ISO 639-1 codes for common language names
+#'
+#' Used only to fill a missing code for headers such as `label::French`.
+#' Languages without an ISO 639-1 code (for example Dinka, Nuer, Dari) are left
+#' out; Dari is listed under its ISO 639-3 code `prs`.
+#' @noRd
+.lang_name_codes <- function() {
+  c(english = "en", french = "fr", francais = "fr", spanish = "es",
+    espanol = "es", portuguese = "pt", arabic = "ar", swahili = "sw",
+    kiswahili = "sw", somali = "so", amharic = "am", tigrinya = "ti",
+    oromo = "om", oromiffa = "om", bengali = "bn", bangla = "bn",
+    burmese = "my", hindi = "hi", urdu = "ur", pashto = "ps", dari = "prs",
+    persian = "fa", farsi = "fa", ukrainian = "uk", russian = "ru",
+    turkish = "tr", kinyarwanda = "rw", kirundi = "rn", lingala = "ln",
+    hausa = "ha")
 }
 
 #' Match a requested language against the detected ones

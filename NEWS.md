@@ -12,7 +12,7 @@ A complete rewrite. The package writes Word and PDF paper versions of an XLSForm
 - Language columns are read from `label::English (en)`, `label::en` and `label::English`. The `lang` argument accepts a code, a name or the full suffix. A blank translated cell falls back to the plain column, then to the default language. Headers with a common language name only, such as `label::French`, also match their ISO 639-1 code (`lang = "fr"`).
 - Skip logic, constraints and choice filters are written in plain language. Expressions that cannot be read are shown as written.
 - Connective phrases such as "Ask if" come from built-in English and French tables. The `strings` option replaces any of them for another language.
-- Paper layouts for each question type: single and multiple choice, rank, long lists as code boxes, write-in boxes, numeric, date and time formats, geographic and media questions, and acknowledgements.
+- Paper layouts for each question type: single and multiple choice, rank, long lists as code boxes, write-in boxes, numeric, date and time formats, geographic and media questions, and acknowledgments.
 - Groups and repeat groups, with nested numbering (`nested_serial_numbers`) and blank copies of repeats (`repeat_copies`).
 - Question images are scaled to at most 2 inches tall, and choice images to at most 0.6 inches. A missing media or choice file triggers one combined warning, and a missing image prints a placeholder.
 - Complex-script fonts are chosen from the text for Bengali, Arabic, Devanagari and Ethiopic. The `font_family_cs` option overrides the choice.

@@ -17,7 +17,8 @@ Local checks verified on 2026-10-12, on macOS 27.0.1 (aarch64), R 4.6.0:
 - [x] Win-builder R-devel (first run): 2 NOTEs. (1) CRAN incoming: new submission plus a possibly misspelled word, 'docx' in DESCRIPTION; fixed by quoting it as `'.docx'`. (2) Examples with elapsed time over 10 s (`cli` 12.90 s, `convertxlsform` 11.19 s); fixed by pointing those examples at a small form (`inst/extdata/minimal/minimal.xlsx`) and moving the larger ones into `\donttest{}`. The tests also took 308 s there; the heavy rendering tests are now `skip_on_cran()`. Re-run on 2026-10-12 after the fixes: 1 NOTE (new submission). Examples OK, tests 80 s.
 - [x] Win-builder R-release (after the fixes, 2026-10-12): 1 NOTE (new submission). Examples OK, tests 81 s.
 - [x] GitHub Actions on `main` (f81b5b6): macOS, Windows, Ubuntu devel, release and oldrel-1 all passed.
-- [ ] Not yet run: mac builder, R-hub. No results exist for these.
+- [x] R-hub (2026-10-13, commit 400d3e3): Windows, macOS arm64 and Linux on R-devel, all Status: OK.
+- [x] Mac builder: not run (service unavailable on 2026-10-12); macOS covered by the local check, GitHub Actions and R-hub.
 
 The tarball from that local check was built in a temporary folder and is gone. Rebuild it from the current `main` before every check or submission (see "How to submit").
 
@@ -33,13 +34,13 @@ The tarball from that local check was built in a temporary folder and is gone. R
   devtools::check_win_release()
   ```
   or upload the tarball at <https://win-builder.r-project.org/upload.aspx> for R-devel and R-release. Results arrive by email to the maintainer address.
-- [ ] Mac builder: upload the tarball at <https://mac.r-project.org/macbuilder/submit.html>.
-- [ ] R-hub v2: `rhub::rhub_doctor()`, then
+- [x] Mac builder (skipped, service down): upload the tarball at <https://mac.r-project.org/macbuilder/submit.html>.
+- [x] R-hub v2: `rhub::rhub_doctor()`, then
   ```r
   rhub::rhub_check(platforms = c("linux", "macos-arm64", "windows", "ubuntu-next", "ubuntu-release"))
   ```
   Run `rhub::rhub_platforms()` first and use platform names that it lists.
-- [ ] Copy the results into `cran-comments.md`, replacing each `[to fill ...]` placeholder with the actual outcome. Do not leave placeholders in the submitted file.
+- [x] Copy the results into `cran-comments.md`, replacing each `[to fill ...]` placeholder with the actual outcome. Do not leave placeholders in the submitted file.
 - [ ] Rebuild the tarball (below) if any file changed after the last build.
 
 ## How to submit

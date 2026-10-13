@@ -29,8 +29,10 @@ R CMD check --as-cran convertxlsform_0.3.0.tar.gz
   The HTML Tidy on the local macOS machine is the 2006 system build. It is not
   a problem with the package.
 
-Results from other platforms: [to fill after win-builder, mac builder, R-hub and
-GitHub Actions]
+Results from other platforms: win-builder (R-devel and R-release) gave only the
+"New submission" NOTE; R-hub (R-devel on Windows, macOS arm64 and Linux) and
+GitHub Actions (macOS, Windows, Ubuntu devel, release and oldrel-1) passed
+with no NOTEs. Details below.
 
 ## Test environments
 
@@ -50,9 +52,13 @@ Other platforms:
   after the fixes: 1 NOTE (new submission). Examples OK; tests 80 s.
 * win-builder, R-release (R 4.6.1, Windows Server 2022, x86_64), 2026-10-12,
   after the fixes above: 1 NOTE (new submission). Examples OK; tests 81 s.
-* R-hub v2 (`rhub::rhub_check()`), platforms: [to fill after R-hub]
-* mac builder (<https://mac.r-project.org/macbuilder/submit.html>): [to fill
-  after mac builder]
+* R-hub v2 (`rhub::rhub_check()`), commit 400d3e3 on `main`, 2026-10-13:
+  * Windows Server 2022, R-devel (r90666): Status: OK
+  * macOS 26.6 (aarch64), R-devel (r90666): Status: OK
+  * Ubuntu 24.04, R-devel (r90659): Status: OK
+* mac builder: not run. The service returned an error page on 2026-10-12.
+  macOS is covered by the local check (aarch64, R 4.6.0), GitHub Actions
+  (macos-latest, R release) and R-hub (macos-arm64, R-devel).
 
 ## Notes for the reviewer
 

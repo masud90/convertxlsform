@@ -13,6 +13,8 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Convert an XLSForm to a Word or PDF Document">
 <meta name="description" content="Converts XLSForm questionnaires, as used by Open Data Kit (ODK) and KoboToolbox, into formatted paper versions for interviewing and review. See &lt;https://xlsform.org&gt; for the XLSForm standard. Output is a Word document (.docx) or, optionally, a PDF produced from that Word document with LibreOffice. Supports multilingual forms, nested question numbering, skip logic display, and question and choice media.">
 <meta property="og:description" content="Converts XLSForm questionnaires, as used by Open Data Kit (ODK) and KoboToolbox, into formatted paper versions for interviewing and review. See &lt;https://xlsform.org&gt; for the XLSForm standard. Output is a Word document (.docx) or, optionally, a PDF produced from that Word document with LibreOffice. Supports multilingual forms, nested question numbering, skip logic display, and question and choice media.">
+<meta property="og:image" content="https://masud90.github.io/convertxlsform/reference/figures/card.png">
+<meta property="og:image:alt" content="convertxlsform: turn XLSForm questionnaires into paper versions, as Word or PDF.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -48,8 +50,11 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="convertxlsform">convertxlsform<a class="anchor" aria-label="anchor" href="#convertxlsform"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="convertxlsform-">convertxlsform 
+<a class="anchor" aria-label="anchor" href="#convertxlsform-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <p>convertxlsform turns an XLSForm, the questionnaire format used by Open Data Kit (ODK) and KoboToolbox, into a formatted paper version. Survey managers can use the output to review a questionnaire with colleagues, print it for interviewers, or check skip logic and constraints in one readable document. It writes a Word file (<code>.docx</code>) by default, and a PDF when LibreOffice or Microsoft Word is available. Forms can be multilingual, and the paper version follows the language you choose.</p>

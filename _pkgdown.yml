@@ -2,6 +2,10 @@ url: https://masud90.github.io/convertxlsform/
 
 template:
   bootstrap: 5
+  opengraph:
+    image:
+      src: man/figures/card.png
+      alt: "convertxlsform: turn XLSForm questionnaires into paper versions, as Word or PDF."
 
 reference:
   - title: Convert

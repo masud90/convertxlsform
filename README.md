@@ -1,4 +1,4 @@
-# convertxlsform
+# convertxlsform <a href="https://masud90.github.io/convertxlsform/"><img src="man/figures/logo.png" align="right" height="139" alt="convertxlsform website" /></a>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/masud90/convertxlsform/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/masud90/convertxlsform/actions/workflows/R-CMD-check.yaml)

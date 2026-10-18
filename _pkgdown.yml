@@ -6,8 +6,6 @@ template:
     image:
       src: man/figures/card.png
       alt: "convertxlsform: turn XLSForm questionnaires into paper versions, as Word or PDF."
-    twitter:
-      card: summary_large_image
 
 reference:
   - title: Convert

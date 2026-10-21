@@ -22,13 +22,22 @@ vignette.
 
 ## Installation
 
+Install the released version from CRAN:
+
+``` r
+
+install.packages("convertxlsform")
+```
+
+Or install the development version from GitHub:
+
 ``` r
 
 install.packages("remotes")
 remotes::install_github("masud90/convertxlsform")
 ```
 
-To install a specific release, add its tag:
+To install a specific release from GitHub, add its tag:
 
 ``` r
 

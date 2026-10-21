@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Convert an XLSForm to a Word or PDF Document • convertxlsform</title>
+<title>Convert an XLSForm to a Microsoft Word or PDF Document • convertxlsform</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Convert an XLSForm to a Word or PDF Document">
-<meta name="description" content="Converts XLSForm questionnaires, as used by Open Data Kit (ODK) and KoboToolbox, into formatted paper versions for interviewing and review. See &lt;https://xlsform.org&gt; for the XLSForm standard. Output is a Word document (.docx) or, optionally, a PDF produced from that Word document with LibreOffice. Supports multilingual forms, nested question numbering, skip logic display, and question and choice media.">
-<meta property="og:description" content="Converts XLSForm questionnaires, as used by Open Data Kit (ODK) and KoboToolbox, into formatted paper versions for interviewing and review. See &lt;https://xlsform.org&gt; for the XLSForm standard. Output is a Word document (.docx) or, optionally, a PDF produced from that Word document with LibreOffice. Supports multilingual forms, nested question numbering, skip logic display, and question and choice media.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Convert an XLSForm to a Microsoft Word or PDF Document">
+<meta name="description" content="Converts XLSForm questionnaires, as used by Open Data Kit (ODK) and KoboToolbox, into formatted paper versions for interviewing and review. See &lt;https://xlsform.org&gt; for the XLSForm standard. Output is a Microsoft Word document (.docx) or, optionally, a PDF produced from that document with LibreOffice. Supports multilingual forms, nested question numbering, skip logic display, and question and choice media.">
+<meta property="og:description" content="Converts XLSForm questionnaires, as used by Open Data Kit (ODK) and KoboToolbox, into formatted paper versions for interviewing and review. See &lt;https://xlsform.org&gt; for the XLSForm standard. Output is a Microsoft Word document (.docx) or, optionally, a PDF produced from that document with LibreOffice. Supports multilingual forms, nested question numbering, skip logic display, and question and choice media.">
 <meta property="og:image" content="https://masud90.github.io/convertxlsform/reference/figures/card.png">
 <meta property="og:image:alt" content="convertxlsform: turn XLSForm questionnaires into paper versions, as Word or PDF.">
 </head>
@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">convertxlsform</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,11 +71,15 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<p>Install the released version from CRAN:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"convertxlsform"</span><span class="op">)</span></span></code></pre></div>
+<p>Or install the development version from GitHub:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"masud90/convertxlsform"</span><span class="op">)</span></span></code></pre></div>
-<p>To install a specific release, add its tag:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<p>To install a specific release from GitHub, add its tag:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"masud90/convertxlsform@v0.3.0"</span><span class="op">)</span></span></code></pre></div>
 <p>Word output needs only R. PDF output needs one of the following:</p>
 <ul>
@@ -96,7 +100,7 @@
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <p><strong>In R</strong> (RStudio or any R session):</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/masud90/convertxlsform" class="external-link">convertxlsform</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"all_types"</span>, <span class="st">"all_types.xlsx"</span>,</span>
@@ -105,18 +109,18 @@
 <span><span class="fu"><a href="reference/convertxlsform.html">convertxlsform</a></span><span class="op">(</span><span class="va">path</span>, output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>                  <span class="co"># Word file</span></span>
 <span><span class="fu"><a href="reference/convertxlsform.html">convertxlsform</a></span><span class="op">(</span><span class="va">path</span>, output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, format <span class="op">=</span> <span class="st">"pdf"</span><span class="op">)</span>  <span class="co"># PDF file</span></span></code></pre></div>
 <p><strong>From a terminal</strong>, run the command with <code>Rscript</code>. Put the form path and the options after the quoted expression:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'convertxlsform::cli()'</span> form.xlsx <span class="at">--format</span> pdf <span class="at">--lang</span> bn</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'convertxlsform::cli()'</span> form.xlsx <span class="at">--format</span> pdf <span class="at">--lang</span> bn</span></code></pre></div>
 <p>The package ships the example form above, which covers the question types and features the package renders. Replace <code>path</code> with the path to your own form, for example <code>convertxlsform("survey.xlsx")</code>. The output is written next to the form, with the same base name and a <code>.docx</code> or <code>.pdf</code> extension. The function returns the path of the file it wrote, invisibly.</p>
 <details><summary>
 More terminal examples, Windows quoting and exit status
 </summary><p>The bundled example works from the terminal too. The installed package folder is usually read-only, so give an output folder:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="va">EXAMPLE</span><span class="op">=</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("extdata", "all_types", "all_types.xlsx", package = "convertxlsform"))'</span><span class="va">)</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'convertxlsform::cli()'</span> <span class="st">"</span><span class="va">$EXAMPLE</span><span class="st">"</span> <span class="at">--format</span> pdf <span class="at">--output</span> .</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="va">EXAMPLE</span><span class="op">=</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("extdata", "all_types", "all_types.xlsx", package = "convertxlsform"))'</span><span class="va">)</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'convertxlsform::cli()'</span> <span class="st">"</span><span class="va">$EXAMPLE</span><span class="st">"</span> <span class="at">--format</span> pdf <span class="at">--output</span> .</span></code></pre></div>
 <p>The <code>Rscript -e '...'</code> examples use single quotes, which work in macOS and Linux shells and in PowerShell. In Windows <code>cmd.exe</code>, use double quotes outside and single quotes inside:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bat"><code class="sourceCode dosbat"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>Rscript <span class="at">-e</span> <span class="st">"convertxlsform::cli()"</span> form.xlsx -<span class="at">-format</span> pdf -<span class="at">-lang</span> bn</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>Rscript <span class="at">-e</span> <span class="st">"cat(system.file('extdata', 'all_types', 'all_types.xlsx', package = 'convertxlsform'))"</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bat"><code class="sourceCode dosbat"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>Rscript <span class="at">-e</span> <span class="st">"convertxlsform::cli()"</span> form.xlsx -<span class="at">-format</span> pdf -<span class="at">-lang</span> bn</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>Rscript <span class="at">-e</span> <span class="st">"cat(system.file('extdata', 'all_types', 'all_types.xlsx', package = 'convertxlsform'))"</span></span></code></pre></div>
 <p>Scripts that need the exit status (0 on success, 1 on error) can use:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'quit(status = convertxlsform::cli())'</span> form.xlsx <span class="at">--format</span> pdf</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'quit(status = convertxlsform::cli())'</span> form.xlsx <span class="at">--format</span> pdf</span></code></pre></div>
 </details>
 </div>
 <div class="section level2">
@@ -168,7 +172,7 @@ More terminal examples, Windows quoting and exit status
 </ul>
 <p>The same pattern works for <code>hint</code>, <code>guidance_hint</code>, <code>required_message</code>, <code>constraint_message</code>, <code>image</code>, <code>audio</code> and <code>video</code>. A plain <code>label</code> column (no suffix) is used when no translated column exists.</p>
 <p>To list the languages in a form and see which one is the default:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/xlsform_languages.html">xlsform_languages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"multilang"</span>, <span class="st">"multilang.xlsx"</span>,</span>
 <span>                              package <span class="op">=</span> <span class="st">"convertxlsform"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The result has one row per language, with <code>suffix</code>, <code>code</code>, <code>name</code> and <code>default</code>. It has no rows for a single-language form.</p>
@@ -237,7 +241,7 @@ More terminal examples, Windows quoting and exit status
 </tbody>
 </table>
 <p>The full list of names is in <code>R/strings.R</code>. A Bengali version of the bundled multilingual form would look like this. The <code>"..."</code> values are placeholders to replace with translations that you write or check with a Bengali speaker:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"multilang"</span>, <span class="st">"multilang.xlsx"</span>,</span>
 <span>                    package <span class="op">=</span> <span class="st">"convertxlsform"</span><span class="op">)</span></span>
 <span></span>
@@ -572,7 +576,7 @@ Command-line flags of <code>cli()</code>
 </tbody>
 </table>
 <p>Latin text uses <code>font_family</code>. To choose the complex-script font yourself, pass <code>font_family_cs</code>:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/convertxlsform.html">convertxlsform</a></span><span class="op">(</span><span class="va">path</span>, lang <span class="op">=</span> <span class="st">"bn"</span>, font_family_cs <span class="op">=</span> <span class="st">"Noto Sans Bengali"</span><span class="op">)</span></span></code></pre></div>
 <p>The font must be installed on the machine that converts the document to PDF. If the named font is missing, LibreOffice or Word substitutes another font, which can show boxes or the wrong script.</p>
 <p>Right-to-left layout is not yet supported. Arabic and Hebrew text is detected, but the document is still laid out left to right.</p>
@@ -582,7 +586,7 @@ Command-line flags of <code>cli()</code>
 <h2 id="inspect-a-form">Inspect a form<a class="anchor" aria-label="anchor" href="#inspect-a-form"></a>
 </h2>
 <p><code><a href="reference/xlsform_outline.html">xlsform_outline()</a></code> returns the numbered form as a data frame, one row per item on the paper form. It is a quick way to check numbering, question types, choice counts and skip logic before you convert the form:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"all_types"</span>, <span class="st">"all_types.xlsx"</span>,</span>
 <span>                    package <span class="op">=</span> <span class="st">"convertxlsform"</span><span class="op">)</span></span>
 <span></span>
@@ -603,7 +607,7 @@ The PDF shows boxes or blank text for non-Latin scripts
 </ul></details><details><summary>
 LibreOffice not found
 </summary><p>convertxlsform searches the <code>PATH</code> and the usual install locations. If LibreOffice is installed somewhere else, point convertxlsform to it:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>convertxlsform.soffice <span class="op">=</span> <span class="st">"/path/to/soffice"</span><span class="op">)</span></span></code></pre></div>
 <p>You can also set the environment variable <code>CONVERTXLSFORM_SOFFICE</code> to the same path. <code><a href="reference/has_libreoffice.html">has_libreoffice()</a></code> reports whether the binary was found.</p>
 </details><details><summary>
@@ -620,10 +624,10 @@ Missing images
 <h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
 </h2>
 <p>Work on a feature branch and open a pull request against <code>main</code>. Tests use testthat:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">testthat</span><span class="fu">::</span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_package.html" class="external-link">test_local</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Build and check the package from a temporary folder, so that build products stay out of the repository:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="bu">cd</span> <span class="st">"</span><span class="va">$(</span><span class="fu">mktemp</span> <span class="at">-d</span><span class="va">)</span><span class="st">"</span> <span class="kw">&amp;&amp;</span> <span class="ex">R</span> CMD build <span class="st">"</span><span class="va">$OLDPWD</span><span class="st">"</span> <span class="kw">&amp;&amp;</span> <span class="ex">R</span> CMD check <span class="at">--no-manual</span> convertxlsform_<span class="pp">*</span>.tar.gz</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="bu">cd</span> <span class="st">"</span><span class="va">$(</span><span class="fu">mktemp</span> <span class="at">-d</span><span class="va">)</span><span class="st">"</span> <span class="kw">&amp;&amp;</span> <span class="ex">R</span> CMD build <span class="st">"</span><span class="va">$OLDPWD</span><span class="st">"</span> <span class="kw">&amp;&amp;</span> <span class="ex">R</span> CMD check <span class="at">--no-manual</span> convertxlsform_<span class="pp">*</span>.tar.gz</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
@@ -634,6 +638,7 @@ Missing images
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=convertxlsform" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/masud90/convertxlsform/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/masud90/convertxlsform/issues" class="external-link">Report a bug</a></li>
 </ul>
@@ -666,6 +671,7 @@ Missing images
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
+<li><a href="https://CRAN.R-project.org/package=convertxlsform" class="external-link"><img src="https://www.r-pkg.org/badges/version/convertxlsform" alt="CRAN status"></a></li>
 <li><a href="https://github.com/masud90/convertxlsform/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/masud90/convertxlsform/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://masud90.github.io/convertxlsform/"><img src="https://github.com/masud90/convertxlsform/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
 <li><a href="https://github.com/masud90/convertxlsform/releases" class="external-link"><img src="https://img.shields.io/github/v/release/masud90/convertxlsform" alt="GitHub release"></a></li>

@@ -1,6 +1,7 @@
 # convertxlsform <a href="https://masud90.github.io/convertxlsform/"><img src="man/figures/logo.png" align="right" height="139" alt="convertxlsform website" /></a>
 
 <!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/convertxlsform)](https://CRAN.R-project.org/package=convertxlsform)
 [![R-CMD-check](https://github.com/masud90/convertxlsform/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/masud90/convertxlsform/actions/workflows/R-CMD-check.yaml)
 [![pkgdown](https://github.com/masud90/convertxlsform/actions/workflows/pkgdown.yaml/badge.svg)](https://masud90.github.io/convertxlsform/)
 [![GitHub release](https://img.shields.io/github/v/release/masud90/convertxlsform)](https://github.com/masud90/convertxlsform/releases)
@@ -23,12 +24,20 @@ Full reference and articles: <https://masud90.github.io/convertxlsform/>. New he
 
 ## Installation
 
+Install the released version from CRAN:
+
+```r
+install.packages("convertxlsform")
+```
+
+Or install the development version from GitHub:
+
 ```r
 install.packages("remotes")
 remotes::install_github("masud90/convertxlsform")
 ```
 
-To install a specific release, add its tag:
+To install a specific release from GitHub, add its tag:
 
 ```r
 remotes::install_github("masud90/convertxlsform@v0.3.0")

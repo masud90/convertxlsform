@@ -1,6 +1,7 @@
 # convertxlsform (development version)
 
 - The DESCRIPTION Title and Description now put single quotes only around software names ('Microsoft Word', 'LibreOffice', 'Open Data Kit', 'KoboToolbox'), as CRAN asked. XLSForm and the .docx file ending are no longer quoted.
+- The README has a CRAN status badge and gives `install.packages("convertxlsform")` as the main way to install.
 
 # convertxlsform 0.3.0
 

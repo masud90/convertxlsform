@@ -1,7 +1,7 @@
 Package: convertxlsform
 Type: Package
 Title: Convert an XLSForm to a 'Microsoft Word' or PDF Document
-Version: 0.3.0.9000
+Version: 0.4.0
 Authors@R:
     person("Masud", "Rahman", email = "write2masud+convertxlsform@gmail.com", role = c("aut", "cre", "cph"))
 Description: Converts XLSForm questionnaires, as used by 'Open Data Kit'
@@ -20,10 +20,11 @@ Imports:
     cli,
     flextable (>= 0.9.5),
     magrittr,
-    officer (>= 0.6.9),
+    officer (>= 0.6.10),
     readxl,
     rlang,
     stats,
+    systemfonts,
     tools,
     utils,
     zip

@@ -43,8 +43,10 @@ form).
 \item \code{-f}, \verb{--format docx|pdf|both}: output format (default: from the
 extension of \code{--output}, else \code{docx}).
 \item \code{-l}, \verb{--lang LANG}: language code, name or header suffix.
+\item \verb{--lang2 LANG}: second language, printed under the first.
 \item \code{--flat-numbers}: number questions 1, 2, 3 instead of 1.1, 1.2.
 \item \code{--no-relevants}: hide skip logic.
+\item \code{--no-skips}: hide "Go to" instructions next to choices.
 \item \code{--no-constraints}: hide constraints.
 \item \code{--no-hints}: hide hints.
 \item \code{--no-choice-codes}: hide choice codes.
@@ -57,9 +59,16 @@ folder of the form).
 \item \code{--landscape}: landscape orientation.
 \item \verb{--margins IN}: margins in inches (default 1).
 \item \verb{--font NAME} (default \code{Arial}) and \verb{--font-size PT} (default 11).
+\item \verb{--font-cs NAME}: font for complex scripts such as Bengali or Arabic.
+\item \code{--rtl}, \code{--ltr}: force right-to-left or left-to-right layout (default:
+from the script of the language).
 \item \verb{--template FILE}: reference \code{.docx} for styles.
 \item \verb{--max-choices N}: longest choice list printed in full (default 30).
 \item \verb{--repeat-copies N}: copies of each repeat group (default 1).
+\item \verb{--repeat-layout auto|copies|roster}: how repeat groups are drawn
+(default \code{auto}).
+\item \verb{--roster-rows N}: rows of a roster when the repeat count is not a
+number (default 5).
 \item \code{--overwrite}: replace existing output.
 \item \code{--quiet}: no progress messages.
 \item \code{-h}, \code{--help}: show the help and stop.

@@ -28,8 +28,10 @@
 #' * `-f`, `--format docx|pdf|both`: output format (default: from the
 #'   extension of `--output`, else `docx`).
 #' * `-l`, `--lang LANG`: language code, name or header suffix.
+#' * `--lang2 LANG`: second language, printed under the first.
 #' * `--flat-numbers`: number questions 1, 2, 3 instead of 1.1, 1.2.
 #' * `--no-relevants`: hide skip logic.
+#' * `--no-skips`: hide "Go to" instructions next to choices.
 #' * `--no-constraints`: hide constraints.
 #' * `--no-hints`: hide hints.
 #' * `--no-choice-codes`: hide choice codes.
@@ -42,9 +44,16 @@
 #' * `--landscape`: landscape orientation.
 #' * `--margins IN`: margins in inches (default 1).
 #' * `--font NAME` (default `Arial`) and `--font-size PT` (default 11).
+#' * `--font-cs NAME`: font for complex scripts such as Bengali or Arabic.
+#' * `--rtl`, `--ltr`: force right-to-left or left-to-right layout (default:
+#'   from the script of the language).
 #' * `--template FILE`: reference `.docx` for styles.
 #' * `--max-choices N`: longest choice list printed in full (default 30).
 #' * `--repeat-copies N`: copies of each repeat group (default 1).
+#' * `--repeat-layout auto|copies|roster`: how repeat groups are drawn
+#'   (default `auto`).
+#' * `--roster-rows N`: rows of a roster when the repeat count is not a
+#'   number (default 5).
 #' * `--overwrite`: replace existing output.
 #' * `--quiet`: no progress messages.
 #' * `-h`, `--help`: show the help and stop.
@@ -122,8 +131,10 @@ cli <- function(args = commandArgs(trailingOnly = TRUE)) {
     "  -o, --output PATH      Output file or folder [next to the form]",
     "  -f, --format FMT       docx, pdf or both [from --output, else docx]",
     "  -l, --lang LANG        Language code, name or header suffix [form default]",
+    "      --lang2 LANG       Second language, printed under the first",
     "      --flat-numbers     Number questions 1, 2, 3 instead of 1.1, 1.2",
     "      --no-relevants     Hide skip logic",
+    "      --no-skips         Hide 'Go to' instructions next to choices",
     "      --no-constraints   Hide constraints",
     "      --no-hints         Hide hints",
     "      --no-choice-codes  Hide choice codes",
@@ -136,9 +147,13 @@ cli <- function(args = commandArgs(trailingOnly = TRUE)) {
     "      --margins IN       Margins in inches [1]",
     "      --font NAME        Font family [Arial]",
     "      --font-size PT     Base font size in points [11]",
+    "      --font-cs NAME     Font for complex scripts [chosen from the text]",
+    "      --rtl, --ltr       Right-to-left or left-to-right layout [from the text]",
     "      --template FILE    Reference .docx whose styles are used",
     "      --max-choices N    Longest choice list printed in full [30]",
     "      --repeat-copies N  Copies of each repeat group [1]",
+    "      --repeat-layout L  auto, copies or roster [auto]",
+    "      --roster-rows N    Roster rows when the repeat count is not a number [5]",
     "      --overwrite        Replace existing output files",
     "      --quiet            No progress messages",
     "  -h, --help             Show this help",
@@ -171,7 +186,9 @@ cli <- function(args = commandArgs(trailingOnly = TRUE)) {
     "--page-size" = "page_size", "--margins" = "margins_in",
     "--font" = "font_family", "--font-size" = "font_size",
     "--template" = "template", "--max-choices" = "max_choices",
-    "--repeat-copies" = "repeat_copies"
+    "--repeat-copies" = "repeat_copies", "--lang2" = "lang2",
+    "--font-cs" = "font_family_cs", "--repeat-layout" = "repeat_layout",
+    "--roster-rows" = "roster_rows"
   )
   flags <- list(
     "--flat-numbers" = list("nested_serial_numbers", FALSE),
@@ -181,12 +198,15 @@ cli <- function(args = commandArgs(trailingOnly = TRUE)) {
     "--no-choice-codes" = list("include_choice_name", FALSE),
     "--show-names" = list("show_variable_names", TRUE),
     "--include-hidden" = list("include_hidden", TRUE),
+    "--no-skips" = list("include_skips", FALSE),
+    "--rtl" = list("rtl", TRUE),
+    "--ltr" = list("rtl", FALSE),
     "--landscape" = list("orientation", "landscape"),
     "--overwrite" = list("overwrite", TRUE),
     "--quiet" = list("verbose", FALSE)
   )
   numeric_opts <- c("margins_in", "font_size", "max_choices")
-  int_opts <- "repeat_copies"
+  int_opts <- c("repeat_copies", "roster_rows")
   positional <- character()
 
   i <- 1L

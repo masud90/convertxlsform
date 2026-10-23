@@ -32,6 +32,7 @@
     c("video", "media", "video"),
     c("file", "media", "file"),
     c("background-audio", "media", "background-audio"),
+    c("osm", "media", "osm"),
     c("barcode", "barcode", NA),
     c("acknowledge", "acknowledge", NA),
     c("trigger", "acknowledge", NA),
@@ -39,7 +40,8 @@
   )
   hidden <- c("calculate", "hidden", "xml-external", "csv-external", "start",
               "end", "today", "deviceid", "subscriberid", "simserial",
-              "phonenumber", "username", "email", "audit", "start-geopoint")
+              "phonenumber", "username", "email", "audit", "start-geopoint",
+              "background-geopoint")
   rows <- c(rows, lapply(hidden, function(h) c(h, "hidden", NA)))
   out <- as.data.frame(do.call(rbind, rows), stringsAsFactors = FALSE)
   names(out) <- c("base_type", "kind", "subtype")
@@ -79,7 +81,7 @@
   x <- .squish(type)
   ok <- !is.na(x) & nzchar(x)
   if (any(ok)) {
-    y <- x[ok]
+    y <- .type_aliases(x[ok])
     # "or_other" / "or other" at the end
     oo <- grepl("(^|[[:space:]])or[_ ]other$", y, ignore.case = TRUE,
                 perl = TRUE)
@@ -116,6 +118,11 @@
     if (any(other)) {
       tok <- sub("[[:space:]].*$", "", y[other])
       bt[other] <- tolower(tok)
+      short <- c(int = "integer", string = "text", gps = "geopoint",
+                 location = "geopoint", photo = "image",
+                 select1 = "select_one")
+      hit <- bt[other] %in% names(short)
+      bt[other][hit] <- unname(short[bt[other][hit]])
       rest[other] <- trimws(substring(y[other], nchar(tok) + 1L))
     }
     arg_types <- c("select_one", "select_one_from_file", "select_one_external",
@@ -129,6 +136,18 @@
   }
   data.frame(base_type = base_type, type_arg = type_arg, or_other = or_other,
              stringsAsFactors = FALSE)
+}
+
+#' Rewrite the long pyxform aliases of select types
+#'
+#' `select all that apply` and `select_all_that_apply` become
+#' `select_multiple`, and `select one` becomes `select_one`; the rest of the
+#' type (list name, `or_other`) is kept.
+#' @noRd
+.type_aliases <- function(y) {
+  y <- sub("^select[ _]all[ _]that[ _]apply(?=$|[[:space:]])",
+           "select_multiple", y, ignore.case = TRUE, perl = TRUE)
+  y
 }
 
 #' Parse the `parameters` column

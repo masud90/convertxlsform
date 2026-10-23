@@ -145,3 +145,16 @@ test_that("cli() suggests --overwrite when the output exists", {
                     "overwrite = TRUE")
   expect_false(grepl("--overwrite", conditionMessage(e), fixed = TRUE))
 })
+
+test_that("the parser reads the 0.4.0 options", {
+  p <- .parse_cli_args(c("f.xlsx", "--lang2", "bn", "--no-skips", "--rtl",
+                         "--repeat-layout=roster", "--roster-rows", "8",
+                         "--font-cs", "Kefa"))
+  expect_equal(p$options$lang2, "bn")
+  expect_false(p$options$include_skips)
+  expect_true(p$options$rtl)
+  expect_equal(p$options$repeat_layout, "roster")
+  expect_equal(p$options$roster_rows, 8)
+  expect_equal(p$options$font_family_cs, "Kefa")
+  expect_false(.parse_cli_args(c("f.xlsx", "--ltr"))$options$rtl)
+})

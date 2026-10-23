@@ -33,8 +33,9 @@ test_that("classify_types covers the registry and flags unknowns", {
   expect_equal(.classify_types(reg$base_type), reg$kind)
   expect_equal(
     .classify_types(c("integer", "decimal", "geotrace", "trigger", "calculate",
-                      "osm", NA)),
-    c("number", "number", "geo", "acknowledge", "hidden", "unknown", "unknown")
+                      "osm", "background-geopoint", "foo", NA)),
+    c("number", "number", "geo", "acknowledge", "hidden", "media", "hidden",
+      "unknown", "unknown")
   )
   expect_equal(.type_subtype(c("integer", "decimal", "geoshape", "text")),
                c("integer", "decimal", "geoshape", NA))
@@ -71,4 +72,15 @@ test_that("parse_required distinguishes flags and expressions", {
                c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE,
                  FALSE, TRUE))
   expect_equal(r$required_expr, c(rep(NA, 10), "${a} = 'x'"))
+})
+
+test_that("pyxform type aliases are read", {
+  p <- .parse_type(c("select all that apply fruit", "select_all_that_apply fruit or_other",
+                     "int", "string", "gps", "photo", "select1 yn",
+                     "background-geopoint"))
+  expect_equal(p$base_type, c("select_multiple", "select_multiple", "integer",
+                              "text", "geopoint", "image", "select_one",
+                              "background-geopoint"))
+  expect_equal(p$type_arg, c("fruit", "fruit", NA, NA, NA, NA, "yn", NA))
+  expect_equal(p$or_other, c(FALSE, TRUE, rep(FALSE, 6)))
 })

@@ -46,35 +46,6 @@
   x
 }
 
-#' Script-dependent font for complex-script text
-#'
-#' @param text Character vector of labels in the language in use.
-#' @param font_family The main font family (the fallback).
-#' @return list(font_family_cs, rtl)
-#' @noRd
-.detect_script_font <- function(text, font_family) {
-  text <- text[!is.na(text)]
-  cp <- if (length(text) > 0L) {
-    unlist(lapply(enc2utf8(text), utf8ToInt), use.names = FALSE)
-  } else {
-    integer(0)
-  }
-  scripts <- list(
-    list(lo = 0x0980L, hi = 0x09FFL, font = "Noto Sans Bengali", rtl = FALSE),
-    list(lo = 0x0600L, hi = 0x06FFL, font = "Noto Naskh Arabic", rtl = TRUE),
-    list(lo = 0x0900L, hi = 0x097FL, font = "Noto Sans Devanagari",
-         rtl = FALSE),
-    list(lo = 0x1200L, hi = 0x137FL, font = "Noto Sans Ethiopic", rtl = FALSE),
-    list(lo = 0x0590L, hi = 0x05FFL, font = font_family, rtl = TRUE)
-  )
-  counts <- vapply(scripts, function(z) sum(cp >= z$lo & cp <= z$hi), 1L)
-  if (all(counts == 0L)) {
-    return(list(font_family_cs = font_family, rtl = FALSE))
-  }
-  z <- scripts[[which.max(counts)]]
-  list(font_family_cs = z$font, rtl = z$rtl)
-}
-
 #' Display name of the language in use (NA for single-language forms)
 #' @noRd
 .language_display <- function(form) {
@@ -90,6 +61,77 @@
   nm <- langs$name[i]
   if (is.na(nm)) nm <- langs$code[i]
   if (is.na(nm)) sfx else nm
+}
+
+#' Read the form again in the second language of a bilingual document
+#'
+#' @return A `cxf_form`, or NULL (with a warning) when `lang2` is not usable.
+#' @noRd
+.second_language <- function(form, opts) {
+  req <- opts$lang2
+  if (is.null(req)) {
+    return(NULL)
+  }
+  langs <- form$languages
+  if (is.null(langs) || nrow(langs) == 0L) {
+    .cxf_warn(c(
+      "The form has no language-specific columns; {.arg lang2} {.val {req}} is ignored."
+    ))
+    return(NULL)
+  }
+  hit <- .match_language(langs, req)
+  if (is.na(hit)) {
+    avail <- langs$suffix
+    .cxf_warn(c(
+      "Second language {.val {req}} not found in the form; it is ignored.",
+      i = "Languages found: {.val {avail}}."
+    ))
+    return(NULL)
+  }
+  if (identical(tolower(hit), tolower(form$lang$suffix %||% ""))) {
+    .cxf_warn("{.arg lang2} is the language already in use; it is ignored.")
+    return(NULL)
+  }
+  form2 <- suppressWarnings(.read_xlsform(form$path, lang = hit,
+                                          media_root = form$media_root,
+                                          verbose = FALSE))
+  if (!isTRUE(opts$nested_serial_numbers)) {
+    form2$survey <- .build_structure(form2$survey,
+                                     nested_serial_numbers = FALSE)
+  }
+  form2
+}
+
+#' Stack two languages: the second goes on a new line
+#'
+#' A cell keeps a single text when the second language is blank or the same.
+#' @noRd
+.stack_text <- function(a, b) {
+  a <- as.character(a)
+  b <- as.character(b)
+  out <- a
+  two <- !is.na(a) & !is.na(b) & a != b
+  out[two] <- paste0(a[two], "\n", b[two])
+  only_b <- is.na(a) & !is.na(b)
+  out[only_b] <- b[only_b]
+  out
+}
+
+#' Merge the text of a second-language form into the first
+#' @noRd
+.merge_languages <- function(form, form2) {
+  for (f in c("label", "hint", "guidance_hint", "constraint_message")) {
+    form$survey[[f]] <- .stack_text(form$survey[[f]], form2$survey[[f]])
+  }
+  if (nrow(form$choices) == nrow(form2$choices)) {
+    form$choices$label <- .stack_text(form$choices$label,
+                                      form2$choices$label)
+  }
+  t2 <- form2$settings$form_title
+  if (!is.null(t2) && !is.na(t2)) {
+    form$settings$form_title <- .stack_text(form$settings$form_title, t2)
+  }
+  form
 }
 
 #' Date, time and datetime entry patterns
@@ -112,7 +154,7 @@
 #' Answer specification for one question
 #' @noRd
 .build_answer <- function(form, i, opts, constraint = NA_character_,
-                          strings = NULL) {
+                          strings = NULL, skip = NULL) {
   strings <- strings %||% .strings_en()
   sv <- form$survey
   k <- sv$kind[i]
@@ -136,6 +178,11 @@
       }
       ch$image <- imgs
       ch$write_in <- c(rep(FALSE, n), if (or_other) TRUE)
+      ch$skip <- if (is.null(skip)) {
+        rep(NA_character_, nrow(ch))
+      } else {
+        vapply(unname(skip[ch$name]), .skip_text, "", strings = strings)
+      }
       lay <- .choice_layout(ch$label, sv$appearance[i], opts$max_choices)
       list(
         choices = ch,
@@ -212,6 +259,12 @@
   if (isTRUE(opts$include_relevants) && has_rel) {
     out <- c(out, strings$legend_ask_if)
   }
+  has_skip <- any(vapply(qs, function(b) {
+    any(!is.na(b$answer$choices$skip %||% NA_character_))
+  }, NA))
+  if (has_skip) {
+    out <- c(out, paste(sym$arrow, strings$legend_go_to))
+  }
   out
 }
 
@@ -229,6 +282,17 @@
   if (!isTRUE(opts$nested_serial_numbers)) {
     form$survey <- .build_structure(form$survey, nested_serial_numbers = FALSE)
   }
+  # right-to-left layout follows the first language only
+  primary <- .detect_script_font(
+    c(form$survey$label, form$survey$hint, form$choices$label),
+    opts$font_family
+  )
+  language <- .language_display(form)
+  form2 <- .second_language(form, opts)
+  if (!is.null(form2)) {
+    language <- paste(language, "/", .language_display(form2))
+    form <- .merge_languages(form, form2)
+  }
   sv <- form$survey
   n <- nrow(sv)
   .media_reset_missing()
@@ -240,6 +304,8 @@
                     show_variable_names = svn, with_fallback = fallback)
   }
   rows <- seq_len(n)
+  skips <- if (isTRUE(opts$include_skips)) .skip_targets(form) else
+    vector("list", n)
   rel <- if (opts$include_relevants) {
     hx(sv$relevant, "relevant")
   } else {
@@ -294,7 +360,7 @@
       if (shown) {
         add(c(list(block = "section"), common, list(
           level = min(3L, n_vis + 1L), label = label[i], hint = hint[i],
-          is_repeat = k == "begin_repeat",
+          is_repeat = k == "begin_repeat", appearance = sv$appearance[i],
           repeat_text = if (k == "begin_repeat") rep_txt[i] else NA_character_,
           repeat_count_value = if (k == "begin_repeat") rep_val[i] else
             NA_real_,
@@ -337,7 +403,9 @@
           .type_subtype(sv$base_type[i]),
         relevant_text = own_rel, constraint_text = con_msg[i],
         choice_filter_text = cfilt[i], image = img(i),
-        answer = .build_answer(form, i, opts, sv$constraint[i], strings)
+        save_to = sv$save_to[i] %||% NA_character_,
+        answer = .build_answer(form, i, opts, sv$constraint[i], strings,
+                               skip = skips[[i]])
       ), if (is_hidden) list(calculation = sv$calculation[i])))
     }
   }
@@ -358,11 +426,13 @@
     title = title,
     form_id = form$settings$form_id %||% NA_character_,
     version = form$settings$version %||% NA_character_,
-    language = .language_display(form),
+    language = language,
     generated = Sys.Date(),
     legend = .build_legend(blocks, opts, strings),
+    entities = unique(form$entities$list_name %||% character(0)),
     font_family_cs = cs$font_family_cs,
-    rtl = cs$rtl,
+    script = cs$script,
+    rtl = if (is.null(opts$rtl)) primary$rtl else opts$rtl,
     strings = strings
   )
   .media_warn_missing()

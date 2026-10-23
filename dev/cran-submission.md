@@ -63,7 +63,7 @@ The tarball from that local check was built in a temporary folder and is gone. R
 | Request | Where the package stands |
 |---|---|
 | `\value` in every exported Rd | Done for all six exports, including `cli()` and `has_libreoffice()`. |
-| Software names in single quotes in Title and Description | Done: 'XLSForm', 'Word', 'LibreOffice', 'ODK', 'KoboToolbox', 'Open Data Kit'. |
+| Software names in single quotes in Title and Description | Done after CRAN's feedback: only software names are quoted ('Microsoft Word', 'LibreOffice', 'Open Data Kit', 'KoboToolbox'). XLSForm and .docx are not quoted. |
 | Web reference for the method or format in Description | Done: `<https://xlsform.org>`. |
 | Copyright holder in Authors@R | Done: role "cph" added. |
 | Title in title case, under 65 characters, no period | Done (49 characters). |
@@ -94,6 +94,6 @@ The tarball from that local check was built in a temporary folder and is gone. R
 - [ ] Confirm the pkgdown site deploys (the workflow runs on push to `main`) and that the GitHub Pages setting uses the `gh-pages` branch.
 - [ ] Update `CLAUDE.md` status.
 
-## Known issue deferred to 0.4.0
+## Complex-script PDF output (fixed in 0.4.0)
 
-PDF output can show blank text for Bengali and other complex scripts when LibreOffice cannot find a suitable font. The Word document is correct. It is listed under "Known issues" in `NEWS.md` and is not a CRAN blocker.
+0.3.0 could show blank text for Bengali and other complex scripts in PDF output when LibreOffice did not find a suitable font. 0.4.0 copies the files of the complex-script font into the temporary LibreOffice profile for each conversion and warns when the font is not installed. See `NEWS.md`.

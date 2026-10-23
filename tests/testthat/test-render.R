@@ -27,6 +27,8 @@ render_to <- function(m, ...) {
 
 docx_text <- function(path) {
   s <- officer::docx_summary(officer::read_docx(path))
+  # officer 0.7 lists table cells after the paragraphs; restore document order
+  s <- s[order(s$doc_index, s$row_id, s$cell_id), ]
   s$text[!is.na(s$text)]
 }
 
@@ -312,7 +314,7 @@ test_that("table-list groups and label rows render as grids", {
                                                                opts = opts))))
   cells <- s$text[s$content_type == "table cell"]
   expect_true(all(c("Agree", "Neutral", "Disagree") %in%
-                    sub("[0-9]$", "", cells)))
+                    sub("\\s*[0-9]$", "", cells)))
   expect_true(any(grepl("^3\\.1\\. Schools are good", cells)))
   expect_true(any(grepl("^4\\. Water is clean", cells)))
   # the questions of a grid are not printed again as paragraphs

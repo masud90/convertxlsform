@@ -176,7 +176,10 @@ test_that("multilang renders in Bengali with the complex-script font", {
   sec <- Filter(function(b) b$block == "question", m$model$blocks)[[1]]
   expect_true(any(grepl(substr(sec$label, 1, 6), txt, fixed = TRUE)))
   doc <- zip_part(path, "word/document.xml")
-  expect_match(doc, "w:cs=\"Noto Sans Bengali\"", fixed = TRUE)
+  # the first installed Bengali font, e.g. Nirmala UI on Windows
+  cs <- m$model$meta$font_family_cs
+  expect_true(cs %in% .cs_scripts()$bengali$fonts)
+  expect_match(doc, paste0("w:cs=\"", cs, "\""), fixed = TRUE)
 })
 
 test_that("a user template without cxf styles falls back to Normal", {

@@ -511,7 +511,9 @@ test_that("meta carries the strings, the font and rtl", {
 })
 
 test_that("script detection chooses the complex-script font", {
-  d <- function(x) .detect_script_font(x, "Arial")
+  # with no font installed the first candidate (the Noto font) is named
+  none <- function(x) rep(FALSE, length(x))
+  d <- function(x) .detect_script_font(x, "Arial", installed = none)
   expect_equal(d("Hello")$font_family_cs, "Arial")
   expect_equal(d(c(NA, ""))$font_family_cs, "Arial")
   expect_equal(d("\u0995\u09a5\u09be")$font_family_cs, "Noto Sans Bengali")
@@ -528,6 +530,28 @@ test_that("script detection chooses the complex-script font", {
   # the script with most characters wins
   expect_equal(d(c("\u0995\u09a5\u09be\u0995", "\u0645"))$font_family_cs,
                "Noto Sans Bengali")
+  expect_equal(d("\u0995")$script, "bengali")
+  expect_false(d("\u0995")$installed)
+})
+
+test_that("script detection takes the first installed candidate", {
+  only <- function(fonts) function(x) x %in% fonts
+  bn <- "\u0995\u09a5\u09be"
+  r <- .detect_script_font(bn, "Arial", installed = only("Vrinda"))
+  expect_equal(r$font_family_cs, "Vrinda")
+  expect_true(r$installed)
+  r <- .detect_script_font(bn, "Arial",
+                           installed = only(c("Kohinoor Bangla", "Vrinda")))
+  expect_equal(r$font_family_cs, "Kohinoor Bangla")
+  am <- "\u1230\u120b\u121d"
+  expect_equal(.detect_script_font(am, "Arial",
+                                   installed = only("Ebrima"))$font_family_cs,
+               "Ebrima")
+  # Hebrew prefers the main font
+  he <- "\u05e9\u05dc\u05d5\u05dd"
+  expect_equal(.detect_script_font(he, "Calibri",
+                                   installed = only("Calibri"))$font_family_cs,
+               "Calibri")
 })
 
 test_that("the Bengali example gets the Bengali font", {
@@ -535,7 +559,8 @@ test_that("the Bengali example gets the Bengali font", {
                    package = "convertxlsform")
   skip_if(!nzchar(p))
   bn <- .build_model(read_quiet(p, lang = "bn"), test_opts())
-  expect_equal(bn$meta$font_family_cs, "Noto Sans Bengali")
+  expect_true(bn$meta$font_family_cs %in% .cs_scripts()$bengali$fonts)
+  expect_equal(bn$meta$script, "bengali")
   expect_false(bn$meta$rtl)
   en <- .build_model(read_quiet(p, lang = "en"), test_opts())
   expect_equal(en$meta$font_family_cs, "Arial")
@@ -570,4 +595,31 @@ test_that("language display names and choice labels follow lang", {
   bf <- block_named(bn, "enumname")$answer$choices$label[1]
   expect_equal(ef, "Grace Young")
   expect_false(identical(ef, bf))
+})
+
+test_that("lang2 stacks a second language under the first", {
+  p <- system.file("extdata", "multilang", "multilang.xlsx",
+                   package = "convertxlsform")
+  skip_if(!nzchar(p))
+  f <- read_quiet(p, lang = "en")
+  m <- .build_model(f, test_opts(lang2 = "bn"))
+  q <- Filter(function(b) identical(b$block, "question"), m$blocks)[[1L]]
+  parts <- strsplit(q$label, "\n", fixed = TRUE)[[1L]]
+  expect_length(parts, 2L)
+  expect_match(parts[2L], "[ঀ-৿]")
+  expect_equal(m$meta$language, "English / Bengali")
+  expect_false(m$meta$rtl)
+  expect_equal(m$meta$script, "bengali")
+  expect_warning(.build_model(f, test_opts(lang2 = "en")), "already in use")
+  expect_warning(.build_model(f, test_opts(lang2 = "xx")), "not found")
+})
+
+test_that(".stack_text keeps single values", {
+  expect_equal(.stack_text(c("a", "a", NA, "a", NA), c("b", "a", "b", NA, NA)),
+               c("a\nb", "a", "b", "a", NA))
+})
+
+test_that("the rtl option overrides detection", {
+  m <- .build_model(small_form(), test_opts(rtl = TRUE))
+  expect_true(m$meta$rtl)
 })

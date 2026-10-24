@@ -159,3 +159,18 @@ test_that("font_family_cs is NULL or a string", {
   expect_error(.cxf_options(font_family_cs = ""), "font_family_cs")
   expect_error(.cxf_options(font_family_cs = 1), "font_family_cs")
 })
+
+test_that("0.4.0 options are checked", {
+  o <- .cxf_options()
+  expect_true(o$include_skips)
+  expect_null(o$lang2)
+  expect_null(o$rtl)
+  expect_equal(o$repeat_layout, "auto")
+  expect_identical(o$roster_rows, 5L)
+  expect_equal(.cxf_options(repeat_layout = "roster")$repeat_layout, "roster")
+  expect_error(.cxf_options(repeat_layout = "grid"), "repeat_layout")
+  expect_error(.cxf_options(roster_rows = 0), "roster_rows")
+  expect_error(.cxf_options(rtl = "yes"), "rtl")
+  expect_error(.cxf_options(include_skips = NA), "include_skips")
+  expect_error(.cxf_options(lang2 = ""), "lang2")
+})

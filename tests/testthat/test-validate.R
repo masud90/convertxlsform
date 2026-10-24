@@ -57,7 +57,7 @@ test_that("empty names warn on non-structural rows only", {
 
 test_that("unknown types give one warning listing rows", {
   skip_if_no_writexl()
-  sv <- fdf(type = c("text", "osm", "foo", NA), name = c("a", "b", "c", "d"),
+  sv <- fdf(type = c("text", "bar", "foo", NA), name = c("a", "b", "c", "d"),
             label = c("A", "B", "C", "D"))
   w <- NULL
   withCallingHandlers(
@@ -69,7 +69,7 @@ test_that("unknown types give one warning listing rows", {
   )
   unk <- grep("shown like text", w, value = TRUE)
   expect_length(unk, 1)
-  expect_match(unk, "row 3: `osm`")
+  expect_match(unk, "row 3: `bar`")
   expect_match(unk, "row 4: `foo`")
   expect_true(any(grepl("empty on 1 row", w)))
   f <- suppressWarnings(read_quiet(make_form(sv)))

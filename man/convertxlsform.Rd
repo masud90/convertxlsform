@@ -51,7 +51,24 @@ layout instead of a printed list.
 \item \code{repeat_copies} (\code{1}): number of blank copies printed for each
 repeat group, 1 to 20.
 \item \code{font_family_cs} (\code{NULL}): font for complex scripts; chosen from the
-language when \code{NULL}.
+language when \code{NULL}, using the first installed font of a list for
+the script (for Bengali: Noto Sans Bengali, then fonts that ship with
+macOS and Windows).
+\item \code{lang2} (\code{NULL}): a second language, printed on a new line under each
+label, hint and choice of the first. See \code{\link[=xlsform_languages]{xlsform_languages()}}.
+\item \code{include_skips} (\code{TRUE}): print "Go to" instructions next to the
+choices of single-choice questions whose answer skips later
+questions.
+\item \code{rtl} (\code{NULL}): lay the document out right to left. \code{NULL} decides
+from the script of the first language (Arabic and Hebrew are right to
+left).
+\item \code{repeat_layout} (\code{"auto"}): how repeat groups are drawn. \code{"roster"}
+draws a table with one row per member and one column per question
+(up to 10 simple questions); \code{"copies"} prints the questions
+\code{repeat_copies} times; \code{"auto"} uses a roster for repeats of up to 6
+simple questions and copies otherwise.
+\item \code{roster_rows} (\code{5}): number of rows in a roster when the repeat count
+is not a fixed number (1 to 50).
 \item \code{overwrite} (\code{FALSE}): replace existing output files.
 \item \code{verbose} (\code{TRUE}): print progress messages.
 }}
@@ -67,6 +84,25 @@ a Word document next to the input file. A PDF is made by converting the
 Word document with LibreOffice (or Microsoft Word through the \code{doconv}
 package); see \code{\link[=docx_to_pdf]{docx_to_pdf()}} and \code{\link[=has_libreoffice]{has_libreoffice()}}.
 }
+\section{Layout}{
+
+A group with the \code{table-list} appearance whose questions share one choice
+list (up to 8 choices) is drawn as a grid, one row per question. So is a
+run of questions with the \code{list-nolabel} appearance after a question with
+the \code{label} appearance, which gives the column headings and takes no
+number.
+}
+
+\section{Fonts in PDF output}{
+
+When the form uses Bengali, Arabic, Devanagari, Ethiopic or Hebrew text,
+the files of the chosen complex-script font are handed to LibreOffice for
+the conversion, so the PDF uses the font even when LibreOffice does not
+find it on its own. A warning names the font when it is not installed.
+More font files can be given with \code{options(convertxlsform.fonts = ...)},
+see \code{\link[=docx_to_pdf]{docx_to_pdf()}}.
+}
+
 \section{Where the file goes}{
 
 \itemize{

@@ -32,6 +32,11 @@
     strings = NULL,
     repeat_copies = 1L,
     font_family_cs = NULL,
+    include_skips = TRUE,
+    lang2 = NULL,
+    rtl = NULL,
+    repeat_layout = c("auto", "copies", "roster"),
+    roster_rows = 5L,
     overwrite = FALSE,
     verbose = TRUE
   )
@@ -55,7 +60,8 @@
   for (flag in c("nested_serial_numbers", "include_relevants",
                  "include_constraints", "include_hints",
                  "include_choice_name", "show_variable_names",
-                 "include_hidden", "overwrite", "verbose")) {
+                 "include_hidden", "include_skips", "overwrite",
+                 "verbose")) {
     .check_flag(opts[[flag]], flag)
   }
   opts$media_root <- .check_optional_string(opts$media_root, "media_root")
@@ -76,6 +82,11 @@
   opts$repeat_copies <- .check_repeat_copies(opts$repeat_copies)
   opts$font_family_cs <- .check_optional_string(opts$font_family_cs,
                                                 "font_family_cs")
+  opts$lang2 <- .check_optional_string(opts$lang2, "lang2")
+  if (!is.null(opts$rtl)) .check_flag(opts$rtl, "rtl")
+  opts$repeat_layout <- .check_choice(opts$repeat_layout, "repeat_layout",
+                                      c("auto", "copies", "roster"))
+  opts$roster_rows <- .check_count(opts$roster_rows, "roster_rows", 1, 50)
 
   # Portrait: width is the short side. Landscape swaps the two sides.
   short_side <- switch(opts$page_size, A4 = 8.27, letter = 8.5)
@@ -233,11 +244,17 @@
 #' Check repeat_copies: a whole number from 1 to 20
 #' @noRd
 .check_repeat_copies <- function(x) {
+  .check_count(x, "repeat_copies", 1, 20)
+}
+
+#' Check a whole number within bounds
+#' @noRd
+.check_count <- function(x, name, lower, upper) {
   ok <- is.numeric(x) && length(x) == 1L && is.finite(x) && x == floor(x) &&
-    x >= 1 && x <= 20
+    x >= lower && x <= upper
   if (!ok) {
     .cxf_abort(c(
-      "{.arg repeat_copies} must be a whole number from 1 to 20.",
+      "{.arg {name}} must be a whole number from {lower} to {upper}.",
       i = "Got {.val {x}}."
     ))
   }

@@ -91,7 +91,7 @@
     if (is.na(i)) NULL else .read_sheet(path, sheets[i])
   }
   list(sheets = sheets, survey = get("survey"), choices = get("choices"),
-       settings = get("settings"))
+       settings = get("settings"), entities = get("entities"))
 }
 
 #' Build the settings list
@@ -164,6 +164,7 @@
       lang = lang_info,
       survey = survey,
       choices = choices,
+      entities = .build_entities(raw$entities),
       sheets = raw$sheets,
       found = list(survey = names(sv_raw), choices = names(ch_raw),
                    has_survey = !is.null(raw$survey),
@@ -202,7 +203,7 @@
   out$required_expr <- req$required_expr
   for (f in c("relevant", "constraint", "choice_filter", "repeat_count",
               "calculation", "default", "appearance", "parameters",
-              "read_only")) {
+              "read_only", "save_to")) {
     out[[f]] <- col(f)
   }
   out$params <- .parse_parameters(out$parameters)
@@ -229,4 +230,27 @@
     out[[nm]] <- raw[[nm]]
   }
   out
+}
+
+#' Entity lists declared in the entities sheet
+#'
+#' @return A data.frame with `list_name`, `label` (the entity label
+#'   expression), and `create_if` and `update_if` (NA when absent); zero rows
+#'   when the form has no entities sheet.
+#' @noRd
+.build_entities <- function(raw) {
+  empty <- data.frame(list_name = character(0), label = character(0),
+                      create_if = character(0), update_if = character(0),
+                      stringsAsFactors = FALSE)
+  if (is.null(raw) || nrow(raw) == 0L || !("list_name" %in% names(raw))) {
+    return(empty)
+  }
+  col <- function(nm) {
+    if (nm %in% names(raw)) as.character(raw[[nm]]) else
+      rep(NA_character_, nrow(raw))
+  }
+  out <- data.frame(list_name = col("list_name"), label = col("label"),
+                    create_if = col("create_if"), update_if = col("update_if"),
+                    stringsAsFactors = FALSE)
+  out[!.is_blank(out$list_name), , drop = FALSE]
 }

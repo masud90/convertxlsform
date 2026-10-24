@@ -166,4 +166,4 @@ Renderer (M3):
 15. `cs.family` set on every text run (`fp_text(font.family, cs.family = meta$font_family_cs)`), complex-script size `font_size + 1`.
 16. Template: drop the `cxf Required` and `cxf Code` character styles.
 
-Deferred to 0.4.0 or later: forward skips ("If No, go to Q5"), roster tables for repeats, bilingual stacked output, RTL layout, XML external choices, annex code lists, structured relevant parsing, rendering of read_only calculations and defaults.
+Done in 0.4.0: forward skips ("If No, go to Q5"; `R/skips.R`), roster tables for repeats and grids for `table-list` and `list-nolabel` (`R/render_tables.R`), bilingual stacked output (`lang2`), RTL layout. Still deferred: XML external choices, annex code lists, rendering of read_only calculations and defaults.

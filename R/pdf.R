@@ -96,6 +96,11 @@ has_libreoffice <- function() {
 #'   force one engine.
 #' @param overwrite Overwrite an existing `pdf`? Default `FALSE`.
 #' @param verbose Print progress messages? Default `TRUE`.
+#' @param fonts Font files (`.ttf`, `.otf`, `.ttc`) or folders of font files
+#'   that LibreOffice should use for this conversion, in addition to the
+#'   fonts it finds itself. Use it when a script shows as blank text or boxes
+#'   in the PDF although the font is on the machine. `NULL` (default) uses
+#'   the option `convertxlsform.fonts`, if set. Ignored by the Word engine.
 #'
 #' @return The path of the PDF, invisibly.
 #' @export
@@ -112,8 +117,10 @@ docx_to_pdf <- function(docx,
                         pdf = NULL,
                         engine = c("auto", "libreoffice", "word"),
                         overwrite = FALSE,
-                        verbose = TRUE) {
+                        verbose = TRUE,
+                        fonts = NULL) {
   engine <- match.arg(engine)
+  fonts <- .check_fonts_arg(fonts %||% getOption("convertxlsform.fonts"))
 
   if (!is.character(docx) || length(docx) != 1L || is.na(docx)) {
     .cxf_abort("{.arg docx} must be a single file path.")
@@ -150,7 +157,7 @@ docx_to_pdf <- function(docx,
 
   if (!is.na(soffice)) {
     .cxf_inform(verbose, "Converting to PDF with LibreOffice.")
-    .soffice_convert(soffice, docx, pdf)
+    .soffice_convert(soffice, docx, pdf, fonts = fonts)
   } else {
     if (!requireNamespace("doconv", quietly = TRUE)) {
       .abort_no_engine(word = engine == "word")
@@ -181,18 +188,62 @@ docx_to_pdf <- function(docx,
   if (is.na(old) || !nzchar(old)) prog else paste(prog, old, sep = ":")
 }
 
+#' Check the `fonts` argument: NULL or existing files and folders
+#'
+#' @return A character vector of font files (folders expanded).
+#' @noRd
+.check_fonts_arg <- function(fonts, call = rlang::caller_env()) {
+  if (is.null(fonts) || length(fonts) == 0L) {
+    return(character(0))
+  }
+  if (!is.character(fonts) || anyNA(fonts)) {
+    .cxf_abort("{.arg fonts} must be NULL or a character vector of paths.",
+               call = call)
+  }
+  missing <- fonts[!file.exists(fonts)]
+  if (length(missing) > 0L) {
+    .cxf_abort(c("Font file or folder not found.",
+                 i = "Looked for {.file {missing}}."), call = call)
+  }
+  pat <- "\\.(ttf|otf|ttc)$"
+  is_dir <- dir.exists(fonts)
+  files <- c(fonts[!is_dir & grepl(pat, fonts, ignore.case = TRUE)],
+             unlist(lapply(fonts[is_dir], list.files, pattern = pat,
+                           ignore.case = TRUE, recursive = TRUE,
+                           full.names = TRUE), use.names = FALSE))
+  unique(normalizePath(files, winslash = "/", mustWork = FALSE))
+}
+
+#' Copy font files into the user font folder of a LibreOffice profile
+#'
+#' LibreOffice reads `<profile>/user/fonts` at start-up, so fonts copied
+#' there are used even when LibreOffice does not see the system copy (as
+#' happens with some macOS installations).
+#' @noRd
+.profile_add_fonts <- function(profile, fonts) {
+  if (length(fonts) == 0L) {
+    return(invisible(FALSE))
+  }
+  dest <- file.path(profile, "user", "fonts")
+  dir.create(dest, recursive = TRUE, showWarnings = FALSE)
+  # distinct names: two folders may hold files of the same name
+  target <- file.path(dest, paste0(seq_along(fonts), "_", basename(fonts)))
+  invisible(all(file.copy(fonts, target, overwrite = TRUE)))
+}
+
 #' Run LibreOffice headless and copy the result to `pdf`
 #'
-#' The profile directory is not pre-created: LibreOffice creates it on its
-#' first start, which sometimes initializes the profile and exits without
-#' converting. If no PDF appears, the call is repeated once with the now
-#' initialized profile.
+#' The profile directory is not pre-created unless fonts are added:
+#' LibreOffice creates it on its first start, which sometimes initializes the
+#' profile and exits without converting. If no PDF appears, the call is
+#' repeated once with the now initialized profile.
 #' @noRd
-.soffice_convert <- function(soffice, docx, pdf) {
+.soffice_convert <- function(soffice, docx, pdf, fonts = character(0)) {
   work <- tempfile("cxf_pdf_")
   profile <- tempfile("cxf_profile_")
   dir.create(work)
   on.exit(unlink(c(work, profile), recursive = TRUE, force = TRUE), add = TRUE)
+  .profile_add_fonts(profile, fonts)
 
   profile_path <- chartr("\\", "/", profile)
   profile_url <- paste0("file:///", sub("^/+", "", profile_path))

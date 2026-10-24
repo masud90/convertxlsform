@@ -37,7 +37,8 @@
   ft <- flextable::font(ft, fontname = ctx$font, part = "all",
                         cs.family = ctx$cs, hansi.family = ctx$font,
                         eastasia.family = ctx$font)
-  ft <- flextable::set_table_properties(ft, layout = "fixed", align = "left")
+  ft <- flextable::set_table_properties(ft, layout = "fixed", align = "left",
+                                        opts_word = list(split = FALSE))
   ft <- flextable::padding(ft, padding.top = pad[1], padding.bottom = pad[2],
                            padding.left = pad[3], padding.right = pad[4],
                            part = "body")
@@ -77,31 +78,33 @@
   } else {
     widths <- c(box_w, tw - box_w)
   }
-  ft <- .new_table(1L, length(widths))
-  if (!is.na(beside) && length(widths) == 2L) {
-    ft <- .set_cell(ft, 1L, 2L, list(flextable::as_chunk(
-      beside, props = .fp(ctx, size = ctx$size - 1, color = .cxf_gray)
-    )))
-  }
-  ft <- .finish_table(ft, ctx, widths, keep_last = keep_last)
-  ft <- .box_cells(ft, 1L, 1L)
+  cells <- .wml_tc(widths[1L], .wml_run(ctx, ""), box = TRUE,
+                   keep = keep_last)
   if (length(widths) == 2L) {
-    ft <- flextable::valign(ft, j = 2L, valign = "center", part = "body")
-    ft <- flextable::padding(ft, j = 2L, padding.left = 8, part = "body")
+    runs <- if (is.na(beside)) "" else
+      .wml_run(ctx, beside, size = ctx$size - 1, color = .cxf_gray)
+    cells <- c(cells, .wml_tc(widths[2L], runs, valign = "center",
+                              pad = c(1, 1, 8, 3), keep = keep_last))
   }
-  ft <- flextable::height(ft, height = 0.3 * lines, part = "body")
-  flextable::hrule(ft, rule = "exact", part = "body")
+  .wml_tbl(.wml_tr(cells, height = 0.3 * lines), widths)
 }
 
 # ---- select ------------------------------------------------------------------
 
 #' Chunks of one choice label (markup, write-in line, image)
 #' @noRd
-.choice_label_chunks <- function(ctx, label, write_in, image) {
+.choice_label_chunks <- function(ctx, label, write_in, image,
+                                 skip = NA_character_) {
   fp <- .fp(ctx)
   ch <- .text_chunks(label, fp)
   if (isTRUE(write_in)) {
     ch <- c(ch, list(flextable::as_chunk("  ________", props = fp)))
+  }
+  if (length(skip) == 1L && !is.na(skip)) {
+    ch <- c(ch, list(flextable::as_chunk(
+      paste0("  ", ctx$sym$arrow, " ", skip),
+      props = .fp(ctx, size = ctx$size - 1, bold = TRUE, color = .cxf_logic)
+    )))
   }
   if (!is.null(image)) {
     usable <- isTRUE(image$found) && !anyNA(c(image$width_in, image$height_in))
@@ -134,9 +137,96 @@
   list(note, .layout_box(ctx, lines = 1L, keep_last = keep_last))
 }
 
+#' Runs of one choice label (markup, write-in line, go-to instruction)
+#' @noRd
+.choice_label_wml <- function(ctx, label, write_in, skip = NA_character_) {
+  runs <- .wml_text(ctx, label)
+  if (isTRUE(write_in)) runs <- paste0(runs, .wml_run(ctx, "  ________"))
+  if (length(skip) == 1L && !is.na(skip)) {
+    runs <- paste0(runs, .wml_run(ctx, paste0("  ", ctx$sym$arrow, " ", skip),
+                                  size = ctx$size - 1, bold = TRUE,
+                                  color = .cxf_logic))
+  }
+  runs
+}
+
+#' Column widths of a choice table: symbol, code and label per group
+#' @noRd
+.choice_widths <- function(ch, ctx, ncol, show_code) {
+  tw <- ctx$tw
+  gw <- tw / ncol
+  sym_w <- 0.32
+  indent <- 0.22
+  code_w <- if (show_code) {
+    mx <- max(nchar(ch$name), 1L)
+    min(gw * 0.3, max(0.35, 0.07 * mx + 0.12))
+  } else {
+    0
+  }
+  widths <- numeric(0)
+  for (g in seq_len(ncol)) {
+    gi <- if (g == 1L) indent else 0
+    lw <- gw - sym_w - code_w - gi - if (g < ncol) 0.1 else 0
+    widths <- c(widths, sym_w + gi, if (show_code) code_w, lw)
+  }
+  # fill so that widths sum to the text width (gaps between groups)
+  widths[length(widths)] <- widths[length(widths)] + (tw - sum(widths))
+  list(widths = widths, indent = indent)
+}
+
 #' Choices as symbol, code and label triples across `ncol` groups
+#'
+#' Choice images need flextable; other lists are written as WML directly.
 #' @noRd
 .layout_choices <- function(a, ctx, ncol, keep_last) {
+  ch <- a$choices
+  if (any(!vapply(ch$image, is.null, NA))) {
+    return(.layout_choices_ft(a, ctx, ncol, keep_last))
+  }
+  n <- nrow(ch)
+  show_code <- isTRUE(ctx$opts$include_choice_name)
+  per <- if (show_code) 3L else 2L
+  nr <- ceiling(n / ncol)
+  cw <- .choice_widths(ch, ctx, ncol, show_code)
+  widths <- cw$widths
+  sym <- .cxf_symbols()[[switch(a$symbol, circle = "circle",
+                                square = "square", "rank")]]
+  sym_run <- .wml_run(ctx, sym, size = .symbol_size(sym, ctx$size))
+  keep <- .wml_keep(nr, keep_last)
+  rows <- character(nr)
+  for (r in seq_len(nr)) {
+    cells <- character(0)
+    for (g in seq_len(ncol)) {
+      k <- (g - 1L) * nr + r
+      j0 <- (g - 1L) * per
+      has <- k <= n
+      left <- if (g == 1L) cw$indent * 72 else 3
+      cells <- c(cells, .wml_tc(widths[j0 + 1L], if (has) sym_run else "",
+                                valign = "center", pad = c(1, 1, left, 3),
+                                keep = keep[r]))
+      if (show_code) {
+        cells <- c(cells, .wml_tc(
+          widths[j0 + 2L],
+          if (has) .wml_run(ctx, ch$name[k], size = ctx$size - 2,
+                            color = .cxf_gray) else "",
+          pad = c(3, 1, 3, 3), keep = keep[r]
+        ))
+      }
+      cells <- c(cells, .wml_tc(
+        widths[j0 + per],
+        if (has) .choice_label_wml(ctx, ch$label[k], ch$write_in[k],
+                                   ch$skip[k] %||% NA_character_) else "",
+        keep = keep[r]
+      ))
+    }
+    rows[r] <- .wml_tr(cells)
+  }
+  list(.wml_tbl(rows, widths))
+}
+
+#' Choices with images, through flextable
+#' @noRd
+.layout_choices_ft <- function(a, ctx, ncol, keep_last) {
   ch <- a$choices
   n <- nrow(ch)
   show_code <- isTRUE(ctx$opts$include_choice_name)
@@ -177,7 +267,8 @@
       )))
     }
     ft <- .set_cell(ft, r, j0 + per, .choice_label_chunks(
-      ctx, ch$label[k], ch$write_in[k], ch$image[[k]]
+      ctx, ch$label[k], ch$write_in[k], ch$image[[k]],
+      skip = ch$skip[k] %||% NA_character_
     ))
   }
   ft <- .finish_table(ft, ctx, widths, keep_last = keep_last)
@@ -212,16 +303,13 @@
   n <- nrow(ch)
   tw <- ctx$tw
   # the "Code:" box
-  bx <- .new_table(1L, 3L)
-  bx <- .set_cell(bx, 1L, 1L, list(flextable::as_chunk(
-    paste0(ctx$strings$code, ":"), props = .fp(ctx, bold = TRUE)
-  )))
-  bx <- .finish_table(bx, ctx, c(0.8, 1.6, max(tw - 2.4, 0.3)),
-                      keep_last = TRUE)
-  bx <- .box_cells(bx, 1L, 2L)
-  bx <- flextable::valign(bx, j = 1L, valign = "center", part = "body")
-  bx <- flextable::height(bx, height = 0.3, part = "body")
-  bx <- flextable::hrule(bx, rule = "exact", part = "body")
+  bw <- c(0.8, 1.6, max(tw - 2.4, 0.3))
+  bx <- .wml_tbl(.wml_tr(c(
+    .wml_tc(bw[1L], .wml_run(ctx, paste0(ctx$strings$code, ":"), bold = TRUE),
+            valign = "center", keep = TRUE),
+    .wml_tc(bw[2L], "", box = TRUE, keep = TRUE),
+    .wml_tc(bw[3L], "", keep = TRUE)
+  ), height = 0.3), bw)
 
   ncol <- a$ncol
   nr <- ceiling(n / ncol)
@@ -229,26 +317,35 @@
   mx <- max(nchar(ch$name), 1L)
   code_w <- min(gw * 0.35, max(0.4, 0.065 * mx + 0.15))
   fsz <- ctx$size - 2
-  ft <- .new_table(nr, 2L * ncol)
   lab <- gsub("\n", " ", ch$label, fixed = TRUE)
-  # compose every cell with chunks so that the complex-script font
-  # (cs.family) is set on each run
-  fp_code <- .fp(ctx, size = fsz, bold = TRUE, color = .cxf_gray)
-  fp_lab <- .fp(ctx, size = fsz)
-  for (k in seq_len(n)) {
-    g <- (k - 1L) %/% nr + 1L
-    r <- (k - 1L) %% nr + 1L
-    ft <- .set_cell(ft, r, 2L * g - 1L, list(flextable::as_chunk(
-      ch$name[k], props = fp_code
-    )))
-    ft <- .set_cell(ft, r, 2L * g, list(flextable::as_chunk(
-      lab[k], props = fp_lab
-    )))
-  }
   widths <- rep(c(code_w, gw - code_w), ncol)
-  ft <- .finish_table(ft, ctx, widths, keep_last = keep_last,
-                      pad = c(0.5, 0.5, 3, 3))
-  list(bx, ft)
+  keep <- .wml_keep(nr, keep_last)
+  pad <- c(0.5, 0.5, 3, 3)
+  rows <- character(nr)
+  for (r in seq_len(nr)) {
+    cells <- character(0)
+    for (g in seq_len(ncol)) {
+      k <- (g - 1L) * nr + r
+      has <- k <= n
+      code <- if (has) .wml_run(ctx, ch$name[k], size = fsz, bold = TRUE,
+                                color = .cxf_gray) else ""
+      txt <- ""
+      if (has) {
+        txt <- .wml_run(ctx, lab[k], size = fsz)
+        sk <- ch$skip[k] %||% NA_character_
+        if (!is.na(sk)) {
+          txt <- paste0(txt, .wml_run(ctx, paste0("  ", ctx$sym$arrow, " ", sk),
+                                      size = fsz, bold = TRUE,
+                                      color = .cxf_logic))
+        }
+      }
+      cells <- c(cells,
+                 .wml_tc(widths[2L * g - 1L], code, pad = pad, keep = keep[r]),
+                 .wml_tc(widths[2L * g], txt, pad = pad, keep = keep[r]))
+    }
+    rows[r] <- .wml_tr(cells)
+  }
+  list(bx, .wml_tbl(rows, widths))
 }
 
 .layout_select <- function(a, ctx, keep_last) {
@@ -274,42 +371,38 @@
   n <- length(v)
   tw <- ctx$tw
   cw <- min(0.6, (tw - 0.5) / n)
-  ft <- .new_table(2L, n + 1L)
+  widths <- c(rep(cw, n), tw - n * cw)
   nsz <- if (n > 12L) ctx$size - 1 else ctx$size
-  for (k in seq_len(n)) {
-    ft <- .set_cell(ft, 1L, k, list(flextable::as_chunk(
-      format(v[k]), props = .fp(ctx, size = nsz)
-    )))
-    ft <- .set_cell(ft, 2L, k, list(flextable::as_chunk(
-      .cxf_symbols()$circle,
-      props = .fp(ctx, size = .symbol_size(.cxf_symbols()$circle, ctx$size))
-    )))
-  }
-  ft <- .finish_table(ft, ctx, c(rep(cw, n), tw - n * cw),
-                      keep_last = keep_last, pad = c(0, 0, 0, 0))
-  ft <- flextable::align(ft, j = seq_len(n), align = "center", part = "body")
-  ft <- flextable::valign(ft, valign = "center", part = "body")
-  list(ft)
+  sym <- .cxf_symbols()$circle
+  sym_run <- .wml_run(ctx, sym, size = .symbol_size(sym, ctx$size))
+  pad <- c(0, 0, 0, 0)
+  nums <- c(vapply(seq_len(n), function(k) {
+    .wml_tc(cw, .wml_run(ctx, format(v[k]), size = nsz), valign = "center",
+            align = "center", pad = pad, keep = TRUE)
+  }, ""), .wml_tc(widths[n + 1L], "", pad = pad, keep = TRUE))
+  syms <- c(vapply(seq_len(n), function(k) {
+    .wml_tc(cw, sym_run, valign = "center", align = "center", pad = pad,
+            keep = keep_last)
+  }, ""), .wml_tc(widths[n + 1L], "", pad = pad, keep = keep_last))
+  list(.wml_tbl(c(.wml_tr(nums), .wml_tr(syms)), widths))
 }
 
 .layout_geo <- function(a, ctx, keep_last) {
   if (identical(a$subtype, "geopoint")) {
     f <- a$fields
     tw <- ctx$tw
-    ft <- .new_table(length(f), 3L)
-    for (r in seq_along(f)) {
-      ft <- .set_cell(ft, r, 1L, list(flextable::as_chunk(
-        f[r], props = .fp(ctx)
-      )))
-    }
-    ft <- .finish_table(ft, ctx, c(1.4, 2.4, max(tw - 3.8, 0.3)),
-                        keep_last = keep_last,
-                        pad = c(2, 2, 3, 3))
-    ft <- .box_cells(ft, seq_along(f), 2L)
-    ft <- flextable::valign(ft, j = 1L, valign = "center", part = "body")
-    ft <- flextable::height(ft, height = 0.3, part = "body")
-    ft <- flextable::hrule(ft, rule = "exact", part = "body")
-    return(list(ft))
+    widths <- c(1.4, 2.4, max(tw - 3.8, 0.3))
+    keep <- .wml_keep(length(f), keep_last)
+    pad <- c(2, 2, 3, 3)
+    rows <- vapply(seq_along(f), function(r) {
+      .wml_tr(c(
+        .wml_tc(widths[1L], .wml_run(ctx, f[r]), valign = "center", pad = pad,
+                keep = keep[r]),
+        .wml_tc(widths[2L], "", box = TRUE, pad = pad, keep = keep[r]),
+        .wml_tc(widths[3L], "", pad = pad, keep = keep[r])
+      ), height = 0.3)
+    }, "")
+    return(list(.wml_tbl(rows, widths)))
   }
   .layout_prompt(a, ctx)
 }

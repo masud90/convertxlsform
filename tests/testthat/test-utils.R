@@ -1,6 +1,7 @@
 test_that("symbols are the documented Unicode characters", {
   sym <- .cxf_symbols()
-  expect_named(sym, c("circle", "square", "rank", "tick"))
+  expect_named(sym, c("circle", "square", "rank", "tick", "arrow"))
+  expect_equal(utf8ToInt(sym$arrow), 0x2192)
   expect_equal(utf8ToInt(sym$circle), 0x25CB)
   expect_equal(utf8ToInt(sym$square), 0x25A1)
   expect_equal(utf8ToInt(sym$rank), 0x25A1)

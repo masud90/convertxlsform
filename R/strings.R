@@ -60,7 +60,11 @@
     generated = "Generated",
     form_id = "Form ID",
     language = "Language",
-    image = "image"
+    image = "image",
+    go_to = "Go to",
+    go_to_end = "Go to end",
+    legend_go_to = "Go to: skip to the question shown when that answer is given",
+    entity_list = "Entity list"
   )
 }
 
@@ -124,7 +128,12 @@
     generated = "G\u00e9n\u00e9r\u00e9 le",
     form_id = "Identifiant du formulaire",
     language = "Langue",
-    image = "image"
+    image = "image",
+    go_to = "Aller \u00e0",
+    go_to_end = "Aller \u00e0 la fin",
+    legend_go_to = paste("Aller \u00e0 : passer \u00e0 la question indiqu\u00e9e",
+                         "quand cette r\u00e9ponse est donn\u00e9e"),
+    entity_list = "Liste d'entit\u00e9s"
   )
 }
 

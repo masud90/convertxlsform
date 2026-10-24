@@ -7,7 +7,7 @@ NULL
 #' Symbols used in the paper form
 #'
 #' @return A named list of single-character strings: `circle`, `square`,
-#'   `rank` and `tick`.
+#'   `rank`, `tick` and `arrow`.
 #' @noRd
 .cxf_symbols <- function() {
   list(
@@ -16,7 +16,8 @@ NULL
     circle = "\u25CB",  # white circle: choose one (U+25CB)
     square = "\u25A1",  # white square: choose all (U+25A1)
     rank = "\u25A1",    # white square: rank box (U+25A1)
-    tick = "\u25A1"     # white square: acknowledge (U+25A1)
+    tick = "\u25A1",    # white square: acknowledge (U+25A1)
+    arrow = "\u2192"    # rightwards arrow: go to (U+2192)
   )
 }
 

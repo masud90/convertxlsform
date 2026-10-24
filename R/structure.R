@@ -1,6 +1,18 @@
 # Group and repeat structure, depth and display numbering.
 # ASCII-only source.
 
+#' Does an appearance contain a token?
+#'
+#' @param appearance Character vector of appearances (NA allowed).
+#' @param token A single appearance token, such as `"label"`.
+#' @return Logical vector.
+#' @noRd
+.has_appearance <- function(appearance, token) {
+  app <- tolower(as.character(appearance))
+  app[is.na(app)] <- ""
+  vapply(strsplit(app, "[[:space:]]+"), function(t) token %in% t, NA)
+}
+
 #' Add depth, parent and serial to the survey
 #'
 #' A single pass with an explicit stack. Aborts, citing Excel rows, on
@@ -19,6 +31,10 @@
   kind <- as.character(survey$kind)
   rows <- survey$row
   has_label <- !.is_blank(survey$label)
+  # a select with the `label` appearance only prints the choice labels as
+  # the header of a grid, so it takes no number
+  header_row <- kind %in% c("select_one", "select_multiple") &
+    .has_appearance(survey$appearance %||% rep(NA_character_, n), "label")
 
   depth <- integer(n)
   parent <- rep(NA_integer_, n)
@@ -82,7 +98,7 @@
         depth[i] <- top
         parent[i] <- if (top > 0L) st_idx[top] else NA_integer_
       }
-    } else if (!(k %in% unnumbered)) {
+    } else if (!(k %in% unnumbered) && !header_row[i]) {
       if (nested_serial_numbers) {
         counter[cur_nf] <- counter[cur_nf] + 1L
         serial[i] <- if (cur_nf == 1L) {

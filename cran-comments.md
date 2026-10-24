@@ -1,3 +1,22 @@
+## convertxlsform 0.4.0
+
+New features and a bug fix; see `NEWS.md`. The Title and Description now
+quote only software names, as CRAN asked for 0.3.0.
+
+Checks so far:
+
+* Ubuntu 24.04, R 4.3.3, `R CMD check --no-manual --ignore-vignettes` with
+  `NOT_CRAN=false` (2026-10-23, cloud container without access to CRAN, so
+  without `--as-cran`): 0 errors, 0 warnings, 1 note ('doconv' suggested
+  but not installed there). Tests 30 s, 1126 passes, 22 skips.
+* To do before submitting: `--as-cran` with the PDF manual and vignettes on
+  macOS, win-builder R-devel and R-release, R-hub, and GitHub Actions.
+
+New dependency: 'systemfonts' (Imports), which was already installed as a
+dependency of 'flextable'. The minimum 'officer' version is now 0.6.10.
+
+# convertxlsform 0.3.0
+
 ## R CMD check results
 
 Local run on 2026-10-12, built and checked from a temporary directory with

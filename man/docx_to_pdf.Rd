@@ -9,7 +9,8 @@ docx_to_pdf(
   pdf = NULL,
   engine = c("auto", "libreoffice", "word"),
   overwrite = FALSE,
-  verbose = TRUE
+  verbose = TRUE,
+  fonts = NULL
 )
 }
 \arguments{
@@ -25,6 +26,12 @@ force one engine.}
 \item{overwrite}{Overwrite an existing \code{pdf}? Default \code{FALSE}.}
 
 \item{verbose}{Print progress messages? Default \code{TRUE}.}
+
+\item{fonts}{Font files (\code{.ttf}, \code{.otf}, \code{.ttc}) or folders of font files
+that LibreOffice should use for this conversion, in addition to the
+fonts it finds itself. Use it when a script shows as blank text or boxes
+in the PDF although the font is on the machine. \code{NULL} (default) uses
+the option \code{convertxlsform.fonts}, if set. Ignored by the Word engine.}
 }
 \value{
 The path of the PDF, invisibly.

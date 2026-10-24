@@ -49,7 +49,7 @@ test_that("elements of the cxf_form follow the spec", {
             label = c("Yes", "No"), region = c("n", "s"))
   f <- read_quiet(make_form(sv, ch), media_root = tempdir())
   expect_named(f, c("path", "media_root", "settings", "languages", "lang",
-                    "survey", "choices", "sheets", "found"))
+                    "survey", "choices", "entities", "sheets", "found"))
   expect_equal(f$media_root, normalizePath(tempdir(), winslash = "/"))
   expect_equal(nrow(f$languages), 0)
   expect_equal(f$lang$mode, "single")

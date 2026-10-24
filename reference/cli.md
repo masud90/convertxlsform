@@ -52,9 +52,13 @@ suppresses them (the same as `verbose = FALSE` in
 
 - `-l`, `--lang LANG`: language code, name or header suffix.
 
+- `--lang2 LANG`: second language, printed under the first.
+
 - `--flat-numbers`: number questions 1, 2, 3 instead of 1.1, 1.2.
 
 - `--no-relevants`: hide skip logic.
+
+- `--no-skips`: hide "Go to" instructions next to choices.
 
 - `--no-constraints`: hide constraints.
 
@@ -79,11 +83,22 @@ suppresses them (the same as `verbose = FALSE` in
 
 - `--font NAME` (default `Arial`) and `--font-size PT` (default 11).
 
+- `--font-cs NAME`: font for complex scripts such as Bengali or Arabic.
+
+- `--rtl`, `--ltr`: force right-to-left or left-to-right layout
+  (default: from the script of the language).
+
 - `--template FILE`: reference `.docx` for styles.
 
 - `--max-choices N`: longest choice list printed in full (default 30).
 
 - `--repeat-copies N`: copies of each repeat group (default 1).
+
+- `--repeat-layout auto|copies|roster`: how repeat groups are drawn
+  (default `auto`).
+
+- `--roster-rows N`: rows of a roster when the repeat count is not a
+  number (default 5).
 
 - `--overwrite`: replace existing output.
 

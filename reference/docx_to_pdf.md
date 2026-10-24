@@ -13,7 +13,8 @@ docx_to_pdf(
   pdf = NULL,
   engine = c("auto", "libreoffice", "word"),
   overwrite = FALSE,
-  verbose = TRUE
+  verbose = TRUE,
+  fonts = NULL
 )
 ```
 
@@ -41,6 +42,14 @@ docx_to_pdf(
 - verbose:
 
   Print progress messages? Default `TRUE`.
+
+- fonts:
+
+  Font files (`.ttf`, `.otf`, `.ttc`) or folders of font files that
+  LibreOffice should use for this conversion, in addition to the fonts
+  it finds itself. Use it when a script shows as blank text or boxes in
+  the PDF although the font is on the machine. `NULL` (default) uses the
+  option `convertxlsform.fonts`, if set. Ignored by the Word engine.
 
 ## Value
 

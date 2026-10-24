@@ -90,7 +90,30 @@ convertxlsform(xlsform, output = NULL, format = NULL, lang = NULL, ...)
     repeat group, 1 to 20.
 
   - `font_family_cs` (`NULL`): font for complex scripts; chosen from the
-    language when `NULL`.
+    language when `NULL`, using the first installed font of a list for
+    the script (for Bengali: Noto Sans Bengali, then fonts that ship
+    with macOS and Windows).
+
+  - `lang2` (`NULL`): a second language, printed on a new line under
+    each label, hint and choice of the first. See
+    [`xlsform_languages()`](https://masud90.github.io/convertxlsform/reference/xlsform_languages.md).
+
+  - `include_skips` (`TRUE`): print "Go to" instructions next to the
+    choices of single-choice questions whose answer skips later
+    questions.
+
+  - `rtl` (`NULL`): lay the document out right to left. `NULL` decides
+    from the script of the first language (Arabic and Hebrew are right
+    to left).
+
+  - `repeat_layout` (`"auto"`): how repeat groups are drawn. `"roster"`
+    draws a table with one row per member and one column per question
+    (up to 10 simple questions); `"copies"` prints the questions
+    `repeat_copies` times; `"auto"` uses a roster for repeats of up to 6
+    simple questions and copies otherwise.
+
+  - `roster_rows` (`5`): number of rows in a roster when the repeat
+    count is not a fixed number (1 to 50).
 
   - `overwrite` (`FALSE`): replace existing output files.
 
@@ -100,6 +123,24 @@ convertxlsform(xlsform, output = NULL, format = NULL, lang = NULL, ...)
 
 The path or paths of the files written, as a character vector,
 invisibly.
+
+## Layout
+
+A group with the `table-list` appearance whose questions share one
+choice list (up to 8 choices) is drawn as a grid, one row per question.
+So is a run of questions with the `list-nolabel` appearance after a
+question with the `label` appearance, which gives the column headings
+and takes no number.
+
+## Fonts in PDF output
+
+When the form uses Bengali, Arabic, Devanagari, Ethiopic or Hebrew text,
+the files of the chosen complex-script font are handed to LibreOffice
+for the conversion, so the PDF uses the font even when LibreOffice does
+not find it on its own. A warning names the font when it is not
+installed. More font files can be given with
+`options(convertxlsform.fonts = ...)`, see
+[`docx_to_pdf()`](https://masud90.github.io/convertxlsform/reference/docx_to_pdf.md).
 
 ## Where the file goes
 

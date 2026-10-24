@@ -1,13 +1,81 @@
 # Changelog
 
-## convertxlsform (development version)
+## convertxlsform 0.4.0
 
-- The DESCRIPTION Title and Description now put single quotes only
-  around software names (‘Microsoft Word’, ‘LibreOffice’, ‘Open Data
-  Kit’, ‘KoboToolbox’), as CRAN asked. XLSForm and the .docx file ending
-  are no longer quoted.
+### New features
+
+- “Go to” instructions. A single-choice question whose answer hides
+  later questions now shows, next to that choice, the question to go to
+  next, for example “No → Go to Q5”, or “Go to end”. The instruction is
+  worked out from the `relevant` expressions of the questions that
+  follow; it is left out when the result depends on other answers or
+  would leave a repeat group. `include_skips = FALSE` (or `--no-skips`)
+  turns it off.
+- Roster tables for repeat groups. A repeat of simple questions (text,
+  numbers, single and multiple choice, dates, times, barcodes, ranges)
+  is drawn as a table with one row per member and one column per
+  question, with the code lists and skip logic below it. A fixed
+  `repeat_count` sets the number of rows, otherwise `roster_rows`
+  (default 5). `repeat_layout = "auto"` (the default) uses a roster for
+  repeats of up to 6 such questions, `"roster"` allows up to 10, and
+  `"copies"` keeps the earlier layout.
+- Grids for `table-list` and `list-nolabel`. A group with the
+  `table-list` appearance whose questions share a choice list, and a
+  `label` question followed by `list-nolabel` questions, are drawn as
+  one grid with a row per question and a column per choice. The `label`
+  question gives the column headings and takes no number.
+- Bilingual documents. `lang2` (`--lang2`) prints a second language on a
+  new line under each label, hint, constraint message and choice of the
+  first.
+- Right-to-left layout. Forms in Arabic or Hebrew are laid out right to
+  left: paragraphs, tables and the page. `rtl = TRUE` or `FALSE`
+  (`--rtl`, `--ltr`) overrides the detection.
+- The `entities` sheet of ODK entity forms is read. The entity lists are
+  named in the front matter, and with `show_variable_names = TRUE` a
+  question’s `save_to` property is shown next to its name.
+- More XLSForm types and spellings: `background-geopoint` (hidden),
+  `osm` (captured on the device), and the pyxform aliases
+  `select all that apply`, `select_all_that_apply`, `select1`, `int`,
+  `string`, `gps`, `location` and `photo`.
+- New terminal options: `--lang2`, `--no-skips`, `--rtl`, `--ltr`,
+  `--font-cs`, `--repeat-layout` and `--roster-rows`.
+
+### Bug fixes
+
+- PDF output no longer shows blank text for Bengali, Ethiopic and other
+  complex scripts when LibreOffice does not find the font on its own
+  (the known issue of 0.3.0). The files of the complex-script font are
+  copied into the temporary LibreOffice profile used for the conversion,
+  and a warning names the font when it is not installed.
+  [`docx_to_pdf()`](https://masud90.github.io/convertxlsform/reference/docx_to_pdf.md)
+  gains a `fonts` argument, and the option `convertxlsform.fonts`, to
+  give LibreOffice more font files or folders.
+- The complex-script font is now the first installed font from a list
+  for each script (for Bengali: Noto Sans Bengali, Noto Serif Bengali,
+  Kohinoor Bangla, Bangla Sangam MN, Nirmala UI, Vrinda, and others),
+  instead of always the Noto font.
+- The last paragraph of a question no longer keeps with the next
+  question. The template styles keep paragraphs together, and officer
+  did not write the paragraph-level override, so long runs of questions
+  were glued together and page breaks fell in odd places.
+
+### Performance
+
+- Rendering is several times faster and now grows linearly with the size
+  of the form. Answer boxes and choice lists are written as Word XML
+  directly instead of through flextable, and the document body is
+  written in one pass. In a test form of 300 questions, writing the Word
+  document took about 6 seconds instead of about 2 minutes.
+
+### Other changes
+
+- The DESCRIPTION Title and Description put single quotes only around
+  software names (‘Microsoft Word’, ‘LibreOffice’, ‘Open Data Kit’,
+  ‘KoboToolbox’), as CRAN asked.
 - The README has a CRAN status badge and gives
   `install.packages("convertxlsform")` as the main way to install.
+- `systemfonts` is a new import (it was already installed with
+  flextable). officer 0.6.10 or later is required.
 
 ## convertxlsform 0.3.0
 
@@ -86,7 +154,7 @@ that both outputs share.
 
 - PDF output can show blank text for Bengali and other complex scripts
   when LibreOffice cannot find a suitable font on the machine. The Word
-  document is correct. A fix is planned for 0.4.0.
+  document is correct. Fixed in 0.4.0.
 
 ## convertxlsform 0.2.1 (2025-07-XX)
 

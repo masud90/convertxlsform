@@ -41,7 +41,7 @@ To install a specific release from GitHub, add its tag:
 
 ``` r
 
-remotes::install_github("masud90/convertxlsform@v0.3.0")
+remotes::install_github("masud90/convertxlsform@v0.4.0")
 ```
 
 Word output needs only R. PDF output needs one of the following:
@@ -122,13 +122,25 @@ Rscript -e 'quit(status = convertxlsform::cli())' form.xlsx --format pdf
   the document.
 - **Groups:** headings numbered by depth. Repeat groups carry a “Repeat
   for each …” line that describes the repeat count.
+- **Rosters:** a repeat group of up to six simple questions (text,
+  numbers, choices, dates) is drawn as a table with one row per member
+  and one column per question, with the code lists and skip logic below
+  it. A fixed `repeat_count` sets the number of rows, otherwise
+  `roster_rows` (default 5). Use `repeat_layout = "copies"` to print the
+  questions instead, `repeat_copies` times.
+- **Grids:** a group with the `table-list` appearance, or a `label`
+  question followed by `list-nolabel` questions, is drawn as one grid
+  with a row per question and a column per choice, when the questions
+  share a choice list of up to eight choices.
 - **Questions:** the number and label, a `*` for required questions, the
   hint in italics, and the variable name when
   `show_variable_names = TRUE`. “Ask if” and “Constraint” lines follow
   the answer area.
 - **Single choice (`select_one`):** a hollow circle before each choice.
   Lists of seven or fewer choices print in one column; longer lists
-  print in columns.
+  print in columns. When an answer skips later questions, the choice
+  shows where to go next, for example “No → Go to Q5” (turn off with
+  `include_skips = FALSE`).
 - **Multiple choice (`select_multiple`):** a hollow square before each
   choice.
 - **Rank:** a box beside each choice to write its rank.
@@ -180,6 +192,18 @@ The result has one row per language, with `suffix`, `code`, `name` and
 `lang` accepts a code, a name, or the full header suffix. If the
 requested language is not in the form, convertxlsform warns, lists the
 languages it found, and uses the default language instead.
+
+To print two languages in one document, give the second with `lang2`.
+Each label, hint, constraint message and choice of the first language is
+followed, on a new line, by its translation:
+
+``` r
+
+convertxlsform(path, output = tempdir(), lang = "en", lang2 = "bn")
+```
+
+Forms in Arabic or Hebrew are laid out right to left. `rtl = TRUE` or
+`rtl = FALSE` overrides the detection.
 
 Within a language, a blank cell falls back in this order: the column for
 the chosen language, then the plain column (for example `hint`), then
@@ -275,6 +299,11 @@ An existing file is not replaced unless `overwrite = TRUE`.
 | `max_choices` | `30` | Choice lists longer than this get a code box layout instead of a printed list. |
 | `strings` | `NULL` | Named list that replaces connective phrases such as “Ask if”. See [Languages](#languages). |
 | `repeat_copies` | `1` | Number of blank copies printed for each repeat group, from 1 to 20. |
+| `repeat_layout` | `"auto"` | `"roster"`, `"copies"` or `"auto"` (a roster for repeats of up to 6 simple questions). |
+| `roster_rows` | `5` | Rows of a roster when the repeat count is not a fixed number, from 1 to 50. |
+| `include_skips` | `TRUE` | Show “Go to” instructions next to choices that skip questions. |
+| `lang2` | `NULL` | A second language printed under the first. |
+| `rtl` | `NULL` | Right-to-left layout. `NULL` decides from the script of the language. |
 | `overwrite` | `FALSE` | Replace existing output files. |
 | `verbose` | `TRUE` | Print progress messages. |
 
@@ -302,6 +331,12 @@ Command-line flags of `cli()`
 | `--template FILE` | Reference `.docx` whose styles are used. |
 | `--max-choices N` | Longest choice list printed in full (default 30). |
 | `--repeat-copies N` | Copies of each repeat group (default 1). |
+| `--repeat-layout L` | `auto`, `copies` or `roster` (default `auto`). |
+| `--roster-rows N` | Roster rows when the repeat count is not a number (default 5). |
+| `--lang2 LANG` | Second language, printed under the first. |
+| `--no-skips` | Hide “Go to” instructions next to choices. |
+| `--rtl`, `--ltr` | Force right-to-left or left-to-right layout. |
+| `--font-cs NAME` | Font for complex scripts (default: chosen from the text). |
 | `--overwrite` | Replace existing output files. |
 | `--quiet` | No progress messages. |
 | `-h`, `--help` | Show the help and stop. |
@@ -316,15 +351,17 @@ Microsoft Word through `doconv` as a fallback (see
 [Installation](#installation)). Word output has no such requirement.
 
 convertxlsform looks at the characters in the labels of the language in
-use. When it finds Bengali, Arabic, Devanagari or Ethiopic text, it sets
-the complex-script font to the matching Noto font:
+use. When it finds Bengali, Arabic, Devanagari, Ethiopic or Hebrew text,
+it sets the complex-script font to the first of these fonts that is
+installed, and to the Noto font when none is:
 
-| Script     | Font                 |
-|------------|----------------------|
-| Bengali    | Noto Sans Bengali    |
-| Arabic     | Noto Naskh Arabic    |
-| Devanagari | Noto Sans Devanagari |
-| Ethiopic   | Noto Sans Ethiopic   |
+| Script | Fonts, in order |
+|----|----|
+| Bengali | Noto Sans Bengali, Noto Serif Bengali, Kohinoor Bangla, Bangla Sangam MN, Bangla MN, Nirmala UI, Vrinda, Lohit Bengali, FreeSans |
+| Arabic | Noto Naskh Arabic, Noto Sans Arabic, Geeza Pro, Arial, Tahoma, Times New Roman, DejaVu Sans |
+| Devanagari | Noto Sans Devanagari, Noto Serif Devanagari, Kohinoor Devanagari, Devanagari Sangam MN, Nirmala UI, Mangal, Lohit Devanagari, FreeSans |
+| Ethiopic | Noto Sans Ethiopic, Noto Serif Ethiopic, Kefa, Ebrima, Nyala, Abyssinica SIL, FreeSerif |
+| Hebrew | `font_family`, Noto Sans Hebrew, Arial, DejaVu Sans |
 
 Latin text uses `font_family`. To choose the complex-script font
 yourself, pass `font_family_cs`:
@@ -334,17 +371,20 @@ yourself, pass `font_family_cs`:
 convertxlsform(path, lang = "bn", font_family_cs = "Noto Sans Bengali")
 ```
 
-The font must be installed on the machine that converts the document to
-PDF. If the named font is missing, LibreOffice or Word substitutes
-another font, which can show boxes or the wrong script.
+For a PDF, convertxlsform hands the files of the complex-script font to
+LibreOffice for the conversion, so the PDF uses the font even when
+LibreOffice does not find it on its own (as happens with some macOS
+installations). If the font is not installed at all, a warning names it.
+To give LibreOffice more fonts, set an option with font files or
+folders:
 
-Right-to-left layout is not yet supported. Arabic and Hebrew text is
-detected, but the document is still laid out left to right.
+``` r
 
-**Known issue:** PDF output can show blank text for Bengali and other
-complex scripts when LibreOffice cannot find a suitable font on the
-machine. The Word document is correct. A fix is planned for 0.4.0. See
-Troubleshooting below for workarounds.
+options(convertxlsform.fonts = "~/Library/Fonts")
+```
+
+Arabic and Hebrew forms are laid out right to left. See [Choosing a
+language](#choosing-a-language).
 
 ## Inspect a form
 
@@ -374,8 +414,11 @@ The PDF shows boxes or blank text for non-Latin scripts
 The font for that script is not installed on the machine that made the
 PDF. Either:
 
-- install the Noto font for that script (for example Noto Sans Bengali),
-  then convert again;
+- install the Noto font for that script (for example Noto Sans Bengali,
+  from <https://fonts.google.com/noto>), then convert again;
+- point LibreOffice to the font files with
+  `options(convertxlsform.fonts = "path/to/fonts")` or
+  `docx_to_pdf(docx, fonts = "path/to/fonts")`;
 - set `font_family_cs` to a font that is installed; or
 - convert with Microsoft Word through
   `docx_to_pdf(docx, engine = "word")`, which uses the fonts available
@@ -404,9 +447,8 @@ in the form.
 
 ## Performance
 
-Very large forms (hundreds of questions and long choice lists) can take
-tens of seconds to convert, and longer for PDF because LibreOffice has
-to lay out every page.
+A form of a few hundred questions converts to Word in a few seconds. PDF
+output takes longer because LibreOffice has to lay out every page.
 
 ## Contributing
 

@@ -4,6 +4,14 @@
 
 ### New features
 
+- Built-in printed phrases (“Ask if”, “Choose one answer”, “Page 1 of 3”
+  and the rest) for Spanish (`es`), Portuguese (`pt`), Arabic (`ar`),
+  Bengali (`bn`) and Swahili (`sw`), in addition to English and French.
+  The new tables were machine-drafted and are waiting for review by
+  native speakers; `strings` still overrides any phrase. Forms whose
+  language headers give only a native name, such as `label::Español`,
+  `label::Português`, `label::العربية` or `label::বাংলা`, now get the
+  matching code.
 - “Go to” instructions. A single-choice question whose answer hides
   later questions now shows, next to that choice, the question to go to
   next, for example “No → Go to Q5”, or “Go to end”. The instruction is

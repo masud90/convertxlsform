@@ -229,7 +229,7 @@ An existing file is not replaced unless `overwrite = TRUE`.
 | `font_family` | `"Arial"` | Font for the document. |
 | `font_size` | `11` | Base font size in points, from 6 to 20. |
 | `font_family_cs` | `NULL` | Font for complex scripts. Chosen from the text when `NULL`; see [PDF output and fonts](#pdf-output-and-fonts). |
-| `template` | `NULL` | A reference `.docx` whose styles are used. |
+| `template` | `NULL` | A reference `.docx` whose styles are used. See the [template vignette](https://masud90.github.io/convertxlsform/articles/custom-template.html). |
 | `max_choices` | `30` | Choice lists longer than this get a code box layout instead of a printed list. |
 | `strings` | `NULL` | Named list that replaces connective phrases such as "Ask if". See [Languages](#languages). |
 | `repeat_copies` | `1` | Number of blank copies printed for each repeat group, from 1 to 20. |

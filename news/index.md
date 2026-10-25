@@ -72,6 +72,10 @@
 - The DESCRIPTION Title and Description put single quotes only around
   software names (‘Microsoft Word’, ‘LibreOffice’, ‘Open Data Kit’,
   ‘KoboToolbox’), as CRAN asked.
+- New vignette, “Changing the look with a template”, on making a custom
+  Word template: the styles convertxlsform uses, how to edit them in
+  Word, LibreOffice or R, and which options override the template
+  ([\#25](https://github.com/masud90/convertxlsform/issues/25)).
 - The README has a CRAN status badge and gives
   `install.packages("convertxlsform")` as the main way to install.
 - `systemfonts` is a new import (it was already installed with

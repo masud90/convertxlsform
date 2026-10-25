@@ -22,8 +22,28 @@ test_that("English and French tables have the same names", {
   expect_true(any(startsWith(names(en), "legend")))
 })
 
+test_that("every built-in table is complete and keeps the placeholders", {
+  en <- .strings_en()
+  n_marks <- function(x) lengths(regmatches(x, gregexpr("%s", x, fixed = TRUE)))
+  tables <- list(es = .strings_es(), pt = .strings_pt(), ar = .strings_ar(),
+                 bn = .strings_bn(), sw = .strings_sw())
+  for (code in names(tables)) {
+    s <- tables[[code]]
+    expect_equal(names(s), names(en), info = code)
+    expect_true(all(vapply(s, function(v) is.character(v) && length(v) == 1L &&
+                             nzchar(v), NA)), info = code)
+    expect_equal(n_marks(unlist(s)), n_marks(unlist(en)), info = code)
+    expect_false(identical(.cxf_strings(code)$ask_if, en$ask_if), info = code)
+  }
+  expect_equal(.cxf_strings("es")$ask_if, "Preguntar si")
+  expect_equal(.cxf_strings("pt-BR")$other_specify, "Outro (especificar)")
+  expect_equal(.cxf_strings("sw")$go_to, "Nenda kwa")
+  expect_equal(.cxf_strings("ar")$page, "\u0635\u0641\u062d\u0629")
+  expect_equal(.cxf_strings("bn")$page, "\u09aa\u09c3\u09b7\u09cd\u09a0\u09be")
+})
+
 test_that("unknown languages fall back to English", {
-  expect_equal(.cxf_strings("bn"), .cxf_strings("en"))
+  expect_equal(.cxf_strings("zu"), .cxf_strings("en"))
   expect_equal(.cxf_strings(NA), .cxf_strings("en"))
   expect_equal(.cxf_strings(NULL), .cxf_strings("en"))
   expect_equal(.cxf_strings("xx"), .cxf_strings("en"))
@@ -74,6 +94,17 @@ test_that("the language code comes from the form", {
   # the name is looked up even when the languages table has no code
   h$languages$code <- NA_character_
   expect_equal(.form_lang_code(h), "ar")
+  # native names of the languages with built-in phrases
+  native <- c(es = "Espa\u00f1ol", pt = "Portugu\u00eas", sw = "Kiswahili",
+              ar = "\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
+              bn = "\u09ac\u09be\u0982\u09b2\u09be")
+  for (code in names(native)) {
+    nm <- native[[code]]
+    sv <- fdf(type = "text", name = "q", label = "Q")
+    names(sv)[3] <- paste0("label::", nm)
+    f <- read_quiet(make_form(sv), lang = nm)
+    expect_equal(.form_lang_code(f), code, info = code)
+  }
 })
 
 test_that("a table without newer entries keeps the English ones", {

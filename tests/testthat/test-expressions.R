@@ -221,7 +221,10 @@ test_that("choice labels follow the chosen language", {
   x <- "${dwelling_ownership}='1'"
   expect_equal(.humanize_expr(x, en, "relevant"),
                "Q3.5 (dwelling_ownership) is \"Yes\"")
-  expect_match(.humanize_expr(x, bn, "relevant"), "^Q3.5 \\(dwelling_ownership\\) is ")
+  # Bengali forms use the Bengali phrase table
+  expect_match(.humanize_expr(x, bn, "relevant"),
+               paste0("^Q3.5 \\(dwelling_ownership\\) ",
+                      .cxf_strings("bn")$is, " "))
   expect_false(identical(.humanize_expr(x, en, "relevant"),
                          .humanize_expr(x, bn, "relevant")))
   # the multilang example's constraint uses if()

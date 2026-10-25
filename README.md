@@ -155,7 +155,7 @@ Within a language, a blank cell falls back in this order: the column for the cho
 
 ### Connective phrases
 
-Phrases such as "Ask if", "Constraint" and "Repeat for each" come from built-in tables. convertxlsform includes English and French. Any other language uses the English phrases unless you supply translations with `strings`.
+Phrases such as "Ask if", "Constraint" and "Repeat for each" come from built-in tables. convertxlsform includes English, French, Spanish, Portuguese, Arabic, Bengali and Swahili. The last five were machine-drafted and are still being reviewed by native speakers; corrections are welcome (see issue #12). Any other language uses the English phrases unless you supply translations with `strings`.
 
 To translate them, pass a named list. Only the names listed below can be used, and an unknown name is an error:
 

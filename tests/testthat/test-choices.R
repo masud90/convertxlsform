@@ -49,6 +49,83 @@ test_that("CSV choices are read with the chosen language", {
   expect_equal(nrow(b$choices), 5L)
 })
 
+test_that("XML choices are read from the example file", {
+  p <- system.file("extdata", "all_types", "all_types.xlsx",
+                   package = "convertxlsform")
+  skip_if(!nzchar(p))
+  skip_if(!file.exists(file.path(dirname(p), "facilities.xml")))
+  a <- .file_choices(read_quiet(p, lang = "fr"), "facilities.xml")
+  expect_true(a$found)
+  expect_true(is.na(a$note))
+  expect_named(a$choices, c("name", "label", "image"))
+  expect_equal(a$choices$name,
+               c("school", "clinic", "market", "water_point"))
+  expect_equal(a$choices$label[2], "Health centre & pharmacy")
+  expect_true(all(is.na(a$choices$image)))
+})
+
+test_that("XML choice files: entities, CDATA, comments and blanks", {
+  skip_if_no_writexl()
+  d <- write_csv_dir(
+    "odk.xml" = c(
+      "\ufeff<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<!-- a comment with <item><name>x</name></item> inside -->",
+      "<root>",
+      "  <item><name>a</name><label>A &lt;1&gt; &quot;q&quot;</label></item>",
+      "  <item>",
+      "    <name>b</name>",
+      "    <label><![CDATA[B & <b>]]></label>",
+      "    <extra/>",
+      "  </item>",
+      "  <item><name>c</name><label>Caf&#233; &#x41;</label></item>",
+      "  <item><name>d</name><label/></item>",
+      "  <item><label>no name</label></item>",
+      "</root>"
+    ),
+    "multi.xml" = c(
+      "<root>",
+      "<item><name>1</name><label>Cat</label><district>n</district></item>",
+      "<item><name>2</name><label></label></item>",
+      "</root>"
+    ),
+    "nolabel.xml" = "<root><item><id>7</id></item></root>"
+  )
+  f <- read_quiet(make_form(fdf(type = "text", name = "q", label = "Q")),
+                  media_root = d)
+  a <- .file_choices(f, "odk.xml")
+  expect_true(a$found)
+  expect_equal(a$choices$name, c("a", "b", "c", "d"))
+  expect_equal(a$choices$label,
+               c("A <1> \"q\"", "B & <b>", "Caf\u00e9 A", "d"))
+  m <- .file_choices(f, "multi.xml")
+  expect_equal(m$choices$label, c("Cat", "2"))
+  # without a name element the first column is the value
+  n <- .file_choices(f, "nolabel.xml")
+  expect_equal(n$choices$name, "7")
+  expect_equal(n$choices$label, "7")
+})
+
+test_that("a select_one_from_file with an XML file lists its choices", {
+  skip_if_no_writexl()
+  d <- write_csv_dir("v.xml" = c(
+    "<root>",
+    "<item><name>v1</name><label>Village 1</label></item>",
+    "<item><name>v2</name><label>Village 2</label></item>",
+    "</root>"
+  ))
+  survey <- fdf(type = c("select_one_from_file v.xml", "text"),
+                name = c("v", "t"), label = c("Village", "T"),
+                relevant = c(NA, "${v} = 'v2'"))
+  f <- read_quiet(make_form(survey), media_root = d)
+  sc <- .select_choices(f, 1L)
+  expect_true(sc$source_found)
+  expect_true(is.na(sc$note))
+  expect_equal(sc$choices$label, c("Village 1", "Village 2"))
+  # skip logic shows the label from the file
+  expect_equal(.humanize_expr("${v} = 'v2'", f, "relevant"),
+               "Q1 (v) is \"Village 2\"")
+})
+
 test_that("the label column follows the language and falls back", {
   skip_if_no_writexl()
   d <- write_csv_dir(
@@ -95,9 +172,10 @@ test_that("a byte order mark and UTF-8 text are handled", {
   expect_equal(ch$label, "Caf\u00e9")
 })
 
-test_that("missing, XML and unreadable files", {
+test_that("missing, empty and unsupported files", {
   skip_if_no_writexl()
-  d <- write_csv_dir("list.xml" = "<root/>", "empty.csv" = "")
+  d <- write_csv_dir("list.xml" = "<root/>", "empty.csv" = "",
+                     "places.geojson" = "{}")
   survey <- fdf(type = "text", name = "q", label = "Q")
   f <- read_quiet(make_form(survey), media_root = d)
 
@@ -106,10 +184,16 @@ test_that("missing, XML and unreadable files", {
   expect_equal(nrow(miss$choices), 0L)
   expect_true(is.na(miss$path))
 
+  # an XML file without items is like an empty CSV file
   xml <- .file_choices(f, "list.xml")
-  expect_true(xml$found)
+  expect_false(xml$found)
   expect_equal(nrow(xml$choices), 0L)
-  expect_match(xml$note, "XML")
+  expect_match(xml$note, "could not be read")
+
+  geo <- .file_choices(f, "places.geojson")
+  expect_true(geo$found)
+  expect_equal(nrow(geo$choices), 0L)
+  expect_match(geo$note, "CSV and XML")
 
   empty <- .file_choices(f, "empty.csv")
   expect_false(empty$found)

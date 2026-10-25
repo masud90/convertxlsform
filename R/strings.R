@@ -64,7 +64,22 @@
     go_to = "Go to",
     go_to_end = "Go to end",
     legend_go_to = "Go to: skip to the question shown when that answer is given",
-    entity_list = "Entity list"
+    entity_list = "Entity list",
+    # functions in expressions; %s marks are filled in order
+    string_length = "number of characters in",
+    matches_pattern = "matches the pattern",
+    selected_at = "selected choice no. %s in %s",
+    choice_label_of = "label of the choice in",
+    count_of = "number of entries in",
+    position = "number of the current entry",
+    indexed_repeat = "%s in entry %s of %s",
+    if_then_else = "if %s then %s, otherwise %s",
+    coalesce = "%s, or %s if empty",
+    whole_part_of = "whole part of",
+    rounded = "%s rounded",
+    rounded_to = "%s rounded to %s decimal places",
+    years_since = "years since %s",
+    calculated_value = "a calculated value"
   )
 }
 
@@ -133,7 +148,21 @@
     go_to_end = "Aller \u00e0 la fin",
     legend_go_to = paste("Aller \u00e0 : passer \u00e0 la question indiqu\u00e9e",
                          "quand cette r\u00e9ponse est donn\u00e9e"),
-    entity_list = "Liste d'entit\u00e9s"
+    entity_list = "Liste d'entit\u00e9s",
+    string_length = "nombre de caract\u00e8res de",
+    matches_pattern = "correspond au mod\u00e8le",
+    selected_at = "choix s\u00e9lectionn\u00e9 n\u00b0 %s dans %s",
+    choice_label_of = "libell\u00e9 du choix dans",
+    count_of = "nombre d'occurrences de",
+    position = "num\u00e9ro de l'occurrence en cours",
+    indexed_repeat = "%s dans l'occurrence %s de %s",
+    if_then_else = "si %s alors %s, sinon %s",
+    coalesce = "%s, ou %s si vide",
+    whole_part_of = "partie enti\u00e8re de",
+    rounded = "%s arrondi",
+    rounded_to = "%s arrondi \u00e0 %s d\u00e9cimales",
+    years_since = "ann\u00e9es \u00e9coul\u00e9es depuis %s",
+    calculated_value = "une valeur calcul\u00e9e"
   )
 }
 
@@ -158,7 +187,11 @@
   } else {
     sub("[-_].*$", "", tolower(trimws(lang_code)))
   }
-  out <- switch(code, fr = .strings_fr(), .strings_en())
+  out <- .strings_en()
+  # a table that lacks newer entries keeps the English ones
+  tbl <- switch(code, fr = .strings_fr(), NULL)
+  keep <- intersect(names(tbl), names(out))
+  out[keep] <- tbl[keep]
   if (!is.null(overrides)) {
     bad <- setdiff(names(overrides), names(out))
     if (length(bad) > 0L || is.null(names(overrides))) {
@@ -178,7 +211,8 @@
 #' Language code of the form in use ("en" when unknown)
 #'
 #' Taken from the `code` column of `form$languages` for the chosen suffix. A
-#' name alone (for example "French") is recognized for English and French.
+#' name alone (for example "French" or "Espa\u00f1ol") is looked up in
+#' `.lang_name_codes()`.
 #' @noRd
 .form_lang_code <- function(form) {
   sfx <- form$lang$suffix
@@ -192,11 +226,8 @@
   }
   code <- langs$code[i]
   if (is.na(code)) {
-    nm <- tolower(langs$name[i])
-    if (is.na(nm)) {
-      return("en")
-    }
-    return(switch(nm, french = , "fran\u00e7ais" =, francais = "fr", "en"))
+    code <- .lang_code_from_name(langs$name[i])
+    return(if (is.na(code)) "en" else code)
   }
   sub("[-_].*$", "", tolower(code))
 }

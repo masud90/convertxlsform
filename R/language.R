@@ -96,19 +96,25 @@
 
 #' ISO 639-1 codes for common language names
 #'
-#' Used only to fill a missing code for headers such as `label::French`.
+#' Used to fill a missing code for headers such as `label::French`. Native
+#' names are listed for the languages with built-in phrases (`.cxf_strings()`).
 #' Languages without an ISO 639-1 code (for example Dinka, Nuer, Dari) are left
 #' out; Dari is listed under its ISO 639-3 code `prs`.
 #' @noRd
 .lang_name_codes <- function() {
-  c(english = "en", french = "fr", francais = "fr", spanish = "es",
+  out <- c(english = "en", french = "fr", francais = "fr", spanish = "es",
     espanol = "es", portuguese = "pt", arabic = "ar", swahili = "sw",
     kiswahili = "sw", somali = "so", amharic = "am", tigrinya = "ti",
     oromo = "om", oromiffa = "om", bengali = "bn", bangla = "bn",
     burmese = "my", hindi = "hi", urdu = "ur", pashto = "ps", dari = "prs",
     persian = "fa", farsi = "fa", ukrainian = "uk", russian = "ru",
     turkish = "tr", kinyarwanda = "rw", kirundi = "rn", lingala = "ln",
-    hausa = "ha")
+    hausa = "ha", portugues = "pt")
+  # names set as strings: non-ASCII names in c() do not parse in a C locale
+  native <- c("ar", "bn")
+  names(native) <- c("\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
+                     "\u09ac\u09be\u0982\u09b2\u09be")
+  c(out, native)
 }
 
 #' Match a requested language against the detected ones

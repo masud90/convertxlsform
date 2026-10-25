@@ -22,8 +22,27 @@ test_that("English and French tables have the same names", {
   expect_true(any(startsWith(names(en), "legend")))
 })
 
+test_that("every built-in table has the English names and placeholders", {
+  en <- .cxf_strings("en")
+  for (code in c("fr", "es", "pt", "ar", "bn", "sw")) {
+    s <- .cxf_strings(code)
+    expect_equal(names(s), names(en), info = code)
+    expect_true(all(vapply(s, function(v) is.character(v) && length(v) == 1L &&
+                             nzchar(v), NA)), info = code)
+    expect_equal(lengths(regmatches(s$range_steps,
+                                    gregexpr("%s", s$range_steps,
+                                             fixed = TRUE))), 3L, info = code)
+    expect_false(identical(s$ask_if, en$ask_if), info = code)
+  }
+  expect_equal(.cxf_strings("es")$ask_if, "Preguntar si")
+  expect_equal(.cxf_strings("pt-BR")$other_specify, "Outro (especificar)")
+  expect_equal(.cxf_strings("sw")$go_to, "Nenda kwa")
+  expect_equal(.cxf_strings("ar")$page, "\u0635\u0641\u062d\u0629")
+  expect_equal(.cxf_strings("bn")$page, "\u09aa\u09c3\u09b7\u09cd\u09a0\u09be")
+})
+
 test_that("unknown languages fall back to English", {
-  expect_equal(.cxf_strings("bn"), .cxf_strings("en"))
+  expect_equal(.cxf_strings("zu"), .cxf_strings("en"))
   expect_equal(.cxf_strings(NA), .cxf_strings("en"))
   expect_equal(.cxf_strings(NULL), .cxf_strings("en"))
   expect_equal(.cxf_strings("xx"), .cxf_strings("en"))
@@ -63,4 +82,15 @@ test_that("the language code comes from the form", {
   g <- read_quiet(make_form(fdf(type = "text", name = "q",
                                 `label::Klingon` = "Q")))
   expect_equal(.form_lang_code(g), "en")
+  # native names of the languages with built-in phrases
+  native <- c(es = "Espa\u00f1ol", pt = "Portugu\u00eas", sw = "Kiswahili",
+              ar = "\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
+              bn = "\u09ac\u09be\u0982\u09b2\u09be")
+  for (code in names(native)) {
+    nm <- native[[code]]
+    sv <- fdf(type = "text", name = "q", label = "Q")
+    names(sv)[3] <- paste0("label::", nm)
+    h <- read_quiet(make_form(sv), lang = nm)
+    expect_equal(.form_lang_code(h), code, info = code)
+  }
 })

@@ -178,3 +178,36 @@ test_that("name-only headers get an ISO code so lang = 'en' matches", {
   d <- .detect_languages(c("label::Klingon", "label::en"))
   expect_equal(d$code, c(NA, "en"))
 })
+
+test_that("English and native language names give ISO codes", {
+  code <- function(x) .detect_languages(paste0("label::", x))$code
+  expect_equal(code("Spanish"), "es")
+  expect_equal(code("ESPA\u00d1OL"), "es")
+  expect_equal(code("Portugu\u00eas"), "pt")
+  expect_equal(code("\u0627\u0644\u0639\u0631\u0628\u064a\u0629"), "ar")
+  expect_equal(code("\u09ac\u09be\u0982\u09b2\u09be"), "bn")
+  expect_equal(code("\u0420\u0443\u0441\u0441\u043a\u0438\u0439"), "ru")
+  expect_equal(code("T\u00fcrk\u00e7e"), "tr")
+  expect_equal(code("Bahasa  Indonesia"), "id")
+  expect_equal(code("Dari"), "prs")
+  expect_equal(code("kiswahili"), "sw")
+  expect_true(is.na(code("Dinka")))
+  expect_equal(.fold_name(" \u00c0\u00e7\u00c9\u00ef \u00d1\u00f6\u00fc "),
+               "acei nou")
+  # every key is already folded, so it can be found
+  keys <- names(.lang_name_codes())
+  expect_equal(.fold_name(keys), keys)
+  expect_false(anyDuplicated(keys) > 0L)
+})
+
+test_that("a language name matches a header that has a code only", {
+  langs <- .detect_languages(c("label::ar", "label::en"))
+  expect_equal(.match_language(langs, "Arabic"), "ar")
+  expect_equal(.match_language(langs, "\u0627\u0644\u0639\u0631\u0628\u064a\u0629"),
+               "ar")
+  expect_equal(.match_language(langs, "ENGLISH"), "en")
+  expect_true(is.na(.match_language(langs, "French")))
+  # accents and case are ignored when matching names
+  named <- .detect_languages("label::Fran\u00e7ais")
+  expect_equal(.match_language(named, "francais"), "Fran\u00e7ais")
+})

@@ -66,7 +66,22 @@
     go_to = "Go to",
     go_to_end = "Go to end",
     legend_go_to = "Go to: skip to the question shown when that answer is given",
-    entity_list = "Entity list"
+    entity_list = "Entity list",
+    # functions in expressions; %s marks are filled in order
+    string_length = "number of characters in",
+    matches_pattern = "matches the pattern",
+    selected_at = "selected choice no. %s in %s",
+    choice_label_of = "label of the choice in",
+    count_of = "number of entries in",
+    position = "number of the current entry",
+    indexed_repeat = "%s in entry %s of %s",
+    if_then_else = "if %s then %s, otherwise %s",
+    coalesce = "%s, or %s if empty",
+    whole_part_of = "whole part of",
+    rounded = "%s rounded",
+    rounded_to = "%s rounded to %s decimal places",
+    years_since = "years since %s",
+    calculated_value = "a calculated value"
   )
 }
 
@@ -135,7 +150,21 @@
     go_to_end = "Aller \u00e0 la fin",
     legend_go_to = paste("Aller \u00e0 : passer \u00e0 la question indiqu\u00e9e",
                          "quand cette r\u00e9ponse est donn\u00e9e"),
-    entity_list = "Liste d'entit\u00e9s"
+    entity_list = "Liste d'entit\u00e9s",
+    string_length = "nombre de caract\u00e8res de",
+    matches_pattern = "correspond au mod\u00e8le",
+    selected_at = "choix s\u00e9lectionn\u00e9 n\u00b0 %s dans %s",
+    choice_label_of = "libell\u00e9 du choix dans",
+    count_of = "nombre d'occurrences de",
+    position = "num\u00e9ro de l'occurrence en cours",
+    indexed_repeat = "%s dans l'occurrence %s de %s",
+    if_then_else = "si %s alors %s, sinon %s",
+    coalesce = "%s, ou %s si vide",
+    whole_part_of = "partie enti\u00e8re de",
+    rounded = "%s arrondi",
+    rounded_to = "%s arrondi \u00e0 %s d\u00e9cimales",
+    years_since = "ann\u00e9es \u00e9coul\u00e9es depuis %s",
+    calculated_value = "une valeur calcul\u00e9e"
   )
 }
 
@@ -204,7 +233,21 @@
     go_to_end = "Ir al final",
     legend_go_to =
       "Ir a: pasar a la pregunta indicada cuando se da esa respuesta",
-    entity_list = "Lista de entidades"
+    entity_list = "Lista de entidades",
+    string_length = "n\u00famero de caracteres de",
+    matches_pattern = "coincide con el patr\u00f3n",
+    selected_at = "opci\u00f3n marcada n.\u00ba %s en %s",
+    choice_label_of = "etiqueta de la opci\u00f3n en",
+    count_of = "n\u00famero de entradas en",
+    position = "n\u00famero de la entrada actual",
+    indexed_repeat = "%s en la entrada %s de %s",
+    if_then_else = "si %s entonces %s, si no %s",
+    coalesce = "%s, o %s si est\u00e1 en blanco",
+    whole_part_of = "parte entera de",
+    rounded = "%s redondeado",
+    rounded_to = "%s redondeado a %s decimales",
+    years_since = "a\u00f1os desde %s",
+    calculated_value = "un valor calculado"
   )
 }
 
@@ -275,7 +318,21 @@
     legend_go_to = paste(
       "Ir para: passar \u00e0 pergunta indicada quando essa resposta \u00e9",
       "dada"),
-    entity_list = "Lista de entidades"
+    entity_list = "Lista de entidades",
+    string_length = "n\u00famero de caracteres de",
+    matches_pattern = "corresponde ao padr\u00e3o",
+    selected_at = "op\u00e7\u00e3o marcada n.\u00ba %s em %s",
+    choice_label_of = "r\u00f3tulo da op\u00e7\u00e3o em",
+    count_of = "n\u00famero de entradas em",
+    position = "n\u00famero da entrada atual",
+    indexed_repeat = "%s na entrada %s de %s",
+    if_then_else = "se %s ent\u00e3o %s, sen\u00e3o %s",
+    coalesce = "%s, ou %s se estiver em branco",
+    whole_part_of = "parte inteira de",
+    rounded = "%s arredondado",
+    rounded_to = "%s arredondado a %s casas decimais",
+    years_since = "anos desde %s",
+    calculated_value = "um valor calculado"
   )
 }
 
@@ -385,7 +442,44 @@
       "\u0627\u0644\u0625\u062c\u0627\u0628\u0629"),
     entity_list = paste(
       "\u0642\u0627\u0626\u0645\u0629",
-      "\u0627\u0644\u0643\u064a\u0627\u0646\u0627\u062a")
+      "\u0627\u0644\u0643\u064a\u0627\u0646\u0627\u062a"),
+    string_length =
+      "\u0639\u062f\u062f \u0627\u0644\u0623\u062d\u0631\u0641 \u0641\u064a",
+    matches_pattern =
+      "\u064a\u0637\u0627\u0628\u0642 \u0627\u0644\u0646\u0645\u0637",
+    selected_at = paste(
+      "\u0627\u0644\u062e\u064a\u0627\u0631",
+      "\u0627\u0644\u0645\u062d\u062f\u062f \u0631\u0642\u0645 %s \u0641\u064a",
+      "%s"),
+    choice_label_of = paste(
+      "\u062a\u0633\u0645\u064a\u0629 \u0627\u0644\u062e\u064a\u0627\u0631",
+      "\u0641\u064a"),
+    count_of = paste(
+      "\u0639\u062f\u062f",
+      "\u0627\u0644\u0625\u062f\u062e\u0627\u0644\u0627\u062a \u0641\u064a"),
+    position = paste(
+      "\u0631\u0642\u0645 \u0627\u0644\u0625\u062f\u062e\u0627\u0644",
+      "\u0627\u0644\u062d\u0627\u0644\u064a"),
+    indexed_repeat = paste(
+      "%s \u0641\u064a \u0627\u0644\u0625\u062f\u062e\u0627\u0644 %s",
+      "\u0645\u0646 %s"),
+    if_then_else = paste(
+      "\u0625\u0630\u0627 %s \u0641\u0625\u0646 %s\u060c",
+      "\u0648\u0625\u0644\u0627 %s"),
+    coalesce = paste(
+      "%s\u060c \u0623\u0648 %s \u0625\u0630\u0627 \u0643\u0627\u0646",
+      "\u0641\u0627\u0631\u063a\u064b\u0627"),
+    whole_part_of = paste(
+      "\u0627\u0644\u062c\u0632\u0621 \u0627\u0644\u0635\u062d\u064a\u062d",
+      "\u0645\u0646"),
+    rounded = "%s \u0645\u0642\u0631\u0628\u064b\u0627",
+    rounded_to = paste(
+      "%s \u0645\u0642\u0631\u0628\u064b\u0627 \u0625\u0644\u0649 %s",
+      "\u0645\u0646\u0627\u0632\u0644 \u0639\u0634\u0631\u064a\u0629"),
+    years_since =
+      "\u0627\u0644\u0633\u0646\u0648\u0627\u062a \u0645\u0646\u0630 %s",
+    calculated_value =
+      "\u0642\u064a\u0645\u0629 \u0645\u062d\u0633\u0648\u0628\u0629"
   )
 }
 
@@ -500,7 +594,44 @@
       "\u09af\u09be\u09a8"),
     entity_list = paste(
       "\u098f\u09a8\u099f\u09bf\u099f\u09bf",
-      "\u09a4\u09be\u09b2\u09bf\u0995\u09be")
+      "\u09a4\u09be\u09b2\u09bf\u0995\u09be"),
+    string_length =
+      "\u0985\u0995\u09cd\u09b7\u09b0 \u09b8\u0982\u0996\u09cd\u09af\u09be",
+    matches_pattern = paste(
+      "\u098f\u0987",
+      "\u09aa\u09cd\u09af\u09be\u099f\u09be\u09b0\u09cd\u09a8\u09c7\u09b0",
+      "\u09b8\u09be\u09a5\u09c7 \u09ae\u09c7\u09b2\u09c7"),
+    selected_at = paste(
+      "%s \u09a8\u09ae\u09cd\u09ac\u09b0",
+      "\u09a8\u09bf\u09b0\u09cd\u09ac\u09be\u099a\u09bf\u09a4",
+      "\u09ac\u09bf\u0995\u09b2\u09cd\u09aa, %s",
+      "\u09aa\u09cd\u09b0\u09b6\u09cd\u09a8\u09c7"),
+    choice_label_of = paste(
+      "\u09ac\u09bf\u0995\u09b2\u09cd\u09aa\u09c7\u09b0",
+      "\u09b2\u09c7\u09ac\u09c7\u09b2"),
+    count_of = paste(
+      "\u098f\u09a8\u09cd\u099f\u09cd\u09b0\u09bf\u09b0",
+      "\u09b8\u0982\u0996\u09cd\u09af\u09be"),
+    position = paste(
+      "\u09ac\u09b0\u09cd\u09a4\u09ae\u09be\u09a8",
+      "\u098f\u09a8\u09cd\u099f\u09cd\u09b0\u09bf\u09b0",
+      "\u09a8\u09ae\u09cd\u09ac\u09b0"),
+    indexed_repeat = "%s (\u098f\u09a8\u09cd\u099f\u09cd\u09b0\u09bf %s, %s)",
+    if_then_else = paste(
+      "\u09af\u09a6\u09bf %s \u09b9\u09af\u09bc \u09a4\u09ac\u09c7 %s,",
+      "\u09a8\u09be\u09b9\u09b2\u09c7 %s"),
+    coalesce = "%s, \u09ab\u09be\u0981\u0995\u09be \u09b9\u09b2\u09c7 %s",
+    whole_part_of = "\u09aa\u09c2\u09b0\u09cd\u09a3 \u0985\u0982\u09b6",
+    rounded = paste(
+      "%s",
+      "(\u09aa\u09c2\u09b0\u09cd\u09a3\u09b8\u0982\u0996\u09cd\u09af\u09be\u09af\u09bc)"),
+    rounded_to = paste(
+      "%s, \u09a6\u09b6\u09ae\u09bf\u0995\u09c7\u09b0 \u09aa\u09b0 %s",
+      "\u0998\u09b0 \u09aa\u09b0\u09cd\u09af\u09a8\u09cd\u09a4"),
+    years_since = "%s \u09a5\u09c7\u0995\u09c7 \u0995\u09a4 \u09ac\u099b\u09b0",
+    calculated_value = paste(
+      "\u098f\u0995\u099f\u09bf",
+      "\u09b9\u09bf\u09b8\u09be\u09ac\u0995\u09c3\u09a4 \u09ae\u09be\u09a8")
   )
 }
 
@@ -568,7 +699,21 @@
     go_to_end = "Nenda mwisho",
     legend_go_to =
       "Nenda kwa: ruka hadi swali lililoonyeshwa jibu hilo likitolewa",
-    entity_list = "Orodha ya huluki"
+    entity_list = "Orodha ya huluki",
+    string_length = "idadi ya herufi katika",
+    matches_pattern = "inalingana na muundo",
+    selected_at = "chaguo lililochaguliwa Na. %s katika %s",
+    choice_label_of = "lebo ya chaguo katika",
+    count_of = "idadi ya maingizo katika",
+    position = "nambari ya ingizo la sasa",
+    indexed_repeat = "%s katika ingizo %s la %s",
+    if_then_else = "kama %s basi %s, vinginevyo %s",
+    coalesce = "%s, au %s kama ni tupu",
+    whole_part_of = "sehemu kamili ya",
+    rounded = "%s kwa makadirio",
+    rounded_to = "%s kwa makadirio ya desimali %s",
+    years_since = "miaka tangu %s",
+    calculated_value = "thamani iliyokokotolewa"
   )
 }
 
@@ -593,9 +738,13 @@
   } else {
     sub("[-_].*$", "", tolower(trimws(lang_code)))
   }
-  out <- switch(code, fr = .strings_fr(), es = .strings_es(),
+  out <- .strings_en()
+  # a table that lacks newer entries keeps the English ones
+  tbl <- switch(code, fr = .strings_fr(), es = .strings_es(),
                 pt = .strings_pt(), ar = .strings_ar(), bn = .strings_bn(),
-                sw = .strings_sw(), .strings_en())
+                sw = .strings_sw(), NULL)
+  keep <- intersect(names(tbl), names(out))
+  out[keep] <- tbl[keep]
   if (!is.null(overrides)) {
     bad <- setdiff(names(overrides), names(out))
     if (length(bad) > 0L || is.null(names(overrides))) {
@@ -615,7 +764,7 @@
 #' Language code of the form in use ("en" when unknown)
 #'
 #' Taken from the `code` column of `form$languages` for the chosen suffix. A
-#' name alone (for example "French" or "Kiswahili") is looked up in
+#' name alone (for example "French" or "Espa\u00f1ol") is looked up in
 #' `.lang_name_codes()`.
 #' @noRd
 .form_lang_code <- function(form) {
@@ -630,14 +779,8 @@
   }
   code <- langs$code[i]
   if (is.na(code)) {
-    nm <- langs$name[i]
-    if (is.na(nm)) {
-      return("en")
-    }
-    code <- unname(.lang_name_codes()[.fold_name(nm)])
-    if (is.na(code)) {
-      return("en")
-    }
+    code <- .lang_code_from_name(langs$name[i])
+    return(if (is.na(code)) "en" else code)
   }
   sub("[-_].*$", "", tolower(code))
 }

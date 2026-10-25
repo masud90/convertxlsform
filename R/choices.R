@@ -1,4 +1,4 @@
-# Choice lists: the choices sheet, external CSV files, range values and
+# Choice lists: the choices sheet, external CSV and XML files, range values and
 # truncation. ASCII-only source.
 
 #' Suffix of the default language (NA for single-language forms)
@@ -64,10 +64,10 @@
 
 #' Choices for a `*_from_file` question
 #'
-#' A `.csv` file under `media_root` is read; the label column is chosen with
-#' the same rules as the survey sheet (`label::<language>`, then `label`, then
-#' the default language, then any label column, then the `name` column).
-#' `.xml` and other formats are located but not parsed.
+#' A `.csv` or `.xml` file under `media_root` is read; the label column is
+#' chosen with the same rules as the survey sheet (`label::<language>`, then
+#' `label`, then the default language, then any label column, then the `name`
+#' column). Other formats (such as `.geojson`) are located but not parsed.
 #'
 #' @param form A `cxf_form`.
 #' @param file File name as written in the type.
@@ -85,21 +85,20 @@
     return(res(note = "File not found."))
   }
   ext <- tolower(tools::file_ext(path))
-  if (ext != "csv") {
-    return(res(
-      found = TRUE, path = path,
-      note = if (ext == "xml") {
-        "XML choice files are not read."
-      } else {
-        "Only CSV choice files are read."
-      }
-    ))
+  if (!(ext %in% c("csv", "xml"))) {
+    return(res(found = TRUE, path = path,
+               note = "Only CSV and XML choice files are read."))
   }
   df <- tryCatch(
-    suppressWarnings(utils::read.csv(
-      path, fileEncoding = "UTF-8-BOM", colClasses = "character",
-      check.names = FALSE, stringsAsFactors = FALSE, na.strings = character(0)
-    )),
+    if (ext == "csv") {
+      suppressWarnings(utils::read.csv(
+        path, fileEncoding = "UTF-8-BOM", colClasses = "character",
+        check.names = FALSE, stringsAsFactors = FALSE,
+        na.strings = character(0)
+      ))
+    } else {
+      .read_xml_items(path)
+    },
     error = function(e) NULL
   )
   if (is.null(df) || ncol(df) == 0L) {
@@ -128,6 +127,98 @@
   choices <- choices[!is.na(choices$name), , drop = FALSE]
   rownames(choices) <- NULL
   res(choices = choices, found = TRUE, path = path)
+}
+
+#' Replace XML character and entity references
+#' @noRd
+.xml_unescape <- function(x) {
+  num <- function(x, pat, base) {
+    m <- gregexpr(pat, x, perl = TRUE)
+    regmatches(x, m) <- lapply(regmatches(x, m), function(r) {
+      cp <- strtoi(sub(pat, "\\1", r, perl = TRUE), base)
+      vapply(cp, function(k) {
+        if (is.na(k)) "" else intToUtf8(k)
+      }, "")
+    })
+    x
+  }
+  x <- num(x, "&#([0-9]+);", 10L)
+  x <- num(x, "&#[xX]([0-9A-Fa-f]+);", 16L)
+  x <- gsub("&lt;", "<", x, fixed = TRUE)
+  x <- gsub("&gt;", ">", x, fixed = TRUE)
+  x <- gsub("&quot;", "\"", x, fixed = TRUE)
+  x <- gsub("&apos;", "'", x, fixed = TRUE)
+  gsub("&amp;", "&", x, fixed = TRUE)
+}
+
+#' Text of an XML fragment: CDATA kept, tags dropped, references replaced
+#' @noRd
+.xml_text <- function(x) {
+  if (!nzchar(x)) {
+    return("")
+  }
+  parts <- strsplit(x, "<![CDATA[", fixed = TRUE)[[1L]]
+  out <- .xml_unescape(gsub("<[^>]*>", "", parts[1L]))
+  for (p in parts[-1L]) {
+    k <- regexpr("]]>", p, fixed = TRUE)
+    if (k < 0L) stop("unclosed CDATA", call. = FALSE)
+    rest <- substring(p, k + 3L)
+    out <- paste0(out, substr(p, 1L, k - 1L),
+                  .xml_unescape(gsub("<[^>]*>", "", rest)))
+  }
+  out
+}
+
+#' Read the items of an ODK XML choice file
+#'
+#' The file has the shape `<root><item><name>a</name><label>A</label></item>
+#' ...</root>`. Each `item` element becomes a row and each child element a
+#' column (by element name), so the same label rules as for CSV files apply.
+#' Base R only: comments, the XML declaration and CDATA sections are handled;
+#' namespaces and nested elements inside a child are not.
+#'
+#' @param path Path to the file.
+#' @return A data.frame of character columns, or NULL when there are no items.
+#' @noRd
+.read_xml_items <- function(path) {
+  x <- paste(readLines(path, encoding = "UTF-8", warn = FALSE),
+             collapse = "\n")
+  x <- sub("^\ufeff", "", x)
+  # (?s): the lazy matches may span lines
+  x <- gsub("(?s)<!--.*?-->", "", x, perl = TRUE)
+  x <- gsub("(?s)<\\?.*?\\?>", "", x, perl = TRUE)
+  items <- regmatches(x, gregexpr(
+    "(?s)<item\\b[^>]*?(?:/>|>.*?</item[[:space:]]*>)", x, perl = TRUE
+  ))[[1L]]
+  if (length(items) == 0L) {
+    return(NULL)
+  }
+  child_pat <- paste0("(?s)<([A-Za-z_][A-Za-z0-9_.:-]*)\\b[^>]*?",
+                      "(?:/>|>(.*?)</\\1[[:space:]]*>)")
+  rows <- lapply(items, function(it) {
+    body <- sub("^<item\\b[^>]*>", "", it, perl = TRUE)
+    body <- sub("</item[[:space:]]*>$", "", body, perl = TRUE)
+    kids <- regmatches(body, gregexpr(child_pat, body, perl = TRUE))[[1L]]
+    if (length(kids) == 0L) {
+      return(character(0))
+    }
+    whole <- sub("^\\(\\?s\\)", "(?s)^", paste0(child_pat, "$"))
+    nms <- sub(whole, "\\1", kids, perl = TRUE)
+    vals <- sub(whole, "\\2", kids, perl = TRUE)
+    vals <- vapply(vals, .xml_text, "", USE.NAMES = FALSE)
+    stats::setNames(vals, nms)
+  })
+  cols <- unique(unlist(lapply(rows, names), use.names = FALSE))
+  if (length(cols) == 0L) {
+    return(NULL)
+  }
+  out <- lapply(cols, function(cl) {
+    vapply(rows, function(r) {
+      if (cl %in% names(r)) r[[cl]] else NA_character_
+    }, "")
+  })
+  names(out) <- cols
+  as.data.frame(out, stringsAsFactors = FALSE, optional = TRUE)
 }
 
 #' Layout of a choice list on paper

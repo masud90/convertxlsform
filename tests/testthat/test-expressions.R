@@ -167,11 +167,10 @@ test_that("unknown functions and odd syntax fall back to substitution only", {
   skip_if_no_writexl()
   f <- small_form()
   h <- function(x, field = "relevant") .humanize_expr(x, f, field)
-  expect_equal(h("regex(., '^a')", "constraint"), "regex(., '^a')")
-  expect_equal(h("if(${hh_size} > 2, 1, 0) = 1"),
-               "if(Q3 (hh_size) > 2, 1, 0) = 1")
-  expect_equal(h("string-length(${t2}) > 3 and ${consent} = 'yes'"),
-               "string-length(Q4.2 (t2)) > 3 and Q1 (consent) = 'yes'")
+  expect_equal(h("substr(., 0, 1) = 'a'", "constraint"),
+               "substr(., 0, 1) = 'a'")
+  expect_equal(h("format-date(${t2}, '%Y') = '2020' and ${consent} = 'yes'"),
+               "format-date(Q4.2 (t2), '%Y') = '2020' and Q1 (consent) = 'yes'")
   expect_equal(h("/data/x = 1"), "/data/x = 1")
   expect_equal(h("(${hh_size} > 2"), "(Q3 (hh_size) > 2")
   expect_equal(h("${hh_size} >"), "Q3 (hh_size) >")
@@ -179,8 +178,11 @@ test_that("unknown functions and odd syntax fall back to substitution only", {
   expect_equal(h("count-selected(${assets}, 1)"),
                "count-selected(Q2 (assets), 1)")
   expect_equal(h("${hh_size} > 2 or ?"), "Q3 (hh_size) > 2 or ?")
-  expect_equal(h("pulldata('a', 'b', 'c', ${consent})"),
-               "pulldata('a', 'b', 'c', Q1 (consent))")
+  # a known function with the wrong number of arguments
+  expect_equal(h("string-length(${t2}, 2) > 3"),
+               "string-length(Q4.2 (t2), 2) > 3")
+  # a path inside position() or count()
+  expect_equal(h("position(../x) = 1"), "position(../x) = 1")
 })
 
 test_that("NA and blank input", {
@@ -225,10 +227,11 @@ test_that("choice labels follow the chosen language", {
                       .cxf_strings("bn")$is, " "))
   expect_false(identical(.humanize_expr(x, en, "relevant"),
                          .humanize_expr(x, bn, "relevant")))
-  # the multilang example's long constraint is left as written
+  # the multilang example's constraint uses if()
   con <- en$survey$constraint[which(en$survey$name == "asset_owned")]
   out <- .humanize_expr(con, en, "constraint")
-  expect_match(out, "^if\\(selected\\(Q4.1 \\(asset_owned\\), '-98'\\)")
+  expect_match(out, "^if Q4.1 \\(asset_owned\\) includes \"Refused to respond\"")
+  expect_match(out, ", otherwise true$")
 })
 
 test_that("simple numeric ranges are described", {
@@ -276,8 +279,8 @@ test_that("show_variable_names switches between Q3 and Q3 (name)", {
   # unnumbered and unknown references keep the name either way
   expect_equal(off("${calc} > 2"), "calc > 2")
   # the verbatim fallback is substituted the same way
-  expect_equal(off("regex(${t2}, 'a')"), "regex(Q4.2, 'a')")
-  expect_equal(on("regex(${t2}, 'a')"), "regex(Q4.2 (t2), 'a')")
+  expect_equal(off("substr(${t2}, 0, 1)"), "substr(Q4.2, 0, 1)")
+  expect_equal(on("substr(${t2}, 0, 1)"), "substr(Q4.2 (t2), 0, 1)")
   v <- .humanize_exprs(c("${hh_size} > 2", "${hh_size}"), f, "relevant",
                        show_variable_names = FALSE)
   expect_equal(v, c("Q3 > 2", "Q3"))
@@ -286,7 +289,7 @@ test_that("show_variable_names switches between Q3 and Q3 (name)", {
 test_that("with_fallback flags expressions shown as written", {
   skip_if_no_writexl()
   f <- small_form()
-  r <- .humanize_exprs(c("${hh_size} > 2", "regex(., 'a')", NA), f,
+  r <- .humanize_exprs(c("${hh_size} > 2", "substr(., 0, 1) = 'a'", NA), f,
                        "constraint", with_fallback = TRUE)
   expect_named(r, c("text", "fallback"))
   expect_equal(r$fallback, c(FALSE, TRUE, FALSE))
@@ -330,4 +333,93 @@ test_that("the form language selects the strings by default", {
   x <- "${consent} = ''"
   expect_match(.humanize_expr(x, fr, "relevant"), "est vide$")
   expect_match(.humanize_expr(x, en, "relevant"), "is empty$")
+})
+
+test_that("common XLSForm functions are written in plain language", {
+  skip_if_no_writexl()
+  f <- small_form()
+  h <- function(x, field = "relevant") .humanize_expr(x, f, field)
+  # constraints on text
+  expect_equal(h("string-length(.) <= 10", "constraint"),
+               "number of characters in the answer <= 10")
+  expect_equal(h("regex(., '^[0-9]{10}$')", "constraint"),
+               "the answer matches the pattern \"^[0-9]{10}$\"")
+  expect_equal(h("regex(${t2}, ${t1})"), "Q4.2 (t2) matches the pattern Q4.1 (t1)")
+  # choices
+  expect_equal(h("selected-at(${assets}, 0) = 'tv'"),
+               "selected choice no. 1 in Q2 (assets) = \"tv\"")
+  expect_equal(h("jr:choice-name(${consent}, '${consent}')"),
+               "label of the choice in Q1 (consent)")
+  # repeats
+  expect_equal(h("count(${members}) > 2"),
+               "number of entries in Q5 (members) > 2")
+  expect_equal(h("position(..) = 1"), "number of the current entry = 1")
+  expect_equal(h("position() > 1"), "number of the current entry > 1")
+  expect_equal(h("indexed-repeat(${mname}, ${members}, 1) = 'Ann'"),
+               "Q5.1 (mname) in entry 1 of Q5 (members) = \"Ann\"")
+  # if() and coalesce(), bracketed when they are compared
+  expect_equal(h("if(${hh_size} > 2, 'big', 'small')"),
+               "if Q3 (hh_size) > 2 then \"big\", otherwise \"small\"")
+  expect_equal(h("if(${hh_size} > 2, 1, 0) = 1"),
+               "(if Q3 (hh_size) > 2 then 1, otherwise 0) = 1")
+  expect_equal(h("coalesce(${t1}, ${t2}) = 'x'"),
+               "(Q4.1 (t1), or Q4.2 (t2) if empty) = \"x\"")
+  # numbers and dates
+  expect_equal(h("int((today() - ${hh_size}) div 365.25) >= 18"),
+               "years since Q3 (hh_size) >= 18")
+  expect_equal(h("int((today() - ${hh_size}) div 365) < 5"),
+               "years since Q3 (hh_size) < 5")
+  expect_equal(h("int(${hh_size} div 2) = 1"),
+               "whole part of Q3 (hh_size) / 2 = 1")
+  expect_equal(h("round(${hh_size}) = 2"), "Q3 (hh_size) rounded = 2")
+  expect_equal(h("round(${hh_size}, 1) > 2"),
+               "Q3 (hh_size) rounded to 1 decimal places > 2")
+  expect_equal(h("number(${t1}) > 2"), "Q4.1 (t1) > 2")
+  expect_equal(h(". >= date('2020-01-01')", "constraint"),
+               "the answer >= \"2020-01-01\"")
+  expect_equal(h("decimal-date-time(.) < decimal-date-time(today())",
+                 "constraint"), "the answer < today")
+  # values computed on the device
+  expect_equal(h("pulldata('a', 'b', 'c', ${consent}) = 'x'"),
+               "a calculated value = \"x\"")
+  expect_equal(h("once(uuid())"), "a calculated value")
+})
+
+test_that("unusual uses of the new functions fall back to the raw text", {
+  skip_if_no_writexl()
+  f <- small_form()
+  h <- function(x, field = "relevant") .humanize_expr(x, f, field)
+  # index that is not a whole number literal
+  expect_equal(h("selected-at(${assets}, ${hh_size}) = 'tv'"),
+               "selected-at(Q2 (assets), Q3 (hh_size)) = 'tv'")
+  # the question is not given as '${name}'
+  expect_equal(h("jr:choice-name(${consent}, '/data/consent')"),
+               "jr:choice-name(Q1 (consent), '/data/consent')")
+  # wrong number of arguments
+  expect_equal(h("if(${hh_size} > 2, 1)"), "if(Q3 (hh_size) > 2, 1)")
+  expect_equal(h("indexed-repeat(${mname}, ${members})"),
+               "indexed-repeat(Q5.1 (mname), Q5 (members))")
+  r <- .humanize_exprs("regex(., 'a', 'b')", f, "constraint",
+                       with_fallback = TRUE)
+  expect_true(r$fallback)
+})
+
+test_that("the function wording comes from the string table", {
+  skip_if_no_writexl()
+  f <- small_form()
+  fr <- .cxf_strings("fr")
+  h <- function(x, field = "relevant") {
+    .humanize_expr(x, f, field, strings = fr, show_variable_names = FALSE)
+  }
+  expect_equal(h("string-length(.) <= 10", "constraint"),
+               "nombre de caract\u00e8res de la r\u00e9ponse <= 10")
+  expect_equal(h("if(${hh_size} > 2, 1, 0) = 1"),
+               "(si Q3 > 2 alors 1, sinon 0) = 1")
+  expect_equal(h("int((today() - ${hh_size}) div 365.25) >= 18"),
+               "ann\u00e9es \u00e9coul\u00e9es depuis Q3 >= 18")
+  # an override reaches the template
+  ov <- .cxf_strings("en", list(years_since = "age from %s"))
+  expect_equal(.humanize_expr("int((today() - ${hh_size}) div 365.25)", f,
+                              strings = ov, show_variable_names = FALSE),
+               "age from Q3")
 })

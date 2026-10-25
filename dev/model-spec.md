@@ -119,7 +119,7 @@ Media record: `list(path = <abs path or NA>, file = <as written>, found = lgl, w
 | hidden | `calculation` |
 | unknown | `lines` = 2 |
 
-Choices from file (`*_from_file`): read `media_root/<file>` if it exists (`.csv` via `utils::read.csv(encoding = "UTF-8")`, `.xml` skipped with a note); label column chosen with the same language rules; if missing, `source_found = FALSE` and the renderer prints "Choices from <file>".
+Choices from file (`*_from_file`): read `media_root/<file>` if it exists (`.csv` via `utils::read.csv(encoding = "UTF-8")`, `.xml` parsed in base R, one row per `<item>` and one column per child element); label column chosen with the same language rules; if missing, `source_found = FALSE` and the renderer prints "Choices from <file>".
 `max_choices`: when a list is longer, keep the first `max_choices` and set `truncated = TRUE`.
 
 ## 7. `xlsform_outline()` (exported)
@@ -166,4 +166,4 @@ Renderer (M3):
 15. `cs.family` set on every text run (`fp_text(font.family, cs.family = meta$font_family_cs)`), complex-script size `font_size + 1`.
 16. Template: drop the `cxf Required` and `cxf Code` character styles.
 
-Done in 0.4.0: forward skips ("If No, go to Q5"; `R/skips.R`), roster tables for repeats and grids for `table-list` and `list-nolabel` (`R/render_tables.R`), bilingual stacked output (`lang2`), RTL layout. Still deferred: XML external choices, annex code lists, rendering of read_only calculations and defaults.
+Done in 0.4.0: forward skips ("If No, go to Q5"; `R/skips.R`), roster tables for repeats and grids for `table-list` and `list-nolabel` (`R/render_tables.R`), bilingual stacked output (`lang2`), RTL layout. Still deferred: GeoJSON choice files, annex code lists, rendering of read_only calculations and defaults.

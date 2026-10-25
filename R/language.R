@@ -79,42 +79,76 @@
   suf <- suf[!duplicated(tolower(suf))]
   out <- .parse_lang_suffix(suf)
   need <- is.na(out$code) & !is.na(out$name)
-  out$code[need] <- unname(.lang_name_codes()[.fold_name(out$name[need])])
+  out$code[need] <- .lang_code_from_name(out$name[need])
   out
 }
 
-#' Lower-case a language name and drop accents that matter here
+#' Lower-case a language name and drop the accents of Latin letters
+#'
+#' So `"Fran\u00e7ais"`, `"Portugu\u00eas"` and `"T\u00fcrk\u00e7e"` match
+#' the ASCII keys of `.lang_name_codes()`. Other scripts are only lower-cased.
 #' @noRd
 .fold_name <- function(x) {
   x <- tolower(trimws(x))
-  x <- gsub("\u00e7", "c", x, fixed = TRUE)
-  x <- gsub("\u00e9", "e", x, fixed = TRUE)
-  x <- gsub("\u00f1", "n", x, fixed = TRUE)
-  x <- gsub("\u00ea", "e", x, fixed = TRUE)
-  x
+  x <- gsub("[[:space:]]+", " ", x)
+  # upper case too: tolower() leaves them alone in some locales
+  latin <- paste0("\u00e0\u00e1\u00e2\u00e3\u00e4\u00e5\u00e7\u00e8",
+                  "\u00e9\u00ea\u00eb\u00ec\u00ed\u00ee\u00ef\u00f1",
+                  "\u00f2\u00f3\u00f4\u00f5\u00f6\u00f9\u00fa\u00fb",
+                  "\u00fc")
+  ascii <- "aaaaaaceeeeiiiinooooouuuu"
+  x <- chartr(latin, ascii, x)
+  chartr(toupper(latin), ascii, x)
 }
 
 #' ISO 639-1 codes for common language names
 #'
-#' Used to fill a missing code for headers such as `label::French`. Native
-#' names are listed for the languages with built-in phrases (`.cxf_strings()`).
-#' Languages without an ISO 639-1 code (for example Dinka, Nuer, Dari) are left
-#' out; Dari is listed under its ISO 639-3 code `prs`.
+#' Used to fill a missing code for headers such as `label::French` or
+#' `label::\u09ac\u09be\u0982\u09b2\u09be`, and to match `lang = "Arabic"`
+#' against a header such as `label::ar`. Keys are English and native names
+#' after `.fold_name()` (lower case, Latin accents dropped); native names in
+#' other scripts are `\u` escapes. Languages without an ISO 639-1 code (for
+#' example Dinka, Nuer) are left out; Dari is listed under its ISO 639-3 code
+#' `prs`.
 #' @noRd
 .lang_name_codes <- function() {
-  out <- c(english = "en", french = "fr", francais = "fr", spanish = "es",
-    espanol = "es", portuguese = "pt", arabic = "ar", swahili = "sw",
-    kiswahili = "sw", somali = "so", amharic = "am", tigrinya = "ti",
-    oromo = "om", oromiffa = "om", bengali = "bn", bangla = "bn",
-    burmese = "my", hindi = "hi", urdu = "ur", pashto = "ps", dari = "prs",
-    persian = "fa", farsi = "fa", ukrainian = "uk", russian = "ru",
-    turkish = "tr", kinyarwanda = "rw", kirundi = "rn", lingala = "ln",
-    hausa = "ha", portugues = "pt")
-  # names set as strings: non-ASCII names in c() do not parse in a C locale
-  native <- c("ar", "bn")
-  names(native) <- c("\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
-                     "\u09ac\u09be\u0982\u09b2\u09be")
-  c(out, native)
+  c(
+    english = "en",
+    french = "fr", francais = "fr",
+    spanish = "es", espanol = "es", castellano = "es",
+    portuguese = "pt", portugues = "pt",
+    arabic = "ar",
+    "\u0627\u0644\u0639\u0631\u0628\u064a\u0629" = "ar",
+    "\u0639\u0631\u0628\u064a" = "ar",
+    swahili = "sw", kiswahili = "sw",
+    somali = "so", soomaali = "so", "af-soomaali" = "so",
+    amharic = "am", "\u12a0\u121b\u122d\u129b" = "am",
+    tigrinya = "ti", "\u1275\u130d\u122d\u129b" = "ti",
+    oromo = "om", oromiffa = "om", "afaan oromoo" = "om",
+    hausa = "ha",
+    kinyarwanda = "rw", kirundi = "rn", lingala = "ln",
+    bengali = "bn", bangla = "bn", "\u09ac\u09be\u0982\u09b2\u09be" = "bn",
+    hindi = "hi", "\u0939\u093f\u0928\u094d\u0926\u0940" = "hi",
+    "\u0939\u093f\u0902\u0926\u0940" = "hi",
+    urdu = "ur", "\u0627\u0631\u062f\u0648" = "ur",
+    nepali = "ne", "\u0928\u0947\u092a\u093e\u0932\u0940" = "ne",
+    burmese = "my", myanmar = "my",
+    "\u1019\u103c\u1014\u103a\u1019\u102c" = "my",
+    pashto = "ps", "\u067e\u069a\u062a\u0648" = "ps",
+    dari = "prs", "\u062f\u0631\u06cc" = "prs",
+    persian = "fa", farsi = "fa", "\u0641\u0627\u0631\u0633\u06cc" = "fa",
+    russian = "ru", "\u0440\u0443\u0441\u0441\u043a\u0438\u0439" = "ru",
+    ukrainian = "uk",
+    "\u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0430" = "uk",
+    turkish = "tr", turkce = "tr",
+    indonesian = "id", "bahasa indonesia" = "id"
+  )
+}
+
+#' ISO code for language names (NA when unknown)
+#' @noRd
+.lang_code_from_name <- function(x) {
+  unname(.lang_name_codes()[.fold_name(x)])
 }
 
 #' Match a requested language against the detected ones
@@ -129,7 +163,12 @@
   r <- tolower(trimws(requested))
   hit <- tolower(langs$suffix) == r |
     (!is.na(langs$code) & tolower(langs$code) == r) |
-    (!is.na(langs$name) & tolower(langs$name) == r)
+    (!is.na(langs$name) & .fold_name(langs$name) == .fold_name(r))
+  if (!any(hit)) {
+    # a language name for a header with a code only: "Arabic" for label::ar
+    code <- .lang_code_from_name(r)
+    hit <- !is.na(code) & !is.na(langs$code) & tolower(langs$code) == code
+  }
   if (any(hit)) langs$suffix[which(hit)[1L]] else NA_character_
 }
 

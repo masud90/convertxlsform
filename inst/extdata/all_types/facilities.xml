@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item>
+    <name>school</name>
+    <label>School</label>
+  </item>
+  <item>
+    <name>clinic</name>
+    <label>Health centre &amp; pharmacy</label>
+  </item>
+  <item>
+    <name>market</name>
+    <label>Market</label>
+  </item>
+  <item>
+    <name>water_point</name>
+    <label>Water point</label>
+  </item>
+</root>

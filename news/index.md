@@ -37,6 +37,27 @@
   `osm` (captured on the device), and the pyxform aliases
   `select all that apply`, `select_all_that_apply`, `select1`, `int`,
   `string`, `gps`, `location` and `photo`.
+- More XLSForm functions are written in plain language in skip logic,
+  constraints and choice filters: `string-length()`, `regex()`,
+  `selected-at()`, `jr:choice-name()`, `count()`, `position(..)`,
+  `indexed-repeat()`, `if()`, `coalesce()`, `int()`,
+  [`round()`](https://rdrr.io/r/base/Round.html), `number()`,
+  [`date()`](https://rdrr.io/r/base/date.html) and
+  `decimal-date-time()`. An age check such as
+  `int((today() - ${dob}) div 365.25) >= 18` reads “years since Q3 (dob)
+  \>= 18”. `once()`, `uuid()` and `pulldata()` are shown as “a
+  calculated value”. The wording is in the string tables, so it can be
+  translated or overridden with `strings`
+  ([\#20](https://github.com/masud90/convertxlsform/issues/20)).
+- XML choice files are read for `select_one_from_file` and
+  `select_multiple_from_file`, as CSV files already were
+  ([\#21](https://github.com/masud90/convertxlsform/issues/21)).
+- Language names are recognized in many more headers without a code, in
+  English or in their own script, for example `label::Spanish`,
+  `label::Español` or `label::বাংলা`, so the built-in strings of that
+  language are used. `lang = "Arabic"` also finds a column headed
+  `label::ar`
+  ([\#18](https://github.com/masud90/convertxlsform/issues/18)).
 - New terminal options: `--lang2`, `--no-skips`, `--rtl`, `--ltr`,
   `--font-cs`, `--repeat-layout` and `--roster-rows`.
 

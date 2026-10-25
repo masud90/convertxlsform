@@ -11,7 +11,8 @@
 #'
 #' Token types: `ref` (`${name}`), `str`, `num`, `op` (including the words
 #' `and`, `or`, `div`, `mod`), `func` (a name followed by an opening
-#' parenthesis), `ident` (a bare word), `lparen`, `rparen`, `comma`, `dot`.
+#' parenthesis, with an optional prefix such as `jr:`), `ident` (a bare word),
+#' `lparen`, `rparen`, `comma`, `dot`, `dotdot` (`..`, the parent node).
 #' Aborts on any character it does not know.
 #'
 #' @param s A single expression string.
@@ -49,7 +50,8 @@
       push("num", m[2L], nchar(m[1L]))
     } else if (!is.null(m <- m1("^(!=|>=|<=|=|>|<|\\+|-|\\*)"))) {
       push("op", m[2L], nchar(m[1L]))
-    } else if (!is.null(m <- m1("^[A-Za-z_][A-Za-z0-9_.-]*"))) {
+    } else if (!is.null(m <- m1(paste0("^(?:[A-Za-z_][A-Za-z0-9_-]*:)?",
+                                       "[A-Za-z_][A-Za-z0-9_.-]*")))) {
       w <- m[1L]
       after <- substring(rest, nchar(w) + 1L)
       if (w %in% op_words) {
@@ -65,6 +67,8 @@
       push("rparen", ")", 1L)
     } else if (startsWith(rest, ",")) {
       push("comma", ",", 1L)
+    } else if (startsWith(rest, "..")) {
+      push("dotdot", "..", 2L)
     } else if (startsWith(rest, ".")) {
       push("dot", ".", 1L)
     } else {
@@ -117,6 +121,7 @@
       str = list(t = "str", value = t$value),
       num = list(t = "num", text = t$value),
       dot = list(t = "dot"),
+      dotdot = list(t = "dotdot"),
       ident = list(t = "ident", text = t$value),
       func = {
         expect("lparen")
@@ -312,7 +317,15 @@
   }
   txt <- switch(op, "!=" = ctx$s$is_not, div = "/", and = ctx$s$and,
                 or = ctx$s$or, op)
-  paste(r(n$l), txt, r(n$r))
+  # "if ... otherwise ..." and "..., or ... if empty" need brackets as operands
+  wrap <- function(x) {
+    out <- r(x)
+    if (x$t == "call" && x$fn %in% c("if", "coalesce")) {
+      out <- paste0("(", out, ")")
+    }
+    out
+  }
+  paste(wrap(n$l), txt, wrap(n$r))
 }
 
 #' Render `selected(a, b)`, optionally negated
@@ -331,35 +344,136 @@
   paste(.hx_render(a, ctx, field, cur), verb, rhs)
 }
 
+#' Is a node `today() - x` ? Returns `x`, or NULL
+#' @noRd
+.hx_today_minus <- function(n) {
+  while (n$t == "paren") n <- n$x
+  if (n$t == "bin" && n$op == "-" && n$l$t == "call" && n$l$fn == "today" &&
+      length(n$l$args) == 0L) n$r else NULL
+}
+
+#' Render `int(x)`; `int((today() - x) div 365.25)` reads as an age
+#' @noRd
+.hx_int <- function(a, ctx, field, cur) {
+  b <- a
+  while (b$t == "paren") b <- b$x
+  if (b$t == "bin" && b$op == "div" && b$r$t == "num" &&
+      as.numeric(b$r$text) %in% c(365, 365.25) &&
+      !is.null(x <- .hx_today_minus(b$l))) {
+    return(sprintf(ctx$s$years_since, .hx_render(x, ctx, field, cur)))
+  }
+  paste(ctx$s$whole_part_of, .hx_render(a, ctx, field, cur))
+}
+
 #' Render a function call
+#'
+#' Functions that are not listed, or have an unexpected number of arguments,
+#' raise an error so the expression is shown as written.
 #' @noRd
 .hx_call <- function(n, ctx, field, cur) {
   fn <- n$fn
   args <- n$args
   na <- length(args)
+  arity <- function(k) if (!(na %in% k)) stop("bad arity", call. = FALSE)
+  r <- function(x) .hx_render(x, ctx, field, cur)
   switch(
     fn,
     selected = .hx_selected(n, ctx, field, cur),
     "count-selected" = {
-      if (na != 1L) stop("bad arity", call. = FALSE)
-      paste(ctx$s$number_selected_in, .hx_render(args[[1L]], ctx, field, cur))
+      arity(1L)
+      paste(ctx$s$number_selected_in, r(args[[1L]]))
     },
     not = {
-      if (na != 1L) stop("bad arity", call. = FALSE)
+      arity(1L)
       a <- args[[1L]]
       if (a$t == "call" && a$fn == "selected") {
         .hx_selected(a, ctx, field, cur, negate = TRUE)
       } else if (a$t == "bin" && a$op %in% c("=", "!=")) {
         .hx_bin(a, ctx, field, cur, negate = TRUE)
       } else {
-        paste0(ctx$s$not, " (", .hx_render(a, ctx, field, cur), ")")
+        paste0(ctx$s$not, " (", r(a), ")")
       }
     },
     today = , now = , "true" = , "false" = {
-      if (na != 0L) stop("bad arity", call. = FALSE)
+      arity(0L)
       switch(fn, today = ctx$s$today, now = ctx$s$now, "true" = ctx$s$true,
              "false" = ctx$s$false, fn)
     },
+    "string-length" = {
+      arity(1L)
+      paste(ctx$s$string_length, r(args[[1L]]))
+    },
+    regex = {
+      arity(2L)
+      p <- args[[2L]]
+      pat <- if (p$t == "str") .hx_quote(p$value, ctx$s$empty) else r(p)
+      paste(r(args[[1L]]), ctx$s$matches_pattern, pat)
+    },
+    "selected-at" = {
+      arity(2L)
+      k <- args[[2L]]
+      if (k$t != "num" || grepl(".", k$text, fixed = TRUE)) {
+        stop("index is not a whole number", call. = FALSE)
+      }
+      sprintf(ctx$s$selected_at, as.integer(k$text) + 1L, r(args[[1L]]))
+    },
+    "jr:choice-name" = {
+      arity(2L)
+      q <- args[[2L]]
+      ref <- if (q$t == "str") {
+        sub("^[[:space:]]*\\$\\{[[:space:]]*([^}]*?)[[:space:]]*\\}[[:space:]]*$",
+            "\\1", q$value, perl = TRUE)
+      } else {
+        NA_character_
+      }
+      if (q$t != "str" || identical(ref, q$value) || !nzchar(ref)) {
+        stop("question is not a ${name} reference", call. = FALSE)
+      }
+      paste(ctx$s$choice_label_of, .hx_ref(ref, ctx))
+    },
+    count = {
+      arity(1L)
+      paste(ctx$s$count_of, r(args[[1L]]))
+    },
+    position = {
+      arity(0:1)
+      if (na == 1L && args[[1L]]$t != "dotdot") {
+        stop("position() of a path", call. = FALSE)
+      }
+      ctx$s$position
+    },
+    "indexed-repeat" = {
+      arity(3L)
+      sprintf(ctx$s$indexed_repeat, r(args[[1L]]), r(args[[3L]]),
+              r(args[[2L]]))
+    },
+    "if" = {
+      arity(3L)
+      sprintf(ctx$s$if_then_else, r(args[[1L]]), r(args[[2L]]),
+              r(args[[3L]]))
+    },
+    coalesce = {
+      arity(2L)
+      sprintf(ctx$s$coalesce, r(args[[1L]]), r(args[[2L]]))
+    },
+    int = {
+      arity(1L)
+      .hx_int(args[[1L]], ctx, field, cur)
+    },
+    round = {
+      arity(1:2)
+      if (na == 1L) {
+        sprintf(ctx$s$rounded, r(args[[1L]]))
+      } else {
+        sprintf(ctx$s$rounded_to, r(args[[1L]]), r(args[[2L]]))
+      }
+    },
+    # type conversions read as their argument
+    number = , date = , "decimal-date-time" = {
+      arity(1L)
+      r(args[[1L]])
+    },
+    once = , uuid = , pulldata = ctx$s$calculated_value,
     stop("unknown function", call. = FALSE)
   )
 }

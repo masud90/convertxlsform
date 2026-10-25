@@ -13,6 +13,8 @@ the media files by hand. Change the script and regenerate from the project root:
 
 - `all_types.xlsx`: the form, with `survey`, `choices` and `settings` sheets.
 - `villages.csv`: choices for `select_one_from_file`.
+- `facilities.xml`: an ODK XML choice file. The form does not use it; the
+  tests read it to check XML choice files.
 - `household.png`, `tap.png`, `well.png`, `river.png`: images for the intro note
   and the `water_source` choices (`spring` has no image, on purpose).
 - `map.jpg`: question image for the GPS point.

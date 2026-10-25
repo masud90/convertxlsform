@@ -385,6 +385,28 @@ utils::write.csv(items_file, csv_path, row.names = FALSE,
                  fileEncoding = "UTF-8")
 cat("Wrote", csv_path, "\n")
 
+# facilities.xml (an ODK XML choice file; not used by the form, read by the
+# tests of select_one_from_file with an .xml file)
+xml_esc <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  gsub(">", "&gt;", x, fixed = TRUE)
+}
+facilities <- data.frame(
+  name = c("school", "clinic", "market", "water_point"),
+  label = c("School", "Health centre & pharmacy", "Market", "Water point"),
+  stringsAsFactors = FALSE
+)
+xml_path <- file.path(out_dir, "facilities.xml")
+writeLines(c(
+  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+  "<root>",
+  sprintf("  <item>\n    <name>%s</name>\n    <label>%s</label>\n  </item>",
+          xml_esc(facilities$name), xml_esc(facilities$label)),
+  "</root>"
+), xml_path, useBytes = TRUE)
+cat("Wrote", xml_path, "\n")
+
 # ---------------------------------------------------------------------------
 # media: small base-graphics pictures, 200 x 150 px
 # ---------------------------------------------------------------------------

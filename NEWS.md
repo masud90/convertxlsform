@@ -9,6 +9,9 @@
 - Right-to-left layout. Forms in Arabic or Hebrew are laid out right to left: paragraphs, tables and the page. `rtl = TRUE` or `FALSE` (`--rtl`, `--ltr`) overrides the detection.
 - The `entities` sheet of ODK entity forms is read. The entity lists are named in the front matter, and with `show_variable_names = TRUE` a question's `save_to` property is shown next to its name.
 - More XLSForm types and spellings: `background-geopoint` (hidden), `osm` (captured on the device), and the pyxform aliases `select all that apply`, `select_all_that_apply`, `select1`, `int`, `string`, `gps`, `location` and `photo`.
+- More XLSForm functions are written in plain language in skip logic, constraints and choice filters: `string-length()`, `regex()`, `selected-at()`, `jr:choice-name()`, `count()`, `position(..)`, `indexed-repeat()`, `if()`, `coalesce()`, `int()`, `round()`, `number()`, `date()` and `decimal-date-time()`. An age check such as `int((today() - ${dob}) div 365.25) >= 18` reads "years since Q3 (dob) >= 18". `once()`, `uuid()` and `pulldata()` are shown as "a calculated value". The wording is in the string tables, so it can be translated or overridden with `strings` (#20).
+- XML choice files are read for `select_one_from_file` and `select_multiple_from_file`, as CSV files already were (#21).
+- Language names are recognized in many more headers without a code, in English or in their own script, for example `label::Spanish`, `label::Español` or `label::বাংলা`, so the built-in strings of that language are used. `lang = "Arabic"` also finds a column headed `label::ar` (#18).
 - New terminal options: `--lang2`, `--no-skips`, `--rtl`, `--ltr`, `--font-cs`, `--repeat-layout` and `--roster-rows`.
 
 ## Bug fixes

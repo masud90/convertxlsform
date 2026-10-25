@@ -63,4 +63,27 @@ test_that("the language code comes from the form", {
   g <- read_quiet(make_form(fdf(type = "text", name = "q",
                                 `label::Klingon` = "Q")))
   expect_equal(.form_lang_code(g), "en")
+  # other names, in English or in their own script, any capitalization
+  sv <- fdf(type = "text", name = "q", a = "P", b = "S")
+  names(sv)[3:4] <- c("label::SPANISH",
+                      "label::\u0627\u0644\u0639\u0631\u0628\u064a\u0629")
+  h <- read_quiet(make_form(sv), lang = "Arabic")
+  expect_equal(.form_lang_code(h), "ar")
+  expect_equal(.form_lang_code(read_quiet(make_form(
+    fdf(type = "text", name = "q", `label::SPANISH` = "P")))), "es")
+  # the name is looked up even when the languages table has no code
+  h$languages$code <- NA_character_
+  expect_equal(.form_lang_code(h), "ar")
+})
+
+test_that("a table without newer entries keeps the English ones", {
+  en <- .cxf_strings("en")
+  fr <- .cxf_strings("fr")
+  # same names, in the same order, for every built-in table
+  expect_equal(names(fr), names(en))
+  local_mocked_bindings(.strings_fr = function() list(ask_if = "Poser si"))
+  part <- .cxf_strings("fr")
+  expect_equal(names(part), names(en))
+  expect_equal(part$ask_if, "Poser si")
+  expect_equal(part$years_since, en$years_since)
 })

@@ -438,8 +438,8 @@ test_that("constraint text: message, humanized, or dropped", {
   survey <- fdf(
     type = rep("integer", 4), name = c("a", "b", "c", "d"),
     label = c("A", "B", "C", "D"),
-    constraint = c(". >= 0", ". >= 0", "regex(., '^[0-9]+$')",
-                   "regex(., '^[0-9]+$')"),
+    constraint = c(". >= 0", ". >= 0", "substr(., 0, 2) = '07'",
+                   "substr(., 0, 2) = '07'"),
     constraint_message = c(NA, "Must be positive", NA, "Digits only")
   )
   f <- read_quiet(make_form(survey))
@@ -450,7 +450,7 @@ test_that("constraint text: message, humanized, or dropped", {
   expect_equal(ct(off, "b"), "Must be positive")
   # verbatim fallback without a message: dropped unless names are shown
   expect_true(is.na(ct(off, "c")))
-  expect_equal(ct(on, "c"), "regex(., '^[0-9]+$')")
+  expect_equal(ct(on, "c"), "substr(., 0, 2) = '07'")
   expect_equal(ct(off, "d"), "Digits only")
   # the range text still comes from the expression
   expect_equal(block_named(off, "b")$answer$range_text, "at least 0")
@@ -460,11 +460,12 @@ test_that("verbatim relevant expressions are kept", {
   skip_if_no_writexl()
   survey <- fdf(
     type = c("integer", "text"), name = c("n", "q"), label = c("N", "Q"),
-    relevant = c(NA, "string-length(${n}) > 3")
+    relevant = c(NA, "substr(${n}, 0, 1) = '9'")
   )
   f <- read_quiet(make_form(survey))
   off <- .build_model(f, test_opts(show_variable_names = FALSE))
-  expect_equal(block_named(off, "q")$relevant_text, "string-length(Q1) > 3")
+  expect_equal(block_named(off, "q")$relevant_text,
+               "substr(Q1, 0, 1) = '9'")
 })
 
 test_that("repeat_count_value is numeric for constant counts", {
